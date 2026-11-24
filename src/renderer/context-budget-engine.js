@@ -3,6 +3,8 @@
 
   const DEFAULT_MIN_TOKENS = 16384;
   const DEFAULT_MAX_TOKENS = 2097152;
+  // Gate 3A (utils.GetCheckpointConfig) stock binary local clamp (0x3e800 = 256,000);
+  // distinct from Gate 3B remote experiment policy (e.g. official 512K rollout).
   const STOCK_DEFAULT_CLAMP_TOKENS = 256000;
   const DEFAULT_CONFIRM_TIMEOUT_MS = 45000;
 
@@ -728,7 +730,7 @@
     } else if (runtimePolicy.runtimeMode === 'fixed' && currentClientLimitTokens !== null) {
       policyNote = `当前客户端运行于固定限制 ${currentClientLimitTokens.toLocaleString('en-US')} tokens`;
     } else if (runtimePolicy.runtimeMode === 'default') {
-      policyNote = '当前客户端运行于默认 256,000 tokens 限制';
+      policyNote = '当前客户端运行于官方默认策略（底层本地钳位 256,000 tokens）';
     } else if (runtimePolicy.runtimeMode === 'dynamic') {
       policyNote = '当前客户端已开启 Dynamic 动态跟随，按模型自身上限裁剪';
     }

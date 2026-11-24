@@ -551,3 +551,38 @@ test('meter-cli-unlock patches offersContextWindow + AGY_CLI_AUTO_COMPACT_OVERRI
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('syncExternalContextConfigs writes canonical mode values to context-mode.json without legacy 983k/256k aliases', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hakimi-ctx-mode-'));
+  try {
+    const stateDir = path.join(tmp, 'state');
+    const modeFile = path.join(stateDir, 'context-mode.json');
+
+    contextUnlock.syncExternalContextConfigs('dynamic', null, { stateDir, syncCliConfigs: false });
+    const dyn = JSON.parse(fs.readFileSync(modeFile, 'utf8'));
+    assert.equal(dyn.mode, 'dynamic');
+    assert.equal(dyn.effectiveMode, 'dynamic');
+    assert.equal(dyn.limitTokens, null);
+    assert.equal(dyn.floor, null);
+    assert.equal(dyn.label, 'dynamic');
+
+    contextUnlock.syncExternalContextConfigs('fixed', 1000000, { stateDir, syncCliConfigs: false });
+    const fixed = JSON.parse(fs.readFileSync(modeFile, 'utf8'));
+    assert.equal(fixed.mode, 'fixed');
+    assert.equal(fixed.effectiveMode, 'fixed');
+    assert.equal(fixed.limitTokens, 1000000);
+    assert.equal(fixed.floor, 1000000);
+    assert.equal(fixed.limit, 1000000);
+    assert.equal(fixed.label, '1M');
+
+    contextUnlock.syncExternalContextConfigs('default', null, { stateDir, syncCliConfigs: false });
+    const def = JSON.parse(fs.readFileSync(modeFile, 'utf8'));
+    assert.equal(def.mode, 'default');
+    assert.equal(def.effectiveMode, 'default');
+    assert.equal(def.limitTokens, null);
+    assert.equal(def.floor, null);
+    assert.equal(def.label, 'default');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

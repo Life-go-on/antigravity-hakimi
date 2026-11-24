@@ -2144,7 +2144,7 @@
                     <div>最近请求携带 / 后端实际采用：按当前会话与模型轮次严格隔离对照，尚无对应发送时显示「尚无本次验证」。</div>
                     <div>服务端报错上限：仅当请求被服务端拒绝且报错给出明确数字时出现。</div>
                   </li>
-                  <li data-i18n-html="models.details.li5"><strong>工程范围与预设说明</strong>：256,000 / 512,000 / 1,000,000 属于插件预设；合法自定义工程范围为 16,384 – 2,097,152 任意整数 tokens，真实超长请求能否被服务端接受取决于各模型自身配额与风控策略。</li>
+                  <li data-i18n-html="models.details.li5"><strong>工程范围与预设说明</strong>：512,000 / 1,000,000 属于插件预设；合法自定义工程范围为 16,384 – 2,097,152 任意整数 tokens，真实超长请求能否被服务端接受取决于各模型自身配额与风控策略。</li>
                 </ol>
               </div>
 
@@ -2842,6 +2842,7 @@
     'twp.scopeModelPending': { 'zh-CN': '当前模型：待识别', 'zh-TW': '目前模型：待識別', en: 'Current Model: Detecting…' },
     'twp.switchToPerModel': { 'zh-CN': '切分模型', 'zh-TW': '切分模型', en: 'Per-Model' },
     'twp.switchToUnified': { 'zh-CN': '切统一', 'zh-TW': '切統一', en: 'Unified' },
+    'twp.preset.default': { 'zh-CN': '默认', 'zh-TW': '預設', en: 'Default' },
     'twp.preset.dynamic': { 'zh-CN': '动态', 'zh-TW': '動態', en: 'Auto' },
     'twp.moreModels': { 'zh-CN': '⚙️ 自定义数值 / 管理全部模型 ›', 'zh-TW': '⚙️ 自訂數值 / 管理全部模型 ›', en: '⚙️ Custom Limit / All Models ›' },
     'twp.unconfirmedHint': { 'zh-CN': '暂未识别当前聊天模型，请先打开对话或点击下方管理全部模型。', 'zh-TW': '暫未識別目前聊天模型，請先開啟對話或點擊下方管理全部模型。', en: 'Active model not detected yet; open a chat or manage all models below.' },
@@ -3855,6 +3856,8 @@
 
   const DEFAULT_MIN_TOKENS = 16384;
   const DEFAULT_MAX_TOKENS = 2097152;
+  // Gate 3A (utils.GetCheckpointConfig) stock binary local clamp (0x3e800 = 256,000);
+  // distinct from Gate 3B remote experiment policy (e.g. official 512K rollout).
   const STOCK_DEFAULT_CLAMP_TOKENS = 256000;
   const DEFAULT_CONFIRM_TIMEOUT_MS = 45000;
 
@@ -4580,7 +4583,7 @@
     } else if (runtimePolicy.runtimeMode === 'fixed' && currentClientLimitTokens !== null) {
       policyNote = `当前客户端运行于固定限制 ${currentClientLimitTokens.toLocaleString('en-US')} tokens`;
     } else if (runtimePolicy.runtimeMode === 'default') {
-      policyNote = '当前客户端运行于默认 256,000 tokens 限制';
+      policyNote = '当前客户端运行于官方默认策略（底层本地钳位 256,000 tokens）';
     } else if (runtimePolicy.runtimeMode === 'dynamic') {
       policyNote = '当前客户端已开启 Dynamic 动态跟随，按模型自身上限裁剪';
     }
@@ -11679,7 +11682,7 @@
     if (!policy) return '未知';
     if (policy.diskMode === 'dynamic') return 'Dynamic 动态跟随';
     if (policy.diskMode === 'fixed' && policy.diskLimitTokens) return `固定 ${fmt(policy.diskLimitTokens)} tokens`;
-    if (policy.diskMode === 'default') return '默认 256,000 tokens';
+    if (policy.diskMode === 'default') return '官方默认策略';
     if (policy.diskMode === 'partial') return '部分异常';
     return '未知';
   }
@@ -11757,7 +11760,7 @@
           }
         } else if (w.code === 'requires_dynamic_unlock') {
           const cap = w.stockCap || 256000;
-          warnings.push(`目标 ${fmt(w.limitTokens)} 超过当前默认限制 ${fmt(cap)}：未开启 Dynamic 动态模式且未实机证实前，语言服务仍可能将其限制在 ${fmt(cap)} tokens（请点击“保存并应用”）。`);
+          warnings.push(`目标 ${fmt(w.limitTokens)} 超过语言服务底层默认钳位 ${fmt(cap)}：未开启 Dynamic 动态模式且未实机证实前，本地回落仍可能将其限制在 ${fmt(cap)} tokens（请点击“保存并应用”）。`);
         } else if (w.code === 'exceeds_fixed_client_limit') {
           warnings.push(`目标 ${fmt(w.limitTokens)} 超过当前客户端固定限制 ${fmt(w.fixedCap)} tokens：未调整为更高固定值或启用 Dynamic 动态模式前，预计仍将被限制在 ${fmt(w.fixedCap)} tokens。`);
         } else if (w.code === 'unconfirmed_runtime_policy') {
@@ -13036,7 +13039,7 @@
       } else if (runtimePolicy.runtimeMode === 'fixed' && runtimePolicy.currentClientLimitTokens != null) {
         ctxCapClientPolicyEl.textContent = `固定限制 ${fmt(runtimePolicy.currentClientLimitTokens)} tokens`;
       } else {
-        ctxCapClientPolicyEl.textContent = '默认限制 256,000 tokens';
+        ctxCapClientPolicyEl.textContent = '官方默认策略（底层回落 256K）';
       }
     }
     if (ctxCapDefaultEl) {
@@ -13047,7 +13050,7 @@
         } else if (runtimePolicy.runtimeMode === 'fixed') {
           stratNote = `（受固定限制 ${fmt(runtimePolicy.currentClientLimitTokens)} 约束）`;
         } else {
-          stratNote = '（受默认 256,000 约束）';
+          stratNote = '（受底层默认 256,000 钳位约束）';
         }
         ctxCapDefaultEl.textContent = `${fmt(capSummary.currentStrategyDefaultBudget)} tokens${stratNote}`;
       } else if (runtimePolicy && !runtimePolicy.policyKnown) {
@@ -13746,7 +13749,9 @@
 
     const targetLbl = ctxDraft.mode === 'dynamic'
       ? t('twp.preset.dynamic')
-      : formatKShort(ctxDraft.limitTokens || 256000);
+      : ctxDraft.mode === 'default'
+        ? t('models.preset.default')
+        : formatKShort(ctxDraft.limitTokens || 256000);
     const doneMsg = saved.notice
       || (needsRestart ? t('twp.savedNeedRestart', { target: targetLbl }) : t('twp.savedDone', { target: targetLbl }));
     showUnlockResultBox(true, doneMsg, { needsRestart });
@@ -17354,7 +17359,11 @@
       const rp = resolveRuntimeUnlockPolicyClient();
       const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
         ? formatPrefShortPill(pref)
-        : (rp?.runtimeMode === 'dynamic' ? t('twp.preset.dynamic') : formatKShort(rp?.currentClientLimitTokens || 256000));
+        : (rp?.runtimeMode === 'dynamic'
+            ? t('twp.preset.dynamic')
+            : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
+                ? formatKShort(rp.currentClientLimitTokens)
+                : t('twp.preset.default')));
       return {
         scopeMode: 'unified',
         ready: true,
@@ -17399,7 +17408,11 @@
     const pref = pState?.pref || null;
     const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
       ? formatPrefShortPill(pref)
-      : (rp?.runtimeMode === 'dynamic' ? t('twp.preset.dynamic') : formatKShort(rp?.currentClientLimitTokens || 256000));
+      : (rp?.runtimeMode === 'dynamic'
+          ? t('twp.preset.dynamic')
+          : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
+              ? formatKShort(rp.currentClientLimitTokens)
+              : t('twp.preset.default')));
     return {
       scopeMode: 'per_model',
       ready: true,

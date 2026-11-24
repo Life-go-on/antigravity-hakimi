@@ -81,6 +81,7 @@
     'twp.scopeModelPending': { 'zh-CN': '当前模型：待识别', 'zh-TW': '目前模型：待識別', en: 'Current Model: Detecting…' },
     'twp.switchToPerModel': { 'zh-CN': '切分模型', 'zh-TW': '切分模型', en: 'Per-Model' },
     'twp.switchToUnified': { 'zh-CN': '切统一', 'zh-TW': '切統一', en: 'Unified' },
+    'twp.preset.default': { 'zh-CN': '默认', 'zh-TW': '預設', en: 'Default' },
     'twp.preset.dynamic': { 'zh-CN': '动态', 'zh-TW': '動態', en: 'Auto' },
     'twp.moreModels': { 'zh-CN': '⚙️ 自定义数值 / 管理全部模型 ›', 'zh-TW': '⚙️ 自訂數值 / 管理全部模型 ›', en: '⚙️ Custom Limit / All Models ›' },
     'twp.unconfirmedHint': { 'zh-CN': '暂未识别当前聊天模型，请先打开对话或点击下方管理全部模型。', 'zh-TW': '暫未識別目前聊天模型，請先開啟對話或點擊下方管理全部模型。', en: 'Active model not detected yet; open a chat or manage all models below.' },

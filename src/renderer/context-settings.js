@@ -9,7 +9,7 @@
     if (!policy) return '未知';
     if (policy.diskMode === 'dynamic') return 'Dynamic 动态跟随';
     if (policy.diskMode === 'fixed' && policy.diskLimitTokens) return `固定 ${fmt(policy.diskLimitTokens)} tokens`;
-    if (policy.diskMode === 'default') return '默认 256,000 tokens';
+    if (policy.diskMode === 'default') return '官方默认策略';
     if (policy.diskMode === 'partial') return '部分异常';
     return '未知';
   }
@@ -87,7 +87,7 @@
           }
         } else if (w.code === 'requires_dynamic_unlock') {
           const cap = w.stockCap || 256000;
-          warnings.push(`目标 ${fmt(w.limitTokens)} 超过当前默认限制 ${fmt(cap)}：未开启 Dynamic 动态模式且未实机证实前，语言服务仍可能将其限制在 ${fmt(cap)} tokens（请点击“保存并应用”）。`);
+          warnings.push(`目标 ${fmt(w.limitTokens)} 超过语言服务底层默认钳位 ${fmt(cap)}：未开启 Dynamic 动态模式且未实机证实前，本地回落仍可能将其限制在 ${fmt(cap)} tokens（请点击“保存并应用”）。`);
         } else if (w.code === 'exceeds_fixed_client_limit') {
           warnings.push(`目标 ${fmt(w.limitTokens)} 超过当前客户端固定限制 ${fmt(w.fixedCap)} tokens：未调整为更高固定值或启用 Dynamic 动态模式前，预计仍将被限制在 ${fmt(w.fixedCap)} tokens。`);
         } else if (w.code === 'unconfirmed_runtime_policy') {
@@ -1366,7 +1366,7 @@
       } else if (runtimePolicy.runtimeMode === 'fixed' && runtimePolicy.currentClientLimitTokens != null) {
         ctxCapClientPolicyEl.textContent = `固定限制 ${fmt(runtimePolicy.currentClientLimitTokens)} tokens`;
       } else {
-        ctxCapClientPolicyEl.textContent = '默认限制 256,000 tokens';
+        ctxCapClientPolicyEl.textContent = '官方默认策略（底层回落 256K）';
       }
     }
     if (ctxCapDefaultEl) {
@@ -1377,7 +1377,7 @@
         } else if (runtimePolicy.runtimeMode === 'fixed') {
           stratNote = `（受固定限制 ${fmt(runtimePolicy.currentClientLimitTokens)} 约束）`;
         } else {
-          stratNote = '（受默认 256,000 约束）';
+          stratNote = '（受底层默认 256,000 钳位约束）';
         }
         ctxCapDefaultEl.textContent = `${fmt(capSummary.currentStrategyDefaultBudget)} tokens${stratNote}`;
       } else if (runtimePolicy && !runtimePolicy.policyKnown) {
@@ -2076,7 +2076,9 @@
 
     const targetLbl = ctxDraft.mode === 'dynamic'
       ? t('twp.preset.dynamic')
-      : formatKShort(ctxDraft.limitTokens || 256000);
+      : ctxDraft.mode === 'default'
+        ? t('models.preset.default')
+        : formatKShort(ctxDraft.limitTokens || 256000);
     const doneMsg = saved.notice
       || (needsRestart ? t('twp.savedNeedRestart', { target: targetLbl }) : t('twp.savedDone', { target: targetLbl }));
     showUnlockResultBox(true, doneMsg, { needsRestart });

@@ -53,6 +53,9 @@ const SERIALIZER_STOCK_X64 = Buffer.from('4889442470488b8c24a80100008908b8300000
 const SERIALIZER_HEAD_X64 = Buffer.from('4889442470c700', 'hex');
 const SERIALIZER_TAIL_X64 = Buffer.from('90909090b830000000', 'hex');
 
+// Gate 3A (utils.GetCheckpointConfig) stock binary clamp/fallback immediate (0x3e800 = 256,000).
+// Note: Official clients may apply a higher remote default (e.g. 512K) via Gate 3B experiment overrides,
+// but the compiled binary Gate 3A immediate remains 256,000 and must stay exact for binary matching/restoration.
 const DEFAULT_CHECKPOINT_TOKENS = 256000;
 const MIN_ENGINEERING_LIMIT = 16384;
 const MAX_ENGINEERING_LIMIT = 2097152;
@@ -827,10 +830,10 @@ function syncExternalContextConfigs(mode, limitTokens, options = {}) {
     const modeDir = path.dirname(modeFile);
     if (!fs.existsSync(modeDir)) fs.mkdirSync(modeDir, { recursive: true });
     const modePayload = {
-      mode: mode === 'dynamic' ? '983k' : mode === 'fixed' ? '512k' : '256k',
+      mode,
       effectiveMode: mode,
       limitTokens: mode === 'fixed' ? Number(limitTokens) : null,
-      floor: mode === 'fixed' ? Number(limitTokens) : mode === 'dynamic' ? null : DEFAULT_CHECKPOINT_TOKENS,
+      floor: mode === 'fixed' ? Number(limitTokens) : null,
       label: mode === 'dynamic' ? 'dynamic' : mode === 'fixed' ? label : 'default',
       updatedAt: new Date().toISOString(),
     };
@@ -1989,7 +1992,7 @@ function applyUnlock(options = {}) {
 }
 
 /**
- * Restore context window limit to stock 256K.
+ * Restore context window limit to official default policy (Gate 3A stock clamp + Gate 3B remote override).
  * Prioritizes SURGICAL restoration of Gate 3A + Gate 3B so Region Unlock
  * (ValidateAndOnboardAccount) in language_server is NEVER reverted.
  */
@@ -2033,7 +2036,7 @@ function restoreUnlock(options = {}) {
       ok: true,
       alreadyRestored: true,
       syncedConfigs,
-      message: '当前已经处于默认 256K 上下文限制，无需恢复。',
+      message: '当前已经处于官方默认上下文策略，无需恢复。',
     };
   }
 
@@ -2070,7 +2073,7 @@ function restoreUnlock(options = {}) {
       needsRestart: true,
       surgical: true,
       syncedConfigs,
-      message: '已原位恢复默认 256K 上下文限制（已保留地区解锁补丁）！重启后生效。',
+      message: '已原位恢复官方默认上下文策略（已保留地区解锁补丁）！重启后生效。',
     };
   }
 

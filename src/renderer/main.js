@@ -1569,7 +1569,11 @@
       const rp = resolveRuntimeUnlockPolicyClient();
       const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
         ? formatPrefShortPill(pref)
-        : (rp?.runtimeMode === 'dynamic' ? t('twp.preset.dynamic') : formatKShort(rp?.currentClientLimitTokens || 256000));
+        : (rp?.runtimeMode === 'dynamic'
+            ? t('twp.preset.dynamic')
+            : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
+                ? formatKShort(rp.currentClientLimitTokens)
+                : t('twp.preset.default')));
       return {
         scopeMode: 'unified',
         ready: true,
@@ -1614,7 +1618,11 @@
     const pref = pState?.pref || null;
     const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
       ? formatPrefShortPill(pref)
-      : (rp?.runtimeMode === 'dynamic' ? t('twp.preset.dynamic') : formatKShort(rp?.currentClientLimitTokens || 256000));
+      : (rp?.runtimeMode === 'dynamic'
+          ? t('twp.preset.dynamic')
+          : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
+              ? formatKShort(rp.currentClientLimitTokens)
+              : t('twp.preset.default')));
     return {
       scopeMode: 'per_model',
       ready: true,
