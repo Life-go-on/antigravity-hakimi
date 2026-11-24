@@ -303,6 +303,7 @@
   let restoreRequestSeq = 0;
 
   /* @INSERT_DROPDOWN_MODULE */
+  /* @INSERT_MODEL_SWITCHER_MODULE */
   /* @INSERT_MODEL_QUOTA_MODULE */
 
   function renderPlanDetail(ps) {
@@ -2583,6 +2584,13 @@
     toggleModelQuota5hForTest: () => toggleModelQuota5hState(),
     setModelQuotaMinimizedForTest: (val) => setModelQuotaMinimizedState(val),
     getModelQuotaStateForTest: () => getModelQuotaStateSnapshot(),
+    inspectModelSwitcherForTest: () => inspectHostModelSwitcherState(),
+    executeModelSwitchActionForTest: (actionId, opts) => executeModelSwitchAction(actionId, opts),
+    getModelShortcutsForTest: () => sanitizeModelShortcutsConfig(modelShortcutsConfig),
+    setModelShortcutsForTest: (cfg) => saveModelShortcutsConfig(cfg),
+    toggleModelShortcutsPopoverForTest: () => toggleModelShortcutsPopover(),
+    formatShortcutForDisplayForTest: (combo, isMac) => formatShortcutForDisplay(combo, isMac),
+    eventToShortcutComboForTest: (e) => eventToShortcutCombo(e),
     restoreSettingsForTest: () => restoreSettingsFromHost(),
     translateForTest: (key, vars) => t(key, vars),
     applyStaticTranslationsForTest: (rootNode) => applyStaticPanelTranslations(rootNode),
@@ -2628,6 +2636,7 @@
   syncPanelLanguageButtons(currentPanelLanguage);
   applyStaticPanelTranslations(shadow);
   applyStaticPanelTranslations(quotaShadow);
+  if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) applyStaticPanelTranslations(shortcutsShadow);
   renderEnhanceSectionUI();
   void restoreSettingsFromHost();
   installRequestInterceptor();

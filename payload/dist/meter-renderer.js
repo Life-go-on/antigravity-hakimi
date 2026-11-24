@@ -3427,6 +3427,43 @@
       'quota.toggle5h.hide': { 'zh-CN': '收起 5 小时额度（仅显示本周）', 'zh-TW': '收起 5 小時額度（僅顯示本週）', en: 'Hide 5h quota (weekly only)' },
       'quota.minimize': { 'zh-CN': '收起为状态小点', 'zh-TW': '收起為狀態小點', en: 'Minimize to dot' },
       'quota.expand': { 'zh-CN': '展开模型额度', 'zh-TW': '展開模型額度', en: 'Expand model quota' },
+      'quota.effort.prefix': { 'zh-CN': 'Effort', 'zh-TW': 'Effort', en: 'Effort' },
+      'quota.effort.upTip': { 'zh-CN': '提高思考档位 → {next}', 'zh-TW': '提高思考檔位 → {next}', en: 'Increase effort → {next}' },
+      'quota.effort.downTip': { 'zh-CN': '降低思考档位 → {next}', 'zh-TW': '降低思考檔位 → {next}', en: 'Decrease effort → {next}' },
+      'quota.effort.cycleTip': { 'zh-CN': '点击循环切换档位 → {next}', 'zh-TW': '點擊循環切換檔位 → {next}', en: 'Click to cycle effort → {next}' },
+      'quota.effort.currentOnly': { 'zh-CN': '当前思考档位：{effort}', 'zh-TW': '目前思考檔位：{effort}', en: 'Current effort: {effort}' },
+      'quota.effort.atMax': { 'zh-CN': '已是最高档位 · {effort}', 'zh-TW': '已是最高檔位 · {effort}', en: 'Already at max effort · {effort}' },
+      'quota.effort.atMin': { 'zh-CN': '已是最低档位 · {effort}', 'zh-TW': '已是最低檔位 · {effort}', en: 'Already at lowest effort · {effort}' },
+      'quota.effort.none': { 'zh-CN': '当前模型不支持切换 Effort', 'zh-TW': '目前模型不支援切換 Effort', en: 'Current model has no effort levels' },
+      'quota.shortcuts.btnTitle': { 'zh-CN': '模型 / Effort 快捷切换设置', 'zh-TW': '模型 / Effort 快捷切換設定', en: 'Model & Effort shortcuts' },
+      'quota.shortcuts.btnTitleCount': { 'zh-CN': '模型 / Effort 快捷切换设置（已设 {n} 项）', 'zh-TW': '模型 / Effort 快捷切換設定（已設 {n} 項）', en: 'Model & Effort shortcuts ({n} set)' },
+      'quota.shortcuts.title': { 'zh-CN': '快捷切换设置', 'zh-TW': '快捷切換設定', en: 'Quick Switch Shortcuts' },
+      'quota.shortcuts.actionsTitle': { 'zh-CN': '快速切换动作', 'zh-TW': '快速切換動作', en: 'Quick actions' },
+      'quota.shortcuts.presetsTitle': { 'zh-CN': '直达模型 / 档位', 'zh-TW': '直達模型 / 檔位', en: 'Direct model / effort' },
+      'quota.shortcuts.addPreset': { 'zh-CN': '+ 添加', 'zh-TW': '+ 新增', en: '+ Add' },
+      'quota.shortcuts.cancel': { 'zh-CN': '取消', 'zh-TW': '取消', en: 'Cancel' },
+      'quota.shortcuts.confirmAdd': { 'zh-CN': '添加', 'zh-TW': '新增', en: 'Add' },
+      'quota.shortcuts.effortDefault': { 'zh-CN': '默认 / 保持档位', 'zh-TW': '預設 / 保持檔位', en: 'Default / keep effort' },
+      'quota.shortcuts.noModels': { 'zh-CN': '暂未读取到可用模型', 'zh-TW': '暫未讀取到可用模型', en: 'No models available' },
+      'quota.shortcuts.presetsEmpty': { 'zh-CN': '暂无直达快捷键，可点右上角「+ 添加」', 'zh-TW': '暫無直達快捷鍵，可點右上角「+ 新增」', en: 'No direct shortcuts yet. Click "+ Add".' },
+      'quota.shortcuts.action.effortUp': { 'zh-CN': '提高 Effort（↑）', 'zh-TW': '提高 Effort（↑）', en: 'Effort Up (↑)' },
+      'quota.shortcuts.action.effortDown': { 'zh-CN': '降低 Effort（↓）', 'zh-TW': '降低 Effort（↓）', en: 'Effort Down (↓)' },
+      'quota.shortcuts.action.effortCycle': { 'zh-CN': '循环切换 Effort', 'zh-TW': '循環切換 Effort', en: 'Cycle Effort' },
+      'quota.shortcuts.action.modelNext': { 'zh-CN': '切换下一个模型', 'zh-TW': '切換下一個模型', en: 'Next Model' },
+      'quota.shortcuts.action.modelPrev': { 'zh-CN': '切换上一个模型', 'zh-TW': '切換上一個模型', en: 'Previous Model' },
+      'quota.shortcuts.unset': { 'zh-CN': '未设置', 'zh-TW': '未設定', en: 'Not set' },
+      'quota.shortcuts.pressKeys': { 'zh-CN': '请按键…', 'zh-TW': '請按鍵…', en: 'Press keys…' },
+      'quota.shortcuts.clickToRecord': { 'zh-CN': '点击录入快捷键（Esc 取消，Backspace 清空）', 'zh-TW': '點擊錄入快捷鍵（Esc 取消，Backspace 清空）', en: 'Click to record (Esc cancel, Backspace clear)' },
+      'quota.shortcuts.recordingHint': { 'zh-CN': '请按下含 ⌘/⌥/⌃ 的组合键或 F1–F12（Esc 取消，Backspace 清空）', 'zh-TW': '請按下含 ⌘/⌥/⌃ 的組合鍵或 F1–F12（Esc 取消，Backspace 清空）', en: 'Press a combo with Cmd/Alt/Ctrl or F1–F12 (Esc cancel, Backspace clear)' },
+      'quota.shortcuts.errNeedModifier': { 'zh-CN': '请配合 ⌘ / ⌥ / ⌃（或使用 F1–F12），避免与日常输入冲突', 'zh-TW': '請配合 ⌘ / ⌥ / ⌃（或使用 F1–F12），避免與日常輸入衝突', en: 'Include Cmd / Alt / Ctrl (or use F1–F12) to avoid typing conflicts' },
+      'quota.shortcuts.errReserved': { 'zh-CN': '该组合键为系统保留快捷键，请换一个组合', 'zh-TW': '該組合鍵為系統保留快捷鍵，請換一個組合', en: 'Reserved system shortcut; please choose another combo' },
+      'quota.shortcuts.conflictReplaced': { 'zh-CN': '已自动替换原「{prev}」的快捷键', 'zh-TW': '已自動替換原「{prev}」的快捷鍵', en: 'Reassigned from "{prev}"' },
+      'quota.shortcuts.clearOne': { 'zh-CN': '清空此快捷键', 'zh-TW': '清空此快捷鍵', en: 'Clear shortcut' },
+      'quota.shortcuts.deletePreset': { 'zh-CN': '删除此直达项', 'zh-TW': '刪除此直達項', en: 'Remove shortcut' },
+      'quota.shortcuts.clearAll': { 'zh-CN': '全部清空', 'zh-TW': '全部清空', en: 'Clear all' },
+      'quota.shortcuts.footerHint': { 'zh-CN': '默认为空，点击按钮录入组合键', 'zh-TW': '預設為空，點擊按鈕錄入組合鍵', en: 'Empty by default · click any slot to bind' },
+      'quota.shortcuts.modelNotFound': { 'zh-CN': '当前列表未找到模型：{model}', 'zh-TW': '目前清單未找到模型：{model}', en: 'Model unavailable: {model}' },
+      'quota.shortcuts.unavailable': { 'zh-CN': '当前页面暂不支持快捷切换', 'zh-TW': '目前頁面暫不支援快捷切換', en: 'Quick switch unavailable on this view' },
 
       // 订阅与额度详情
       'plan.detail.toggleOpen': { 'zh-CN': '详情 ▼', 'zh-TW': '詳情 ▼', en: 'Details ▼' },
@@ -8084,6 +8121,763 @@
   });
 
   // =========================================================================
+  // 模型与思考强度（Effort）快速切换引擎与快捷键编解码器
+  // 通过宿主 [data-testid="model-selector-trigger"] 的 React Fiber 读取原生
+  // ModelSelectorProvider（selectedModel / setSelectedModel / effortIndex / groups），
+  // 实现零闪烁、零延迟的原生模型与 Effort 切换，不触碰任何提示词或外发请求体。
+  // =========================================================================
+  const MODEL_SHORTCUT_ACTION_IDS = ['effortUp', 'effortDown', 'effortCycle', 'modelNext', 'modelPrev'];
+  const EFFORT_ASC_RANK = {
+    minimal: 1,
+    low: 2,
+    medium: 3,
+    high: 4,
+    xhigh: 5,
+    extra: 6,
+    'extra high': 7,
+    max: 8
+  };
+  const EFFORT_CANONICAL_DISPLAY = {
+    minimal: 'Minimal',
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    xhigh: 'Extra',
+    extra: 'Extra',
+    'extra high': 'Extra High',
+    max: 'Max'
+  };
+  const lastEffortByModelGroup = new Map();
+
+  function isMacPlatform() {
+    try {
+      const plat = (typeof navigator !== 'undefined' && (navigator.platform || navigator.userAgent)) || '';
+      return /Mac|iPhone|iPad|iPod/i.test(plat);
+    } catch {
+      return false;
+    }
+  }
+
+  function normalizeEffortKeyToken(raw) {
+    return String(raw || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+  }
+
+  function formatEffortShortName(effortKey, explicitDisplay = '') {
+    const cleanExplicit = String(explicitDisplay || '').trim();
+    if (cleanExplicit) return cleanExplicit;
+    const norm = normalizeEffortKeyToken(effortKey);
+    if (!norm) return '';
+    if (EFFORT_CANONICAL_DISPLAY[norm]) return EFFORT_CANONICAL_DISPLAY[norm];
+    return norm.replace(/\b[a-z]/g, ch => ch.toUpperCase());
+  }
+
+  function getEffortSortRank(effortKey, explicitOrderIdx = -1) {
+    if (explicitOrderIdx >= 0) return explicitOrderIdx;
+    const norm = normalizeEffortKeyToken(effortKey);
+    return Object.prototype.hasOwnProperty.call(EFFORT_ASC_RANK, norm) ? EFFORT_ASC_RANK[norm] : 99;
+  }
+
+  function findHostModelSelectorContext(triggerEl = null) {
+    const trigger = triggerEl || (typeof peekHostSelectedTrigger === 'function' ? peekHostSelectedTrigger() : null);
+    if (!trigger || typeof trigger !== 'object') return null;
+    try {
+      const fiberKey = Object.keys(trigger).find(
+        k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$')
+      );
+      if (!fiberKey) return null;
+      let fiber = trigger[fiberKey];
+      for (let depth = 0; fiber && depth < 80; depth++, fiber = fiber.return) {
+        const val = fiber.memoizedProps?.value;
+        if (
+          val &&
+          typeof val === 'object' &&
+          typeof val.setSelectedModel === 'function' &&
+          (val.effortIndex instanceof Map || Array.isArray(val.modelOptions) || Array.isArray(val.groups))
+        ) {
+          return val;
+        }
+      }
+    } catch {}
+    return null;
+  }
+
+  function sameModelOption(a, b) {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    if (a.modelId && b.modelId && String(a.modelId) === String(b.modelId)) return true;
+    if (a.label && b.label && String(a.label) === String(b.label)) {
+      if (a.value !== undefined && b.value !== undefined) return String(a.value) === String(b.value);
+      return true;
+    }
+    return false;
+  }
+
+  function buildEffortEntriesFromMap(groupKey, byEffortMap, groupedModelsMap, selectedModel) {
+    const groupedMeta = groupedModelsMap && typeof groupedModelsMap === 'object'
+      ? groupedModelsMap[groupKey]
+      : null;
+    const supportedLevels = Array.isArray(groupedMeta?.supportedThinkingLevels)
+      ? groupedMeta.supportedThinkingLevels
+      : null;
+    const levelDisplayByKey = new Map();
+    const levelOrderByKey = new Map();
+    if (supportedLevels) {
+      supportedLevels.forEach((lvl, idx) => {
+        const suffix = String(lvl?.thinkingSuffix || '').trim();
+        if (!suffix) return;
+        if (lvl.thinkingDisplayName) levelDisplayByKey.set(suffix, String(lvl.thinkingDisplayName).trim());
+        levelOrderByKey.set(suffix, idx);
+      });
+    }
+
+    const entries = [];
+    let seq = 0;
+    for (const [effortKey, opt] of byEffortMap.entries()) {
+      if (!opt) continue;
+      const isSelected = sameModelOption(opt, selectedModel);
+      if (opt.disabled && !isSelected) continue;
+      const keyStr = String(effortKey || '').trim();
+      const explicitIdx = levelOrderByKey.has(keyStr) ? levelOrderByKey.get(keyStr) : -1;
+      const displayName = formatEffortShortName(keyStr, levelDisplayByKey.get(keyStr) || '');
+      entries.push({
+        key: keyStr,
+        label: displayName,
+        option: opt,
+        disabled: Boolean(opt.disabled),
+        _order: explicitIdx >= 0 ? explicitIdx : getEffortSortRank(keyStr, -1),
+        _hasExplicitOrder: explicitIdx >= 0,
+        _seq: seq++
+      });
+    }
+    if (entries.length > 1) {
+      const useExplicit = entries.every(e => e._hasExplicitOrder);
+      entries.sort((a, b) => {
+        if (useExplicit) return a._order - b._order;
+        if (a._order !== b._order) return a._order - b._order;
+        return a._seq - b._seq;
+      });
+    }
+    return {
+      baseLabel: String(groupedMeta?.displayName || '').trim(),
+      entries: entries.map(({ key, label, option, disabled }) => ({ key, label, option, disabled }))
+    };
+  }
+
+  function resolveBaseLabelFromOption(opt, fallbackGroupKey = '') {
+    if (!opt) return String(fallbackGroupKey || '').trim();
+    const g = groupProductSafe({ modelId: opt.modelId || opt.value || opt.label, label: opt.label || '' });
+    return String(g?.productLabel || opt.label || fallbackGroupKey || '').trim();
+  }
+
+  function buildSwitchableModelsFromContext(ctx) {
+    if (!ctx) return [];
+    const selectedModel = ctx.selectedModel || null;
+    const groupedModelsMap = ctx.userStatus?.cascadeModelConfigData?.groupedModels || null;
+    const effortIndex = ctx.effortIndex instanceof Map ? ctx.effortIndex : null;
+
+    // 1. 预先建立 option -> effortGroup 元数据索引
+    const groupMetaByKey = new Map();
+    const optionToGroupKey = new Map();
+    if (effortIndex) {
+      for (const [groupKey, byEffortMap] of effortIndex.entries()) {
+        if (!(byEffortMap instanceof Map) || byEffortMap.size === 0) continue;
+        const built = buildEffortEntriesFromMap(groupKey, byEffortMap, groupedModelsMap, selectedModel);
+        if (!built.entries.length) continue;
+        const firstOpt = built.entries[0].option;
+        const baseLabel = built.baseLabel || resolveBaseLabelFromOption(firstOpt, groupKey);
+        const meta = {
+          id: String(groupKey),
+          baseLabel,
+          efforts: built.entries.length >= 2 ? built.entries : [],
+          allOptions: built.entries.map(e => e.option),
+          defaultOption: built.entries[0].option
+        };
+        groupMetaByKey.set(String(groupKey), meta);
+        for (const opt of byEffortMap.values()) {
+          if (opt) optionToGroupKey.set(opt, String(groupKey));
+        }
+      }
+    }
+
+    const findGroupForOption = (opt) => {
+      if (!opt) return null;
+      if (optionToGroupKey.has(opt)) return groupMetaByKey.get(optionToGroupKey.get(opt)) || null;
+      for (const meta of groupMetaByKey.values()) {
+        if (meta.allOptions.some(o => sameModelOption(o, opt))) return meta;
+      }
+      return null;
+    };
+
+    // 2. 按 Antigravity 原生 groups 顺序收集可切换模型（回退到 modelOptions + customModels）
+    const orderedCandidates = [];
+    if (Array.isArray(ctx.groups) && ctx.groups.length > 0) {
+      for (const grp of ctx.groups) {
+        if (!Array.isArray(grp?.options)) continue;
+        for (const opt of grp.options) {
+          if (opt) orderedCandidates.push(opt);
+        }
+      }
+    } else if (Array.isArray(ctx.modelOptions)) {
+      for (const opt of ctx.modelOptions) {
+        if (opt) orderedCandidates.push(opt);
+      }
+    }
+    if (Array.isArray(ctx.customModels)) {
+      for (const opt of ctx.customModels) {
+        if (opt && !orderedCandidates.some(o => sameModelOption(o, opt))) {
+          orderedCandidates.push(opt);
+        }
+      }
+    }
+
+    const models = [];
+    const seenIds = new Set();
+    const fallbackByProductKey = new Map();
+
+    // 当原生 effortIndex 为空时，按 groupProductSafe 自动归并同产品的不同 Effort 档位
+    if (!effortIndex || effortIndex.size === 0) {
+      for (const opt of orderedCandidates) {
+        if (!opt || (opt.disabled && !sameModelOption(opt, selectedModel))) continue;
+        const g = groupProductSafe({ modelId: opt.modelId || opt.value || opt.label, label: opt.label || '' });
+        if (!g?.productKey || !g.effort) continue;
+        let bucket = fallbackByProductKey.get(g.productKey);
+        if (!bucket) {
+          bucket = { id: g.productKey, baseLabel: g.productLabel || opt.label, entries: [] };
+          fallbackByProductKey.set(g.productKey, bucket);
+        }
+        const effKey = normalizeEffortKeyToken(g.effort);
+        if (!bucket.entries.some(e => e.key === effKey)) {
+          bucket.entries.push({
+            key: effKey,
+            label: formatEffortShortName(effKey, g.effort),
+            option: opt,
+            disabled: Boolean(opt.disabled)
+          });
+        }
+      }
+      for (const bucket of fallbackByProductKey.values()) {
+        bucket.entries.sort((a, b) => getEffortSortRank(a.key) - getEffortSortRank(b.key));
+      }
+    }
+
+    for (const opt of orderedCandidates) {
+      if (!opt) continue;
+      const meta = findGroupForOption(opt);
+      if (meta) {
+        if (seenIds.has(meta.id)) continue;
+        const enabledEfforts = meta.efforts.filter(e => !e.disabled || sameModelOption(e.option, selectedModel));
+        if (meta.efforts.length >= 2 && enabledEfforts.length === 0) continue;
+        if (meta.efforts.length < 2 && opt.disabled && !sameModelOption(opt, selectedModel)) continue;
+        seenIds.add(meta.id);
+        models.push({
+          id: meta.id,
+          baseLabel: meta.baseLabel,
+          efforts: enabledEfforts.length >= 2 ? enabledEfforts : [],
+          defaultOption: enabledEfforts[0]?.option || meta.defaultOption || opt
+        });
+        continue;
+      }
+
+      if (opt.disabled && !sameModelOption(opt, selectedModel)) continue;
+      const g = groupProductSafe({ modelId: opt.modelId || opt.value || opt.label, label: opt.label || '' });
+      const fallbackBucket = g?.productKey ? fallbackByProductKey.get(g.productKey) : null;
+      if (fallbackBucket && fallbackBucket.entries.length >= 2) {
+        if (seenIds.has(fallbackBucket.id)) continue;
+        seenIds.add(fallbackBucket.id);
+        models.push({
+          id: fallbackBucket.id,
+          baseLabel: fallbackBucket.baseLabel,
+          efforts: fallbackBucket.entries,
+          defaultOption: fallbackBucket.entries[0].option
+        });
+        continue;
+      }
+
+      const standaloneId = String(opt.modelId || opt.label || opt.value || '').trim();
+      if (!standaloneId || seenIds.has(standaloneId)) continue;
+      seenIds.add(standaloneId);
+      models.push({
+        id: standaloneId,
+        baseLabel: String(opt.label || standaloneId).trim(),
+        efforts: [],
+        defaultOption: opt
+      });
+    }
+
+    return models;
+  }
+
+  function inspectHostModelSwitcherState(triggerEl = null) {
+    const ctx = findHostModelSelectorContext(triggerEl);
+    const selected = typeof extractHostSelectedModel === 'function' ? extractHostSelectedModel() : null;
+    if (!ctx) {
+      const fallbackEffort = selected?.effort ? formatEffortShortName(selected.effort) : '';
+      return {
+        supported: false,
+        ctx: null,
+        selectedModel: null,
+        currentGroupId: selected?.productKey || null,
+        baseLabel: selected?.productLabel || selected?.rawText || '',
+        effortKey: fallbackEffort ? normalizeEffortKeyToken(fallbackEffort) : null,
+        effortLabel: fallbackEffort,
+        efforts: [],
+        effortIndex: -1,
+        canStepUp: false,
+        canStepDown: false,
+        models: [],
+        modelIndex: -1
+      };
+    }
+
+    const models = buildSwitchableModelsFromContext(ctx);
+    const selectedModel = ctx.selectedModel || null;
+    let modelIndex = -1;
+    let effortIndex = -1;
+    let activeModelGroup = null;
+
+    if (selectedModel) {
+      for (let i = 0; i < models.length; i++) {
+        const m = models[i];
+        if (m.efforts.length > 0) {
+          const eIdx = m.efforts.findIndex(e => sameModelOption(e.option, selectedModel));
+          if (eIdx >= 0) {
+            modelIndex = i;
+            effortIndex = eIdx;
+            activeModelGroup = m;
+            break;
+          }
+        }
+        if (sameModelOption(m.defaultOption, selectedModel)) {
+          modelIndex = i;
+          activeModelGroup = m;
+          break;
+        }
+      }
+    }
+
+    const efforts = activeModelGroup ? activeModelGroup.efforts : [];
+    const activeEffort = effortIndex >= 0 ? efforts[effortIndex] : null;
+    if (activeModelGroup && activeEffort) {
+      lastEffortByModelGroup.set(activeModelGroup.id, activeEffort.key);
+    }
+
+    const baseLabel = activeModelGroup?.baseLabel
+      || (selectedModel ? resolveBaseLabelFromOption(selectedModel) : '')
+      || selected?.productLabel
+      || selected?.rawText
+      || '';
+    const effortKey = activeEffort?.key || (selected?.effort ? normalizeEffortKeyToken(selected.effort) : null);
+    const effortLabel = activeEffort?.label || (selected?.effort ? formatEffortShortName(selected.effort) : '');
+
+    return {
+      supported: true,
+      ctx,
+      selectedModel,
+      currentGroupId: activeModelGroup?.id || null,
+      baseLabel,
+      effortKey,
+      effortLabel,
+      efforts,
+      effortIndex,
+      canStepUp: efforts.length >= 2 && effortIndex >= 0 && effortIndex < efforts.length - 1,
+      canStepDown: efforts.length >= 2 && effortIndex > 0,
+      models,
+      modelIndex
+    };
+  }
+
+  function pickPreferredOptionForModelGroup(targetGroup, preferredEffortKey = '') {
+    if (!targetGroup) return { option: null, effortKey: '', effortLabel: '' };
+    if (!Array.isArray(targetGroup.efforts) || targetGroup.efforts.length === 0) {
+      return { option: targetGroup.defaultOption || null, effortKey: '', effortLabel: '' };
+    }
+    const candidates = [
+      preferredEffortKey,
+      lastEffortByModelGroup.get(targetGroup.id) || ''
+    ].filter(Boolean);
+    for (const want of candidates) {
+      const wantNorm = normalizeEffortKeyToken(want);
+      const hit = targetGroup.efforts.find(
+        e => normalizeEffortKeyToken(e.key) === wantNorm || normalizeEffortKeyToken(e.label) === wantNorm
+      );
+      if (hit && hit.option) {
+        return { option: hit.option, effortKey: hit.key, effortLabel: hit.label };
+      }
+    }
+    const fallback = targetGroup.efforts.find(e => e.option && !e.disabled) || targetGroup.efforts[0];
+    return {
+      option: fallback?.option || targetGroup.defaultOption || null,
+      effortKey: fallback?.key || '',
+      effortLabel: fallback?.label || ''
+    };
+  }
+
+  function applyHostSelectedOption(ctx, option, groupId = '', effortKey = '') {
+    if (!ctx || typeof ctx.setSelectedModel !== 'function' || !option) return false;
+    if (groupId && effortKey) lastEffortByModelGroup.set(groupId, effortKey);
+    ctx.setSelectedModel(option);
+    if (typeof renderModelQuota === 'function') {
+      try { renderModelQuota(true); } catch {}
+      try {
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(() => { if (!state.disposed) renderModelQuota(true); });
+        }
+      } catch {}
+      try {
+        setTimeout(() => { if (!state.disposed) renderModelQuota(true); }, 80);
+      } catch {}
+    }
+    return true;
+  }
+
+  function switchHostEffortStep(delta, opts = {}) {
+    const info = inspectHostModelSwitcherState();
+    if (!info.supported || !info.ctx) {
+      return { ok: false, reason: 'unsupported' };
+    }
+    const { efforts, effortIndex, baseLabel, currentGroupId } = info;
+    if (!efforts.length || efforts.length < 2 || effortIndex < 0) {
+      return { ok: false, reason: 'no_efforts', modelLabel: baseLabel };
+    }
+    const step = delta >= 0 ? 1 : -1;
+    let nextIdx = effortIndex + step;
+    if (opts.wrap) {
+      nextIdx = (effortIndex + step + efforts.length) % efforts.length;
+    } else if (nextIdx >= efforts.length) {
+      return {
+        ok: false,
+        reason: 'at_max',
+        modelLabel: baseLabel,
+        effortKey: efforts[effortIndex].key,
+        effortLabel: efforts[effortIndex].label
+      };
+    } else if (nextIdx < 0) {
+      return {
+        ok: false,
+        reason: 'at_min',
+        modelLabel: baseLabel,
+        effortKey: efforts[effortIndex].key,
+        effortLabel: efforts[effortIndex].label
+      };
+    }
+    const next = efforts[nextIdx];
+    if (!next?.option) return { ok: false, reason: 'no_target' };
+    applyHostSelectedOption(info.ctx, next.option, currentGroupId, next.key);
+    return {
+      ok: true,
+      modelLabel: baseLabel,
+      effortKey: next.key,
+      effortLabel: next.label,
+      index: nextIdx,
+      total: efforts.length
+    };
+  }
+
+  function cycleHostEffort() {
+    return switchHostEffortStep(1, { wrap: true });
+  }
+
+  function switchHostModelStep(delta) {
+    const info = inspectHostModelSwitcherState();
+    if (!info.supported || !info.ctx) {
+      return { ok: false, reason: 'unsupported' };
+    }
+    const { models, modelIndex, effortKey } = info;
+    if (!models.length || models.length < 2) {
+      return { ok: false, reason: 'no_models' };
+    }
+    const step = delta >= 0 ? 1 : -1;
+    const nextIdx = modelIndex >= 0
+      ? (modelIndex + step + models.length) % models.length
+      : (step > 0 ? 0 : models.length - 1);
+    const targetGroup = models[nextIdx];
+    const remembered = lastEffortByModelGroup.get(targetGroup.id) || '';
+    const picked = pickPreferredOptionForModelGroup(targetGroup, remembered || effortKey || '');
+    if (!picked.option) return { ok: false, reason: 'no_target' };
+    applyHostSelectedOption(info.ctx, picked.option, targetGroup.id, picked.effortKey);
+    return {
+      ok: true,
+      modelId: targetGroup.id,
+      modelLabel: targetGroup.baseLabel,
+      effortKey: picked.effortKey,
+      effortLabel: picked.effortLabel
+    };
+  }
+
+  function switchHostModelPreset(preset) {
+    if (!preset || typeof preset !== 'object') return { ok: false, reason: 'invalid_preset' };
+    const info = inspectHostModelSwitcherState();
+    if (!info.supported || !info.ctx) {
+      return { ok: false, reason: 'unsupported' };
+    }
+    const wantId = String(preset.modelKey || '').trim().toLowerCase();
+    const wantLabel = String(preset.modelLabel || '').trim().toLowerCase();
+    const targetGroup = info.models.find(m =>
+      (wantId && m.id.toLowerCase() === wantId) ||
+      (wantLabel && m.baseLabel.toLowerCase() === wantLabel) ||
+      (wantLabel && String(m.defaultOption?.label || '').trim().toLowerCase() === wantLabel)
+    );
+    if (!targetGroup) {
+      return { ok: false, reason: 'model_not_found', modelLabel: preset.modelLabel || preset.modelKey || '' };
+    }
+    const wantEffort = String(preset.effortKey || '').trim();
+    const picked = pickPreferredOptionForModelGroup(targetGroup, wantEffort || info.effortKey || '');
+    if (!picked.option) {
+      return { ok: false, reason: 'no_target', modelLabel: targetGroup.baseLabel };
+    }
+    applyHostSelectedOption(info.ctx, picked.option, targetGroup.id, picked.effortKey);
+    return {
+      ok: true,
+      modelId: targetGroup.id,
+      modelLabel: targetGroup.baseLabel,
+      effortKey: picked.effortKey,
+      effortLabel: picked.effortLabel
+    };
+  }
+
+  // ---- 快捷键编解码、校验与跨平台展示 ----
+  const CODE_TO_KEY_TOKEN = {
+    ArrowUp: 'ArrowUp',
+    ArrowDown: 'ArrowDown',
+    ArrowLeft: 'ArrowLeft',
+    ArrowRight: 'ArrowRight',
+    Space: 'Space',
+    Tab: 'Tab',
+    Enter: 'Enter',
+    Minus: 'Minus',
+    Equal: 'Equal',
+    BracketLeft: 'BracketLeft',
+    BracketRight: 'BracketRight',
+    Backslash: 'Backslash',
+    Semicolon: 'Semicolon',
+    Quote: 'Quote',
+    Backquote: 'Backquote',
+    Comma: 'Comma',
+    Period: 'Period',
+    Slash: 'Slash',
+    Home: 'Home',
+    End: 'End',
+    PageUp: 'PageUp',
+    PageDown: 'PageDown'
+  };
+  const CHAR_TO_CODE_FALLBACK = {
+    ' ': 'Space',
+    '-': 'Minus',
+    '=': 'Equal',
+    '[': 'BracketLeft',
+    ']': 'BracketRight',
+    '\\': 'Backslash',
+    ';': 'Semicolon',
+    "'": 'Quote',
+    '`': 'Backquote',
+    ',': 'Comma',
+    '.': 'Period',
+    '/': 'Slash'
+  };
+  const KEY_TOKEN_DISPLAY_COMMON = {
+    ArrowUp: '↑',
+    ArrowDown: '↓',
+    ArrowLeft: '←',
+    ArrowRight: '→',
+    Space: 'Space',
+    Minus: '-',
+    Equal: '=',
+    BracketLeft: '[',
+    BracketRight: ']',
+    Backslash: '\\',
+    Semicolon: ';',
+    Quote: "'",
+    Backquote: '`',
+    Comma: ',',
+    Period: '.',
+    Slash: '/',
+    PageUp: 'PgUp',
+    PageDown: 'PgDn'
+  };
+  const PURE_MODIFIER_KEYS = new Set([
+    'Meta', 'Control', 'Alt', 'Shift', 'CapsLock', 'OS',
+    'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight',
+    'AltLeft', 'AltRight', 'ShiftLeft', 'ShiftRight'
+  ]);
+
+  function extractCanonicalKeyToken(e) {
+    const code = String(e?.code || '').trim();
+    if (code) {
+      if (/^Key[A-Z]$/.test(code)) return code;
+      if (/^Digit[0-9]$/.test(code)) return code;
+      if (/^F([1-9]|1[0-2])$/.test(code)) return code;
+      if (CODE_TO_KEY_TOKEN[code]) return CODE_TO_KEY_TOKEN[code];
+    }
+    const key = String(e?.key || '').trim();
+    if (!key) return '';
+    if (/^[a-zA-Z]$/.test(key)) return `Key${key.toUpperCase()}`;
+    if (/^[0-9]$/.test(key)) return `Digit${key}`;
+    if (/^F([1-9]|1[0-2])$/i.test(key)) return key.toUpperCase();
+    if (CODE_TO_KEY_TOKEN[key]) return CODE_TO_KEY_TOKEN[key];
+    if (CHAR_TO_CODE_FALLBACK[key]) return CHAR_TO_CODE_FALLBACK[key];
+    return '';
+  }
+
+  function isFunctionKeyToken(token) {
+    return /^F([1-9]|1[0-2])$/.test(String(token || ''));
+  }
+
+  function normalizeShortcutCombo(raw) {
+    if (typeof raw !== 'string') return '';
+    const parts = raw.split('+').map(s => s.trim()).filter(Boolean);
+    if (!parts.length) return '';
+    let hasMeta = false;
+    let hasCtrl = false;
+    let hasAlt = false;
+    let hasShift = false;
+    let keyToken = '';
+    for (const part of parts) {
+      const low = part.toLowerCase();
+      if (low === 'meta' || low === 'cmd' || low === 'command') hasMeta = true;
+      else if (low === 'ctrl' || low === 'control') hasCtrl = true;
+      else if (low === 'alt' || low === 'opt' || low === 'option') hasAlt = true;
+      else if (low === 'shift') hasShift = true;
+      else if (!keyToken) {
+        keyToken = extractCanonicalKeyToken({ code: part, key: part });
+      }
+    }
+    if (!keyToken) return '';
+    if (!hasMeta && !hasCtrl && !hasAlt && !isFunctionKeyToken(keyToken)) return '';
+    const out = [];
+    if (hasMeta) out.push('Meta');
+    if (hasCtrl) out.push('Ctrl');
+    if (hasAlt) out.push('Alt');
+    if (hasShift) out.push('Shift');
+    out.push(keyToken);
+    const combo = out.join('+');
+    if (combo === 'Meta+KeyQ') return '';
+    return combo;
+  }
+
+  function eventToShortcutCombo(e) {
+    if (!e) return { combo: '', valid: false, reason: 'empty' };
+    const rawKey = String(e.key || '');
+    const rawCode = String(e.code || '');
+    const hasMeta = Boolean(e.metaKey);
+    const hasCtrl = Boolean(e.ctrlKey);
+    const hasAlt = Boolean(e.altKey);
+    const hasShift = Boolean(e.shiftKey);
+    const anyMod = hasMeta || hasCtrl || hasAlt || hasShift;
+
+    if (PURE_MODIFIER_KEYS.has(rawKey) || PURE_MODIFIER_KEYS.has(rawCode)) {
+      return { combo: '', valid: false, reason: 'modifier_only' };
+    }
+    if (!anyMod && (rawKey === 'Escape' || rawCode === 'Escape')) {
+      return { combo: '', valid: false, isCancel: true, reason: 'cancel' };
+    }
+    if (!anyMod && (rawKey === 'Backspace' || rawKey === 'Delete' || rawCode === 'Backspace' || rawCode === 'Delete')) {
+      return { combo: '', valid: false, isClear: true, reason: 'clear' };
+    }
+
+    const token = extractCanonicalKeyToken(e);
+    if (!token) {
+      return { combo: '', valid: false, reason: 'unsupported_key' };
+    }
+    if (!hasMeta && !hasCtrl && !hasAlt && !isFunctionKeyToken(token)) {
+      return { combo: '', valid: false, reason: 'need_modifier' };
+    }
+    const parts = [];
+    if (hasMeta) parts.push('Meta');
+    if (hasCtrl) parts.push('Ctrl');
+    if (hasAlt) parts.push('Alt');
+    if (hasShift) parts.push('Shift');
+    parts.push(token);
+    const combo = parts.join('+');
+    if (combo === 'Meta+KeyQ') {
+      return { combo: '', valid: false, reason: 'reserved' };
+    }
+    return { combo, valid: true, reason: '' };
+  }
+
+  function formatShortcutForDisplay(combo, macOverride = null) {
+    const norm = normalizeShortcutCombo(combo);
+    if (!norm) return '';
+    const mac = macOverride === null ? isMacPlatform() : Boolean(macOverride);
+    const parts = norm.split('+');
+    const keyToken = parts.pop() || '';
+    const keyDisp = /^Key([A-Z])$/.test(keyToken)
+      ? keyToken.slice(3)
+      : /^Digit([0-9])$/.test(keyToken)
+        ? keyToken.slice(5)
+        : (keyToken === 'Tab' && mac ? '⇥' : keyToken === 'Enter' && mac ? '↵' : (KEY_TOKEN_DISPLAY_COMMON[keyToken] || keyToken));
+
+    if (mac) {
+      const modOrder = ['Ctrl', 'Alt', 'Shift', 'Meta'];
+      const modSym = { Ctrl: '⌃', Alt: '⌥', Shift: '⇧', Meta: '⌘' };
+      const mods = modOrder.filter(m => parts.includes(m)).map(m => modSym[m]).join('');
+      return `${mods}${keyDisp}`;
+    }
+    const modOrder = ['Ctrl', 'Alt', 'Shift', 'Meta'];
+    const modLabel = { Ctrl: 'Ctrl', Alt: 'Alt', Shift: 'Shift', Meta: 'Win' };
+    const mods = modOrder.filter(m => parts.includes(m)).map(m => modLabel[m]);
+    return [...mods, keyDisp].join('+');
+  }
+
+  function createEmptyModelShortcutsConfig() {
+    return {
+      actions: {
+        effortUp: '',
+        effortDown: '',
+        effortCycle: '',
+        modelNext: '',
+        modelPrev: ''
+      },
+      presets: []
+    };
+  }
+
+  function sanitizeModelShortcutsConfig(raw) {
+    const out = createEmptyModelShortcutsConfig();
+    if (!raw || typeof raw !== 'object') return out;
+    const seen = new Set();
+    const rawActions = raw.actions && typeof raw.actions === 'object' ? raw.actions : {};
+    for (const id of MODEL_SHORTCUT_ACTION_IDS) {
+      const norm = normalizeShortcutCombo(rawActions[id] || '');
+      if (norm && !seen.has(norm)) {
+        out.actions[id] = norm;
+        seen.add(norm);
+      }
+    }
+    if (Array.isArray(raw.presets)) {
+      let seq = 0;
+      for (const item of raw.presets) {
+        if (!item || typeof item !== 'object') continue;
+        const modelKey = String(item.modelKey || '').trim();
+        const modelLabel = String(item.modelLabel || modelKey || '').trim();
+        if (!modelKey && !modelLabel) continue;
+        const effortKey = String(item.effortKey || '').trim();
+        const effortLabel = String(item.effortLabel || (effortKey ? formatEffortShortName(effortKey) : '')).trim();
+        const rawShortcut = normalizeShortcutCombo(item.shortcut || '');
+        const shortcut = (rawShortcut && !seen.has(rawShortcut)) ? rawShortcut : '';
+        if (shortcut) seen.add(shortcut);
+        const id = String(item.id || `preset_${++seq}`).trim();
+        out.presets.push({ id, modelKey: modelKey || modelLabel, modelLabel, effortKey, effortLabel, shortcut });
+        if (out.presets.length >= 20) break;
+      }
+    }
+    return out;
+  }
+
+  function countConfiguredModelShortcuts(cfg) {
+    if (!cfg || typeof cfg !== 'object') return 0;
+    let count = 0;
+    for (const id of MODEL_SHORTCUT_ACTION_IDS) {
+      if (cfg.actions?.[id]) count++;
+    }
+    if (Array.isArray(cfg.presets)) {
+      for (const p of cfg.presets) {
+        if (p?.shortcut) count++;
+      }
+    }
+    return count;
+  }
+
+  // =========================================================================
   // 左下角当前模型额度模块：独立 Shadow DOM 宿主、侧栏流式停靠/收起记忆、双同心环与持久化
   // =========================================================================
   const QUOTA_DOT_OUTER_CIRC = 2 * Math.PI * 7.75;
@@ -8180,14 +8974,15 @@
       backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
       box-shadow:var(--ag-quota-shadow);
     }
-    .model-quota-header{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:18px}
+    .model-quota-header{display:flex;flex-direction:column;gap:4px}
+    .model-quota-title-row{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:18px}
     #model-quota-label{
       min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font-size:11.5px;font-weight:600;letter-spacing:-0.015em;color:var(--ag-quota-text);
     }
     .model-quota-actions{flex-shrink:0;display:inline-flex;align-items:center;gap:2px}
     .model-quota-actions .quota-icon-btn:not(#model-quota-display-mode){opacity:0.55}
-    #model-quota:hover .quota-icon-btn,.model-quota-actions .quota-icon-btn:not(#model-quota-display-mode):focus-visible{opacity:1}
+    #model-quota:hover .quota-icon-btn,.model-quota-actions .quota-icon-btn:not(#model-quota-display-mode):focus-visible,#model-quota-shortcuts-btn[aria-expanded="true"],#model-quota-shortcuts-btn[data-has-shortcuts="true"]{opacity:1}
     .quota-icon-btn{
       position:relative;display:inline-flex;align-items:center;justify-content:center;
       width:18px;height:18px;padding:0;border:0;border-radius:5px;
@@ -8196,7 +8991,7 @@
     }
     #model-quota-display-mode{width:auto;min-width:28px;padding:0 4px;font:inherit;font-size:10px;white-space:nowrap}
     .quota-icon-btn[hidden]{display:none!important}
-    .quota-icon-btn:hover{background:var(--ag-quota-btn-hover);color:var(--ag-quota-text)}
+    .quota-icon-btn:hover,#model-quota-shortcuts-btn[aria-expanded="true"]{background:var(--ag-quota-btn-hover);color:var(--ag-quota-text)}
     .quota-icon-btn svg{width:13px;height:13px;display:block;transition:transform .16s ease}
     #model-quota-toggle-5h[aria-pressed="false"] svg{transform:rotate(180deg)}
     .quota-5h-alert-dot{
@@ -8205,6 +9000,55 @@
     }
     .quota-5h-alert-dot[hidden]{display:none!important}
     .quota-5h-alert-dot[data-level="danger"]{background:var(--ag-quota-danger)}
+    .quota-shortcuts-dot{
+      position:absolute;top:2px;right:2px;width:4px;height:4px;border-radius:999px;
+      background:var(--ag-quota-accent-solid);pointer-events:none;
+    }
+    .quota-shortcuts-dot[hidden]{display:none!important}
+    .model-quota-effort-bar{
+      display:flex;align-items:center;justify-content:space-between;gap:4px;
+      min-height:20px;padding:1px 2px 1px 6px;border-radius:6px;
+      background:rgba(255,255,255,0.04);border:1px solid var(--ag-quota-border);
+    }
+    :host([data-theme="light"]) .model-quota-effort-bar,
+    :host([data-panel-tone="light"]) .model-quota-effort-bar{
+      background:rgba(0,0,0,0.032);
+    }
+    .model-quota-effort-bar[hidden]{display:none!important}
+    .quota-effort-pill{
+      flex:1 1 auto;min-width:0;display:inline-flex;align-items:center;gap:5px;
+      height:18px;padding:0 2px 0 0;border:0;border-radius:4px;
+      background:transparent;color:var(--ag-quota-text);font:inherit;font-size:10.5px;
+      cursor:pointer;text-align:left;transition:color .14s ease;
+    }
+    .quota-effort-pill:disabled{cursor:default;opacity:0.85}
+    .quota-effort-pill:not(:disabled):hover .quota-effort-value{color:var(--ag-quota-accent-solid)}
+    .quota-effort-dots{display:inline-flex;align-items:flex-end;gap:1.5px;flex-shrink:0;height:9px}
+    .quota-effort-dots[hidden]{display:none!important}
+    .quota-effort-dot-bar{
+      width:2px;border-radius:1px;background:var(--ag-quota-track);
+      transition:background-color .14s ease;
+    }
+    .quota-effort-dot-bar.is-on{background:var(--ag-quota-accent-solid)}
+    .quota-effort-prefix{color:var(--ag-quota-muted);font-size:10px;flex-shrink:0}
+    .quota-effort-value{
+      min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      font-weight:600;color:var(--ag-quota-text);
+    }
+    .quota-effort-stepper{
+      flex-shrink:0;display:inline-flex;align-items:center;gap:1px;
+    }
+    .quota-effort-stepper[hidden]{display:none!important}
+    .quota-effort-step-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:18px;height:16px;padding:0;border:0;border-radius:4px;
+      background:transparent;color:var(--ag-quota-sub);cursor:pointer;
+      transition:background-color .12s ease,color .12s ease,opacity .12s ease;
+    }
+    .quota-effort-step-btn:not(:disabled):hover{background:var(--ag-quota-btn-hover);color:var(--ag-quota-text)}
+    .quota-effort-step-btn:not(:disabled):active{transform:scale(0.92)}
+    .quota-effort-step-btn:disabled{opacity:0.28;cursor:not-allowed}
+    .quota-effort-step-btn svg{width:11px;height:11px;display:block}
     .quota-row{margin-top:6px}
     .quota-row[hidden]{display:none!important}
     .quota-row-5h{margin-top:7px}
@@ -8257,17 +9101,41 @@
   </button>
   <div id="model-quota">
     <div class="model-quota-header">
-      <span id="model-quota-label"></span>
-      <span class="model-quota-actions">
-        <button id="model-quota-display-mode" class="quota-icon-btn" type="button"></button>
-        <button id="model-quota-toggle-5h" class="quota-icon-btn" type="button" hidden aria-pressed="true">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
-          <span id="model-quota-5h-alert-dot" class="quota-5h-alert-dot" hidden></span>
+      <div class="model-quota-title-row">
+        <span id="model-quota-label"></span>
+        <span class="model-quota-actions">
+          <button id="model-quota-display-mode" class="quota-icon-btn" type="button"></button>
+          <button id="model-quota-shortcuts-btn" class="quota-icon-btn" type="button" aria-expanded="false" aria-haspopup="dialog" data-has-shortcuts="false">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="1.75" y="3.5" width="12.5" height="9" rx="1.8"></rect>
+              <path d="M4.25 6.5h1M7.5 6.5h1M10.75 6.5h1M4.75 9.5h6.5"></path>
+            </svg>
+            <span id="model-quota-shortcuts-dot" class="quota-shortcuts-dot" hidden></span>
+          </button>
+          <button id="model-quota-toggle-5h" class="quota-icon-btn" type="button" hidden aria-pressed="true">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5L8 10l3.5-3.5"></path></svg>
+            <span id="model-quota-5h-alert-dot" class="quota-5h-alert-dot" hidden></span>
+          </button>
+          <button id="model-quota-minimize" class="quota-icon-btn" type="button">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 8h7"></path></svg>
+          </button>
+        </span>
+      </div>
+      <div id="model-quota-effort-bar" class="model-quota-effort-bar" hidden>
+        <button id="model-quota-effort-pill" class="quota-effort-pill" type="button">
+          <span id="model-quota-effort-dots" class="quota-effort-dots" hidden aria-hidden="true"></span>
+          <span id="model-quota-effort-prefix" class="quota-effort-prefix">Effort</span>
+          <span id="model-quota-effort-value" class="quota-effort-value"></span>
         </button>
-        <button id="model-quota-minimize" class="quota-icon-btn" type="button">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 8h7"></path></svg>
-        </button>
-      </span>
+        <span id="model-quota-effort-stepper" class="quota-effort-stepper" role="group" hidden>
+          <button id="model-quota-effort-down" class="quota-effort-step-btn" type="button">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+          </button>
+          <button id="model-quota-effort-up" class="quota-effort-step-btn" type="button">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10l4-4 4 4"></path></svg>
+          </button>
+        </span>
+      </div>
     </div>
     <span id="model-quota-description" class="sr-only" data-i18n="quota.label">模型额度用量</span>
     <div id="model-quota-row-primary" class="quota-row" data-state="normal">
@@ -8292,7 +9160,197 @@
     </div>
   </div>`;
 
+  // 独立浮层宿主（挂载在 document.body，避免被侧边栏 overflow:hidden 或 transform 裁切）
+  var shortcutsHost = document.createElement('div');
+  shortcutsHost.id = 'ag-model-shortcuts-host';
+  var shortcutsShadow = shortcutsHost.attachShadow({ mode: 'open' });
+  shortcutsShadow.innerHTML = `<style>
+    :host{
+      position:fixed;left:0;top:0;width:0;height:0;z-index:2147482500;
+      -webkit-app-region:no-drag;user-select:none;
+      --ag-ms-bg:var(--ag-custom-panel-bg,rgba(24,24,27,0.96));
+      --ag-ms-card:rgba(255,255,255,0.045);
+      --ag-ms-border:rgba(255,255,255,0.12);
+      --ag-ms-border-subtle:rgba(255,255,255,0.08);
+      --ag-ms-text:#ececef;
+      --ag-ms-sub:#a1a1aa;
+      --ag-ms-muted:#71717a;
+      --ag-ms-accent:#a78bfa;
+      --ag-ms-accent-bg:rgba(167,139,250,0.16);
+      --ag-ms-btn-hover:rgba(255,255,255,0.09);
+      --ag-ms-warn:#f59e0b;
+      --ag-ms-shadow:0 12px 32px rgba(0,0,0,0.45),0 2px 8px rgba(0,0,0,0.28);
+      color-scheme:dark;
+    }
+    :host([data-theme="light"]),
+    :host([data-panel-tone="light"]){
+      --ag-ms-bg:var(--ag-custom-panel-bg,rgba(255,255,255,0.97));
+      --ag-ms-card:rgba(0,0,0,0.03);
+      --ag-ms-border:rgba(0,0,0,0.12);
+      --ag-ms-border-subtle:rgba(0,0,0,0.07);
+      --ag-ms-text:#18181b;
+      --ag-ms-sub:#52525b;
+      --ag-ms-muted:#71717a;
+      --ag-ms-accent:#7c3aed;
+      --ag-ms-accent-bg:rgba(124,58,237,0.12);
+      --ag-ms-btn-hover:rgba(0,0,0,0.07);
+      --ag-ms-warn:#d97706;
+      --ag-ms-shadow:0 12px 30px rgba(0,0,0,0.14),0 2px 8px rgba(0,0,0,0.08);
+      color-scheme:light;
+    }
+    #model-shortcuts-popover{
+      position:fixed;left:12px;bottom:12px;width:296px;max-width:calc(100vw - 24px);
+      max-height:min(460px,calc(100vh - 24px));display:flex;flex-direction:column;
+      border:1px solid var(--ag-ms-border);border-radius:11px;
+      background:var(--ag-ms-bg);color:var(--ag-ms-text);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      box-shadow:var(--ag-ms-shadow);overflow:hidden;
+      font:11.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+    }
+    #model-shortcuts-popover[hidden]{display:none!important}
+    .ms-header{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding:9px 11px 8px;border-bottom:1px solid var(--ag-ms-border-subtle);
+    }
+    .ms-title{font-size:12px;font-weight:600;color:var(--ag-ms-text)}
+    .ms-close-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:20px;height:20px;padding:0;border:0;border-radius:5px;
+      background:transparent;color:var(--ag-ms-sub);font-size:14px;line-height:1;cursor:pointer;
+    }
+    .ms-close-btn:hover{background:var(--ag-ms-btn-hover);color:var(--ag-ms-text)}
+    .ms-body{padding:8px 11px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+    .ms-section{display:flex;flex-direction:column;gap:5px}
+    .ms-section-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+    .ms-section-title{font-size:10.5px;font-weight:600;color:var(--ag-ms-sub);letter-spacing:0.01em}
+    .ms-list{display:flex;flex-direction:column;gap:4px}
+    .ms-row{
+      display:flex;align-items:center;justify-content:space-between;gap:6px;
+      padding:4px 6px;border-radius:7px;background:var(--ag-ms-card);
+      border:1px solid transparent;transition:border-color .14s ease;
+    }
+    .ms-row.is-recording{border-color:var(--ag-ms-accent);background:var(--ag-ms-accent-bg)}
+    .ms-row-label{
+      min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      font-size:11px;color:var(--ag-ms-text);
+    }
+    .ms-row-sub{color:var(--ag-ms-muted);font-size:10px;margin-left:4px}
+    .ms-row-controls{flex-shrink:0;display:inline-flex;align-items:center;gap:3px}
+    .ms-key-btn{
+      min-width:58px;max-width:128px;height:21px;padding:0 7px;
+      border:1px dashed var(--ag-ms-border);border-radius:5px;
+      background:transparent;color:var(--ag-ms-muted);cursor:pointer;
+      font:inherit;font-size:10.5px;font-weight:500;white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;
+      transition:border-color .14s ease,background-color .14s ease,color .14s ease;
+    }
+    .ms-key-btn:hover{border-color:var(--ag-ms-accent);color:var(--ag-ms-text);background:var(--ag-ms-btn-hover)}
+    .ms-key-btn.is-bound{
+      border-style:solid;border-color:var(--ag-ms-border);
+      background:var(--ag-ms-btn-hover);color:var(--ag-ms-text);
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    }
+    .ms-key-btn.is-recording{
+      border-style:solid;border-color:var(--ag-ms-accent);
+      background:var(--ag-ms-accent-bg);color:var(--ag-ms-accent);
+      font-family:inherit;
+    }
+    .ms-mini-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:18px;height:18px;padding:0;border:0;border-radius:4px;
+      background:transparent;color:var(--ag-ms-muted);font-size:12px;line-height:1;cursor:pointer;
+    }
+    .ms-mini-btn:hover{background:var(--ag-ms-btn-hover);color:var(--ag-ms-text)}
+    .ms-mini-btn[hidden]{display:none!important}
+    .ms-link-btn{
+      padding:2px 6px;border:1px solid var(--ag-ms-border);border-radius:5px;
+      background:transparent;color:var(--ag-ms-sub);font:inherit;font-size:10.5px;cursor:pointer;
+      transition:background-color .14s ease,color .14s ease,border-color .14s ease;
+    }
+    .ms-link-btn:hover{background:var(--ag-ms-btn-hover);color:var(--ag-ms-text);border-color:var(--ag-ms-accent)}
+    .ms-link-btn[hidden]{display:none!important}
+    .ms-empty{font-size:10.5px;color:var(--ag-ms-muted);padding:3px 2px}
+    .ms-add-form{
+      display:flex;flex-direction:column;gap:6px;padding:7px 8px;
+      border-radius:7px;background:var(--ag-ms-card);border:1px solid var(--ag-ms-border-subtle);
+    }
+    .ms-add-form[hidden]{display:none!important}
+    .ms-form-row{display:flex;align-items:center;gap:6px}
+    .ms-select{
+      flex:1 1 auto;min-width:0;height:24px;padding:0 6px;border-radius:5px;
+      border:1px solid var(--ag-ms-border);background:var(--ag-ms-bg);color:var(--ag-ms-text);
+      font:inherit;font-size:11px;outline:none;
+    }
+    .ms-select[hidden]{display:none!important}
+    .ms-select:focus{border-color:var(--ag-ms-accent)}
+    .ms-form-actions{display:flex;justify-content:flex-end;gap:5px}
+    .ms-btn-primary{
+      padding:2px 9px;border:0;border-radius:5px;background:var(--ag-ms-accent);color:#fff;
+      font:inherit;font-size:10.5px;font-weight:600;cursor:pointer;
+    }
+    .ms-btn-primary:hover{filter:brightness(1.08)}
+    .ms-btn-primary:disabled{opacity:0.45;cursor:not-allowed}
+    .ms-status{
+      font-size:10.5px;line-height:1.35;padding:5px 7px;border-radius:6px;
+      background:var(--ag-ms-accent-bg);color:var(--ag-ms-text);
+    }
+    .ms-status[hidden]{display:none!important}
+    .ms-status[data-tone="warn"]{color:var(--ag-ms-warn)}
+    .ms-footer{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding:7px 11px 8px;border-top:1px solid var(--ag-ms-border-subtle);
+    }
+    .ms-footer-hint{font-size:10px;color:var(--ag-ms-muted);min-width:0}
+    #model-switch-toast{
+      position:fixed;left:14px;bottom:48px;pointer-events:none;
+      padding:5px 10px;border-radius:8px;border:1px solid var(--ag-ms-border);
+      background:var(--ag-ms-bg);color:var(--ag-ms-text);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      box-shadow:var(--ag-ms-shadow);font:600 11px/1.3 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      white-space:nowrap;max-width:calc(100vw - 28px);overflow:hidden;text-overflow:ellipsis;
+    }
+    #model-switch-toast[hidden]{display:none!important}
+  </style>
+  <div id="model-shortcuts-popover" hidden role="dialog" aria-label="快捷切换设置">
+    <div class="ms-header">
+      <span id="ms-title" class="ms-title" data-i18n="quota.shortcuts.title">快捷切换设置</span>
+      <button id="ms-close" class="ms-close-btn" type="button" aria-label="关闭">×</button>
+    </div>
+    <div class="ms-body">
+      <div class="ms-section">
+        <div class="ms-section-head">
+          <span id="ms-actions-heading" class="ms-section-title" data-i18n="quota.shortcuts.actionsTitle">快速切换动作</span>
+        </div>
+        <div id="ms-actions-list" class="ms-list"></div>
+      </div>
+      <div class="ms-section">
+        <div class="ms-section-head">
+          <span id="ms-presets-heading" class="ms-section-title" data-i18n="quota.shortcuts.presetsTitle">直达模型 / 档位</span>
+          <button id="ms-btn-add-preset" class="ms-link-btn" type="button" data-i18n="quota.shortcuts.addPreset">+ 添加</button>
+        </div>
+        <div id="ms-add-preset-form" class="ms-add-form" hidden>
+          <div class="ms-form-row">
+            <select id="ms-preset-model" class="ms-select" aria-label="选择模型"></select>
+            <select id="ms-preset-effort" class="ms-select" aria-label="选择思考档位" hidden></select>
+          </div>
+          <div class="ms-form-actions">
+            <button id="ms-preset-cancel" class="ms-link-btn" type="button" data-i18n="quota.shortcuts.cancel">取消</button>
+            <button id="ms-preset-confirm" class="ms-btn-primary" type="button" data-i18n="quota.shortcuts.confirmAdd">添加</button>
+          </div>
+        </div>
+        <div id="ms-presets-list" class="ms-list"></div>
+      </div>
+      <div id="ms-status-note" class="ms-status" hidden></div>
+    </div>
+    <div class="ms-footer">
+      <span id="ms-footer-hint" class="ms-footer-hint" data-i18n="quota.shortcuts.footerHint">默认为空，点击按钮录入组合键</span>
+      <button id="ms-btn-clear-all" class="ms-link-btn" type="button" hidden data-i18n="quota.shortcuts.clearAll">全部清空</button>
+    </div>
+  </div>
+  <div id="model-switch-toast" hidden role="status" aria-live="polite"></div>`;
+
   const qEl = id => quotaShadow.getElementById(id);
+  const msEl = id => shortcutsShadow.getElementById(id);
   const qDom = {
     card: qEl('model-quota'),
     dotBtn: qEl('model-quota-dot'),
@@ -8301,9 +9359,19 @@
     dotInnerRing: qEl('model-quota-dot-inner-ring'),
     label: qEl('model-quota-label'),
     displayModeBtn: qEl('model-quota-display-mode'),
+    shortcutsBtn: qEl('model-quota-shortcuts-btn'),
+    shortcutsDot: qEl('model-quota-shortcuts-dot'),
     toggle5hBtn: qEl('model-quota-toggle-5h'),
     alertDot5h: qEl('model-quota-5h-alert-dot'),
     minimizeBtn: qEl('model-quota-minimize'),
+    effortBar: qEl('model-quota-effort-bar'),
+    effortPill: qEl('model-quota-effort-pill'),
+    effortDots: qEl('model-quota-effort-dots'),
+    effortPrefix: qEl('model-quota-effort-prefix'),
+    effortValue: qEl('model-quota-effort-value'),
+    effortStepper: qEl('model-quota-effort-stepper'),
+    effortDownBtn: qEl('model-quota-effort-down'),
+    effortUpBtn: qEl('model-quota-effort-up'),
     primary: {
       row: qEl('model-quota-row-primary'),
       title: qEl('model-quota-primary-title'),
@@ -8320,6 +9388,23 @@
       progress: qEl('model-quota-5h-progress'),
       fill: qEl('model-quota-5h-progress-fill')
     }
+  };
+  const msDom = {
+    popover: msEl('model-shortcuts-popover'),
+    title: msEl('ms-title'),
+    closeBtn: msEl('ms-close'),
+    actionsList: msEl('ms-actions-list'),
+    presetsList: msEl('ms-presets-list'),
+    addPresetBtn: msEl('ms-btn-add-preset'),
+    addForm: msEl('ms-add-preset-form'),
+    presetModelSelect: msEl('ms-preset-model'),
+    presetEffortSelect: msEl('ms-preset-effort'),
+    presetCancelBtn: msEl('ms-preset-cancel'),
+    presetConfirmBtn: msEl('ms-preset-confirm'),
+    statusNote: msEl('ms-status-note'),
+    footerHint: msEl('ms-footer-hint'),
+    clearAllBtn: msEl('ms-btn-clear-all'),
+    toast: msEl('model-switch-toast')
   };
 
   function qSetText(node, text) {
@@ -8343,14 +9428,16 @@
   }
 
   function syncModelQuotaTheme() {
-    if (!quotaHost) return;
-    qSetAttr(quotaHost, 'data-theme', host.getAttribute('data-theme'));
-    qSetAttr(quotaHost, 'data-panel-tone', host.getAttribute('data-panel-tone'));
-    const hostBg = host.style?.getPropertyValue?.('--ag-host-bg');
-    if (hostBg) quotaHost.style.setProperty('--ag-host-bg', hostBg);
-    const customBg = host.style?.getPropertyValue?.('--ag-custom-panel-bg');
-    if (customBg) quotaHost.style.setProperty('--ag-custom-panel-bg', customBg);
-    else if (quotaHost.style?.removeProperty) quotaHost.style.removeProperty('--ag-custom-panel-bg');
+    for (const targetHost of [quotaHost, shortcutsHost]) {
+      if (!targetHost) continue;
+      qSetAttr(targetHost, 'data-theme', host.getAttribute('data-theme'));
+      qSetAttr(targetHost, 'data-panel-tone', host.getAttribute('data-panel-tone'));
+      const hostBg = host.style?.getPropertyValue?.('--ag-host-bg');
+      if (hostBg) targetHost.style.setProperty('--ag-host-bg', hostBg);
+      const customBg = host.style?.getPropertyValue?.('--ag-custom-panel-bg');
+      if (customBg) targetHost.style.setProperty('--ag-custom-panel-bg', customBg);
+      else if (targetHost.style?.removeProperty) targetHost.style.removeProperty('--ag-custom-panel-bg');
+    }
   }
   syncModelQuotaTheme();
 
@@ -8368,6 +9455,35 @@
   let userMinimized = false;
   let collapsedTempExpanded = false;
   let lastQuotaSidebarOpen = null;
+  let modelShortcutsConfig = createEmptyModelShortcutsConfig();
+  let shortcutLookupMap = new Map();
+  let shortcutsPopoverOpen = false;
+  let shortcutRecordingTarget = null; // { kind: 'action', id } | { kind: 'preset', id } | null
+  let shortcutStatusTimer = null;
+  let switchToastTimer = null;
+  let addPresetOpen = false;
+  let lastRenderedEffortState = null;
+
+  function rebuildShortcutLookupMap() {
+    const map = new Map();
+    for (const id of MODEL_SHORTCUT_ACTION_IDS) {
+      const combo = normalizeShortcutCombo(modelShortcutsConfig.actions?.[id] || '');
+      if (combo) map.set(combo, { kind: 'action', id });
+    }
+    for (const p of (modelShortcutsConfig.presets || [])) {
+      const combo = normalizeShortcutCombo(p?.shortcut || '');
+      if (combo && !map.has(combo)) map.set(combo, { kind: 'preset', preset: p });
+    }
+    shortcutLookupMap = map;
+  }
+
+  function ensureShortcutsHostMounted() {
+    if (state.disposed || typeof document === 'undefined') return false;
+    const parent = document.body || document.documentElement;
+    if (!parent) return false;
+    if (shortcutsHost.parentElement !== parent) parent.appendChild(shortcutsHost);
+    return true;
+  }
 
   function hydrateModelQuotaPrefs(uiPrefs) {
     if (!uiPrefs || typeof uiPrefs !== 'object') return false;
@@ -8384,6 +9500,14 @@
       userMinimized = uiPrefs.quotaMinimized;
       changed = true;
     }
+    if (uiPrefs.modelShortcuts && typeof uiPrefs.modelShortcuts === 'object') {
+      const sanitized = sanitizeModelShortcutsConfig(uiPrefs.modelShortcuts);
+      if (JSON.stringify(sanitized) !== JSON.stringify(modelShortcutsConfig)) {
+        modelShortcutsConfig = sanitized;
+        rebuildShortcutLookupMap();
+        changed = true;
+      }
+    }
     return changed;
   }
 
@@ -8393,6 +9517,9 @@
       if (typeof patch.quotaShow5h === 'boolean') localStorage?.setItem('ag_quota_show_5h', patch.quotaShow5h ? '1' : '0');
       if (patch.quotaDisplayMode) localStorage?.setItem('ag_quota_display_mode', patch.quotaDisplayMode);
       if (typeof patch.quotaMinimized === 'boolean') localStorage?.setItem('ag_quota_minimized', patch.quotaMinimized ? '1' : '0');
+      if (patch.modelShortcuts !== undefined) {
+        localStorage?.setItem('ag_model_shortcuts_v1', JSON.stringify(patch.modelShortcuts));
+      }
     } catch {}
     try {
       if (typeof window !== 'undefined' && window.__AGContextMeterSettings && typeof window.__AGContextMeterSettings === 'object') {
@@ -8407,8 +9534,18 @@
     }
   }
 
+  function saveModelShortcutsConfig(nextCfg) {
+    modelShortcutsConfig = sanitizeModelShortcutsConfig(nextCfg);
+    rebuildShortcutLookupMap();
+    persistModelQuotaPrefs({ modelShortcuts: modelShortcutsConfig });
+    renderModelQuota(true);
+    if (shortcutsPopoverOpen) renderModelShortcutsPopover();
+    return modelShortcutsConfig;
+  }
+
   function setModelQuotaMinimizedState(nextMinimized) {
     const target = Boolean(nextMinimized);
+    if (target && shortcutsPopoverOpen) closeModelShortcutsPopover();
     if (findVisibleSidebarNav()) {
       userMinimized = target;
       persistModelQuotaPrefs({ quotaMinimized: target });
@@ -8444,8 +9581,510 @@
         if (savedMin === '1' || savedMin === 'true') userMinimized = true;
         else if (savedMin === '0' || savedMin === 'false') userMinimized = false;
       }
+      if (!bootUi?.modelShortcuts) {
+        const savedSc = localStorage?.getItem('ag_model_shortcuts_v1');
+        if (savedSc) {
+          modelShortcutsConfig = sanitizeModelShortcutsConfig(JSON.parse(savedSc));
+          rebuildShortcutLookupMap();
+        }
+      }
     } catch {}
   })();
+
+  // ---- 快捷切换提示 Toast 与二级快捷键面板 ----
+  function showModelSwitchToast(text) {
+    if (!text || !msDom.toast || state.disposed) return;
+    if (!ensureShortcutsHostMounted()) return;
+    qSetText(msDom.toast, text);
+    msDom.toast.hidden = false;
+    try {
+      const anchor = (!qDom.card?.hidden ? qDom.card : qDom.dotBtn);
+      const rect = anchor && typeof anchor.getBoundingClientRect === 'function' ? anchor.getBoundingClientRect() : null;
+      const vh = (typeof window !== 'undefined' && window.innerHeight) || 800;
+      const vw = (typeof window !== 'undefined' && window.innerWidth) || 1280;
+      if (rect && rect.width > 0 && rect.height > 0) {
+        const left = Math.max(10, Math.min(vw - 240, Math.round(rect.left)));
+        const bottom = Math.max(12, Math.min(vh - 40, Math.round(vh - rect.top + 8)));
+        msDom.toast.style.left = `${left}px`;
+        msDom.toast.style.bottom = `${bottom}px`;
+      } else {
+        msDom.toast.style.left = '14px';
+        msDom.toast.style.bottom = '48px';
+      }
+    } catch {}
+    if (switchToastTimer) clearTimeout(switchToastTimer);
+    switchToastTimer = setTimeout(() => {
+      switchToastTimer = null;
+      if (msDom.toast) msDom.toast.hidden = true;
+    }, 1500);
+  }
+
+  function showShortcutStatus(message, tone = 'info', autoHideMs = 0) {
+    if (!msDom.statusNote) return;
+    if (shortcutStatusTimer) {
+      clearTimeout(shortcutStatusTimer);
+      shortcutStatusTimer = null;
+    }
+    if (!message) {
+      msDom.statusNote.hidden = true;
+      qSetText(msDom.statusNote, '');
+      return;
+    }
+    qSetText(msDom.statusNote, message);
+    qSetAttr(msDom.statusNote, 'data-tone', tone);
+    msDom.statusNote.hidden = false;
+    if (autoHideMs > 0) {
+      shortcutStatusTimer = setTimeout(() => {
+        shortcutStatusTimer = null;
+        if (!shortcutRecordingTarget && msDom.statusNote) msDom.statusNote.hidden = true;
+      }, autoHideMs);
+    }
+  }
+
+  function getShortcutActionLabel(actionId) {
+    const map = {
+      effortUp: 'quota.shortcuts.action.effortUp',
+      effortDown: 'quota.shortcuts.action.effortDown',
+      effortCycle: 'quota.shortcuts.action.effortCycle',
+      modelNext: 'quota.shortcuts.action.modelNext',
+      modelPrev: 'quota.shortcuts.action.modelPrev'
+    };
+    return t(map[actionId] || 'quota.shortcuts.title');
+  }
+
+  function formatSwitchResultFeedback(res) {
+    if (!res) return '';
+    if (res.ok) {
+      return res.effortLabel ? `${res.modelLabel} · ${res.effortLabel}` : (res.modelLabel || '');
+    }
+    if (res.reason === 'at_max') return t('quota.effort.atMax', { effort: res.effortLabel || '' });
+    if (res.reason === 'at_min') return t('quota.effort.atMin', { effort: res.effortLabel || '' });
+    if (res.reason === 'no_efforts') return t('quota.effort.none');
+    if (res.reason === 'model_not_found') return t('quota.shortcuts.modelNotFound', { model: res.modelLabel || '' });
+    if (res.reason === 'unsupported') return t('quota.shortcuts.unavailable');
+    return '';
+  }
+
+  function executeModelSwitchAction(actionId, opts = {}) {
+    let res = null;
+    if (actionId === 'effortUp') res = switchHostEffortStep(1);
+    else if (actionId === 'effortDown') res = switchHostEffortStep(-1);
+    else if (actionId === 'effortCycle') res = cycleHostEffort();
+    else if (actionId === 'modelNext') res = switchHostModelStep(1);
+    else if (actionId === 'modelPrev') res = switchHostModelStep(-1);
+    if (opts.toast !== false) {
+      const msg = formatSwitchResultFeedback(res);
+      if (msg) showModelSwitchToast(msg);
+    }
+    return res;
+  }
+
+  function executeModelPresetSwitch(preset, opts = {}) {
+    const res = switchHostModelPreset(preset);
+    if (opts.toast !== false) {
+      const msg = formatSwitchResultFeedback(res);
+      if (msg) showModelSwitchToast(msg);
+    }
+    return res;
+  }
+
+  function getAvailableModelsForPresetCreator() {
+    const live = inspectHostModelSwitcherState();
+    if (live.models && live.models.length > 0) return live.models;
+    const known = typeof getKnownModelProducts === 'function' ? getKnownModelProducts() : [];
+    return known
+      .filter(p => p && !p.unavailable && !p.isHistorical)
+      .map(p => ({
+        id: p.productKey,
+        baseLabel: p.productLabel,
+        efforts: (p.members || [])
+          .filter(m => m.effort && !m.unavailable)
+          .map(m => ({ key: normalizeEffortKeyToken(m.effort), label: formatEffortShortName(m.effort) }))
+      }));
+  }
+
+  function syncPresetEffortSelectOptions(modelsList) {
+    if (!msDom.presetModelSelect || !msDom.presetEffortSelect) return;
+    const selectedId = String(msDom.presetModelSelect.value || '');
+    const model = (modelsList || []).find(m => m.id === selectedId) || null;
+    const efforts = Array.isArray(model?.efforts) ? model.efforts : [];
+    msDom.presetEffortSelect.replaceChildren();
+    if (efforts.length < 2) {
+      msDom.presetEffortSelect.hidden = true;
+      return;
+    }
+    const autoOpt = document.createElement('option');
+    autoOpt.value = '';
+    autoOpt.textContent = t('quota.shortcuts.effortDefault');
+    msDom.presetEffortSelect.appendChild(autoOpt);
+    for (const eff of efforts) {
+      const opt = document.createElement('option');
+      opt.value = eff.key;
+      opt.textContent = eff.label;
+      msDom.presetEffortSelect.appendChild(opt);
+    }
+    msDom.presetEffortSelect.hidden = false;
+  }
+
+  function renderPresetAddForm() {
+    if (!msDom.addForm) return;
+    msDom.addForm.hidden = !addPresetOpen;
+    if (!addPresetOpen) return;
+    const models = getAvailableModelsForPresetCreator();
+    msDom.presetModelSelect?.replaceChildren();
+    if (!models.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = t('quota.shortcuts.noModels');
+      msDom.presetModelSelect?.appendChild(opt);
+      if (msDom.presetConfirmBtn) msDom.presetConfirmBtn.disabled = true;
+      if (msDom.presetEffortSelect) msDom.presetEffortSelect.hidden = true;
+      return;
+    }
+    const currentId = inspectHostModelSwitcherState().currentGroupId || '';
+    for (const m of models) {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.baseLabel;
+      msDom.presetModelSelect?.appendChild(opt);
+    }
+    if (msDom.presetModelSelect) {
+      const hasCur = models.some(m => m.id === currentId);
+      msDom.presetModelSelect.value = hasCur ? currentId : models[0].id;
+    }
+    if (msDom.presetConfirmBtn) msDom.presetConfirmBtn.disabled = false;
+    syncPresetEffortSelectOptions(models);
+  }
+
+  function isSameRecordingTarget(a, b) {
+    return Boolean(a && b && a.kind === b.kind && a.id === b.id);
+  }
+
+  function startShortcutRecording(target) {
+    if (isSameRecordingTarget(shortcutRecordingTarget, target)) {
+      shortcutRecordingTarget = null;
+      showShortcutStatus('');
+      renderModelShortcutsPopover();
+      return;
+    }
+    shortcutRecordingTarget = target;
+    showShortcutStatus(t('quota.shortcuts.recordingHint'), 'info');
+    renderModelShortcutsPopover();
+  }
+
+  function assignShortcutComboToTarget(target, combo) {
+    const norm = normalizeShortcutCombo(combo);
+    if (!target || !norm) return null;
+    const next = sanitizeModelShortcutsConfig(modelShortcutsConfig);
+    let replacedLabel = '';
+
+    // 自动移除冲突旧绑定
+    for (const id of MODEL_SHORTCUT_ACTION_IDS) {
+      if (target.kind === 'action' && target.id === id) continue;
+      if (next.actions[id] === norm) {
+        next.actions[id] = '';
+        replacedLabel = getShortcutActionLabel(id);
+      }
+    }
+    for (const p of next.presets) {
+      if (target.kind === 'preset' && target.id === p.id) continue;
+      if (p.shortcut === norm) {
+        p.shortcut = '';
+        replacedLabel = p.effortLabel ? `${p.modelLabel} · ${p.effortLabel}` : p.modelLabel;
+      }
+    }
+
+    if (target.kind === 'action') {
+      next.actions[target.id] = norm;
+    } else if (target.kind === 'preset') {
+      const hit = next.presets.find(p => p.id === target.id);
+      if (hit) hit.shortcut = norm;
+    }
+    shortcutRecordingTarget = null;
+    saveModelShortcutsConfig(next);
+    if (replacedLabel) {
+      showShortcutStatus(t('quota.shortcuts.conflictReplaced', { prev: replacedLabel }), 'warn', 2600);
+    } else {
+      showShortcutStatus('');
+    }
+    return norm;
+  }
+
+  function clearShortcutForTarget(target) {
+    if (!target) return;
+    const next = sanitizeModelShortcutsConfig(modelShortcutsConfig);
+    if (target.kind === 'action') {
+      next.actions[target.id] = '';
+    } else if (target.kind === 'preset') {
+      const hit = next.presets.find(p => p.id === target.id);
+      if (hit) hit.shortcut = '';
+    }
+    if (isSameRecordingTarget(shortcutRecordingTarget, target)) {
+      shortcutRecordingTarget = null;
+    }
+    saveModelShortcutsConfig(next);
+    showShortcutStatus('');
+  }
+
+  function removeShortcutPreset(presetId) {
+    const next = sanitizeModelShortcutsConfig(modelShortcutsConfig);
+    next.presets = next.presets.filter(p => p.id !== presetId);
+    if (shortcutRecordingTarget?.kind === 'preset' && shortcutRecordingTarget.id === presetId) {
+      shortcutRecordingTarget = null;
+    }
+    saveModelShortcutsConfig(next);
+    showShortcutStatus('');
+  }
+
+  function renderModelShortcutsPopover() {
+    if (!msDom.popover) return;
+    if (typeof applyStaticPanelTranslations === 'function') {
+      applyStaticPanelTranslations(shortcutsShadow);
+    }
+    qSetAttr(msDom.popover, 'aria-label', t('quota.shortcuts.title'));
+    qSetAttr(msDom.closeBtn, 'aria-label', t('header.close.aria'));
+
+    // 1. 常用切换动作行
+    if (msDom.actionsList) {
+      msDom.actionsList.replaceChildren();
+      for (const actionId of MODEL_SHORTCUT_ACTION_IDS) {
+        const combo = modelShortcutsConfig.actions?.[actionId] || '';
+        const isRec = isSameRecordingTarget(shortcutRecordingTarget, { kind: 'action', id: actionId });
+        const row = document.createElement('div');
+        row.className = `ms-row${isRec ? ' is-recording' : ''}`;
+        row.setAttribute('data-ms-action', actionId);
+
+        const lbl = document.createElement('span');
+        lbl.className = 'ms-row-label';
+        lbl.textContent = getShortcutActionLabel(actionId);
+        row.appendChild(lbl);
+
+        const ctrls = document.createElement('span');
+        ctrls.className = 'ms-row-controls';
+
+        const keyBtn = document.createElement('button');
+        keyBtn.type = 'button';
+        keyBtn.className = `ms-key-btn${isRec ? ' is-recording' : (combo ? ' is-bound' : '')}`;
+        keyBtn.setAttribute('data-ms-record-action', actionId);
+        keyBtn.textContent = isRec
+          ? t('quota.shortcuts.pressKeys')
+          : (combo ? formatShortcutForDisplay(combo) : t('quota.shortcuts.unset'));
+        keyBtn.title = t('quota.shortcuts.clickToRecord');
+        keyBtn.addEventListener('click', (e) => {
+          e?.stopPropagation?.();
+          startShortcutRecording({ kind: 'action', id: actionId });
+        });
+        ctrls.appendChild(keyBtn);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'ms-mini-btn';
+        clearBtn.textContent = '×';
+        clearBtn.hidden = !combo;
+        clearBtn.title = t('quota.shortcuts.clearOne');
+        clearBtn.setAttribute('aria-label', t('quota.shortcuts.clearOne'));
+        clearBtn.addEventListener('click', (e) => {
+          e?.stopPropagation?.();
+          clearShortcutForTarget({ kind: 'action', id: actionId });
+        });
+        ctrls.appendChild(clearBtn);
+
+        row.appendChild(ctrls);
+        msDom.actionsList.appendChild(row);
+      }
+    }
+
+    // 2. 直达模型 / 档位预设行
+    renderPresetAddForm();
+    if (msDom.presetsList) {
+      msDom.presetsList.replaceChildren();
+      const presets = modelShortcutsConfig.presets || [];
+      if (!presets.length) {
+        const empty = document.createElement('div');
+        empty.className = 'ms-empty';
+        empty.textContent = t('quota.shortcuts.presetsEmpty');
+        msDom.presetsList.appendChild(empty);
+      } else {
+        for (const preset of presets) {
+          const isRec = isSameRecordingTarget(shortcutRecordingTarget, { kind: 'preset', id: preset.id });
+          const row = document.createElement('div');
+          row.className = `ms-row${isRec ? ' is-recording' : ''}`;
+          row.setAttribute('data-ms-preset', preset.id);
+
+          const lbl = document.createElement('span');
+          lbl.className = 'ms-row-label';
+          lbl.textContent = preset.modelLabel;
+          if (preset.effortLabel) {
+            const sub = document.createElement('span');
+            sub.className = 'ms-row-sub';
+            sub.textContent = `· ${preset.effortLabel}`;
+            lbl.appendChild(sub);
+          }
+          lbl.title = preset.effortLabel ? `${preset.modelLabel} · ${preset.effortLabel}` : preset.modelLabel;
+          row.appendChild(lbl);
+
+          const ctrls = document.createElement('span');
+          ctrls.className = 'ms-row-controls';
+
+          const keyBtn = document.createElement('button');
+          keyBtn.type = 'button';
+          keyBtn.className = `ms-key-btn${isRec ? ' is-recording' : (preset.shortcut ? ' is-bound' : '')}`;
+          keyBtn.setAttribute('data-ms-record-preset', preset.id);
+          keyBtn.textContent = isRec
+            ? t('quota.shortcuts.pressKeys')
+            : (preset.shortcut ? formatShortcutForDisplay(preset.shortcut) : t('quota.shortcuts.unset'));
+          keyBtn.title = t('quota.shortcuts.clickToRecord');
+          keyBtn.addEventListener('click', (e) => {
+            e?.stopPropagation?.();
+            startShortcutRecording({ kind: 'preset', id: preset.id });
+          });
+          ctrls.appendChild(keyBtn);
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'ms-mini-btn';
+          delBtn.textContent = '×';
+          delBtn.title = t('quota.shortcuts.deletePreset');
+          delBtn.setAttribute('aria-label', t('quota.shortcuts.deletePreset'));
+          delBtn.addEventListener('click', (e) => {
+            e?.stopPropagation?.();
+            removeShortcutPreset(preset.id);
+          });
+          ctrls.appendChild(delBtn);
+
+          row.appendChild(ctrls);
+          msDom.presetsList.appendChild(row);
+        }
+      }
+    }
+
+    const hasAnything = countConfiguredModelShortcuts(modelShortcutsConfig) > 0 || (modelShortcutsConfig.presets?.length || 0) > 0;
+    if (msDom.clearAllBtn) msDom.clearAllBtn.hidden = !hasAnything;
+  }
+
+  function positionModelShortcutsPopover() {
+    if (!msDom.popover || !shortcutsPopoverOpen) return;
+    try {
+      const vw = (typeof window !== 'undefined' && window.innerWidth) || 1280;
+      const vh = (typeof window !== 'undefined' && window.innerHeight) || 800;
+      const popWidth = Math.min(296, vw - 24);
+      const anchor = (!qDom.card?.hidden ? qDom.card : qDom.shortcutsBtn);
+      const rect = anchor && typeof anchor.getBoundingClientRect === 'function' ? anchor.getBoundingClientRect() : null;
+      if (rect && rect.width > 0 && rect.height > 0) {
+        let left = rect.right + 8;
+        let bottom = Math.max(12, Math.round(vh - rect.bottom));
+        if (left + popWidth > vw - 12) {
+          left = Math.max(10, Math.min(vw - popWidth - 10, Math.round(rect.left)));
+          bottom = Math.max(12, Math.round(vh - rect.top + 8));
+        }
+        msDom.popover.style.left = `${Math.round(left)}px`;
+        msDom.popover.style.bottom = `${Math.max(10, Math.min(vh - 140, bottom))}px`;
+      } else {
+        msDom.popover.style.left = '12px';
+        msDom.popover.style.bottom = '48px';
+      }
+    } catch {}
+  }
+
+  function closeModelShortcutsPopover() {
+    shortcutsPopoverOpen = false;
+    shortcutRecordingTarget = null;
+    addPresetOpen = false;
+    if (msDom.popover) msDom.popover.hidden = true;
+    showShortcutStatus('');
+    qSetAttr(qDom.shortcutsBtn, 'aria-expanded', 'false');
+  }
+
+  function openModelShortcutsPopover() {
+    if (state.disposed) return false;
+    if (!ensureShortcutsHostMounted()) return false;
+    syncModelQuotaTheme();
+    shortcutsPopoverOpen = true;
+    shortcutRecordingTarget = null;
+    addPresetOpen = false;
+    showShortcutStatus('');
+    renderModelShortcutsPopover();
+    if (msDom.popover) msDom.popover.hidden = false;
+    qSetAttr(qDom.shortcutsBtn, 'aria-expanded', 'true');
+    positionModelShortcutsPopover();
+    return true;
+  }
+
+  function toggleModelShortcutsPopover() {
+    if (shortcutsPopoverOpen) {
+      closeModelShortcutsPopover();
+      return false;
+    }
+    return openModelShortcutsPopover();
+  }
+
+  function onModelShortcutsKeydown(e) {
+    if (state.disposed || !e) return;
+    if (shortcutRecordingTarget) {
+      e.preventDefault?.();
+      e.stopPropagation?.();
+      const parsed = eventToShortcutCombo(e);
+      if (parsed.reason === 'modifier_only') return;
+      if (parsed.isCancel) {
+        shortcutRecordingTarget = null;
+        showShortcutStatus('');
+        renderModelShortcutsPopover();
+        return;
+      }
+      if (parsed.isClear) {
+        clearShortcutForTarget(shortcutRecordingTarget);
+        return;
+      }
+      if (!parsed.valid) {
+        const msgKey = parsed.reason === 'reserved'
+          ? 'quota.shortcuts.errReserved'
+          : 'quota.shortcuts.errNeedModifier';
+        showShortcutStatus(t(msgKey), 'warn');
+        return;
+      }
+      assignShortcutComboToTarget(shortcutRecordingTarget, parsed.combo);
+      return;
+    }
+
+    if (shortcutsPopoverOpen && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'Escape' || e.code === 'Escape')) {
+      e.preventDefault?.();
+      e.stopPropagation?.();
+      closeModelShortcutsPopover();
+      return;
+    }
+
+    if (shortcutLookupMap.size === 0 || e.isComposing) return;
+    const parsed = eventToShortcutCombo(e);
+    if (!parsed.valid) return;
+    const binding = shortcutLookupMap.get(parsed.combo);
+    if (!binding) return;
+    if (!peekHostSelectedTrigger()) return;
+
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    if (binding.kind === 'action') {
+      executeModelSwitchAction(binding.id);
+    } else if (binding.kind === 'preset' && binding.preset) {
+      executeModelPresetSwitch(binding.preset);
+    }
+  }
+
+  function onShortcutsOutsideMouseDown(e) {
+    if (!shortcutsPopoverOpen || state.disposed) return;
+    const path = typeof e?.composedPath === 'function' ? e.composedPath() : null;
+    if (path) {
+      if (path.includes(shortcutsHost) || path.includes(quotaHost)) return;
+    } else if (e?.target) {
+      if (shortcutsHost.contains?.(e.target) || quotaHost.contains?.(e.target)) return;
+    }
+    closeModelShortcutsPopover();
+  }
+
+  try {
+    window.addEventListener?.('keydown', onModelShortcutsKeydown, true);
+    window.addEventListener?.('resize', positionModelShortcutsPopover);
+    document.addEventListener?.('mousedown', onShortcutsOutsideMouseDown, true);
+  } catch {}
 
   qDom.displayModeBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -8453,9 +10092,79 @@
     persistModelQuotaPrefs({ quotaDisplayMode });
     renderModelQuota(true);
   });
+  qDom.shortcutsBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    toggleModelShortcutsPopover();
+  });
   qDom.toggle5hBtn?.addEventListener('click', (e) => { e?.stopPropagation?.(); toggleModelQuota5hState(); });
   qDom.minimizeBtn?.addEventListener('click', (e) => { e?.stopPropagation?.(); setModelQuotaMinimizedState(true); });
   qDom.dotBtn?.addEventListener('click', (e) => { e?.stopPropagation?.(); setModelQuotaMinimizedState(false); });
+
+  const preventFocusSteal = (e) => { e?.preventDefault?.(); };
+  qDom.effortPill?.addEventListener('mousedown', preventFocusSteal);
+  qDom.effortDownBtn?.addEventListener('mousedown', preventFocusSteal);
+  qDom.effortUpBtn?.addEventListener('mousedown', preventFocusSteal);
+  qDom.effortPill?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    executeModelSwitchAction('effortCycle');
+  });
+  qDom.effortDownBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    executeModelSwitchAction('effortDown');
+  });
+  qDom.effortUpBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    executeModelSwitchAction('effortUp');
+  });
+
+  msDom.closeBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    closeModelShortcutsPopover();
+  });
+  msDom.addPresetBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    addPresetOpen = !addPresetOpen;
+    renderPresetAddForm();
+  });
+  msDom.presetModelSelect?.addEventListener('change', () => {
+    syncPresetEffortSelectOptions(getAvailableModelsForPresetCreator());
+  });
+  msDom.presetCancelBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    addPresetOpen = false;
+    renderPresetAddForm();
+  });
+  msDom.presetConfirmBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    const models = getAvailableModelsForPresetCreator();
+    const selId = String(msDom.presetModelSelect?.value || '');
+    const model = models.find(m => m.id === selId);
+    if (!model) return;
+    const effKey = (!msDom.presetEffortSelect?.hidden && msDom.presetEffortSelect?.value)
+      ? String(msDom.presetEffortSelect.value)
+      : '';
+    const effEntry = effKey ? (model.efforts || []).find(ef => ef.key === effKey) : null;
+    const newId = `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+    const next = sanitizeModelShortcutsConfig(modelShortcutsConfig);
+    next.presets.push({
+      id: newId,
+      modelKey: model.id,
+      modelLabel: model.baseLabel,
+      effortKey: effEntry ? effEntry.key : '',
+      effortLabel: effEntry ? effEntry.label : '',
+      shortcut: ''
+    });
+    addPresetOpen = false;
+    saveModelShortcutsConfig(next);
+    startShortcutRecording({ kind: 'preset', id: newId });
+  });
+  msDom.clearAllBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    shortcutRecordingTarget = null;
+    addPresetOpen = false;
+    saveModelShortcutsConfig(createEmptyModelShortcutsConfig());
+    showShortcutStatus('');
+  });
 
   // ---- 侧栏可见性与流式停靠 ----
   const isHiddenCss = (cs) => Boolean(
@@ -8713,6 +10422,81 @@
     return document.querySelector?.('[data-testid="model-selector-trigger"]') || null;
   }
 
+  let lastEffortDotsSig = '';
+  function renderEffortDots(total, activeIndex) {
+    if (!qDom.effortDots) return;
+    if (!Number.isFinite(total) || total < 2 || activeIndex < 0) {
+      qSetHidden(qDom.effortDots, true);
+      lastEffortDotsSig = '';
+      return;
+    }
+    qSetHidden(qDom.effortDots, false);
+    const sig = `${total}:${activeIndex}`;
+    if (sig === lastEffortDotsSig) return;
+    lastEffortDotsSig = sig;
+    qDom.effortDots.replaceChildren();
+    const minH = 4;
+    const maxH = 9;
+    for (let i = 0; i < total; i++) {
+      const bar = document.createElement('span');
+      bar.className = `quota-effort-dot-bar${i <= activeIndex ? ' is-on' : ''}`;
+      const h = total === 1 ? maxH : Math.round(minH + ((maxH - minH) * i) / (total - 1));
+      bar.style.height = `${h}px`;
+      qDom.effortDots.appendChild(bar);
+    }
+  }
+
+  function renderEffortControls(switcherInfo) {
+    if (!qDom.effortBar) return;
+    const efforts = Array.isArray(switcherInfo?.efforts) ? switcherInfo.efforts : [];
+    const effortIdx = typeof switcherInfo?.effortIndex === 'number' ? switcherInfo.effortIndex : -1;
+    const effortLabel = String(switcherInfo?.effortLabel || '').trim();
+    const canSwitch = Boolean(switcherInfo?.supported && efforts.length >= 2 && effortIdx >= 0);
+    const showBar = Boolean(effortLabel || canSwitch);
+
+    qSetHidden(qDom.effortBar, !showBar);
+    qSetHidden(qDom.effortStepper, !canSwitch);
+    if (!showBar) return;
+
+    qSetText(qDom.effortPrefix, t('quota.effort.prefix'));
+    qSetText(qDom.effortValue, effortLabel || '—');
+    renderEffortDots(canSwitch ? efforts.length : 0, effortIdx);
+
+    if (qDom.effortPill) {
+      qDom.effortPill.disabled = !canSwitch;
+      const nextWrap = canSwitch ? efforts[(effortIdx + 1) % efforts.length] : null;
+      const pillTip = canSwitch && nextWrap
+        ? t('quota.effort.cycleTip', { next: nextWrap.label })
+        : t('quota.effort.currentOnly', { effort: effortLabel || '—' });
+      qSetAttr(qDom.effortPill, 'title', pillTip);
+      qSetAttr(qDom.effortPill, 'aria-label', pillTip);
+    }
+
+    qSetHidden(qDom.effortStepper, !canSwitch);
+    if (canSwitch) {
+      const canDown = effortIdx > 0;
+      const canUp = effortIdx < efforts.length - 1;
+      const prevEff = canDown ? efforts[effortIdx - 1] : null;
+      const nextEff = canUp ? efforts[effortIdx + 1] : null;
+      if (qDom.effortDownBtn) {
+        qDom.effortDownBtn.disabled = !canDown;
+        const downTip = canDown && prevEff
+          ? t('quota.effort.downTip', { next: prevEff.label })
+          : t('quota.effort.atMin', { effort: effortLabel });
+        qSetAttr(qDom.effortDownBtn, 'title', downTip);
+        qSetAttr(qDom.effortDownBtn, 'aria-label', downTip);
+      }
+      if (qDom.effortUpBtn) {
+        qDom.effortUpBtn.disabled = !canUp;
+        const upTip = canUp && nextEff
+          ? t('quota.effort.upTip', { next: nextEff.label })
+          : t('quota.effort.atMax', { effort: effortLabel });
+        qSetAttr(qDom.effortUpBtn, 'title', upTip);
+        qSetAttr(qDom.effortUpBtn, 'aria-label', upTip);
+      }
+    }
+  }
+
   function renderModelQuota(force = false) {
     if (!qDom.card || state.disposed) return;
 
@@ -8722,6 +10506,9 @@
 
     const peekTrigger = peekHostSelectedTrigger();
     const peekText = peekTrigger ? String(peekTrigger.textContent || '') : '';
+    const switcherInfo = inspectHostModelSwitcherState(peekTrigger);
+    lastRenderedEffortState = switcherInfo;
+    const configuredShortcutCount = countConfiguredModelShortcuts(modelShortcutsConfig);
     const sidebarOpen = Boolean(findVisibleSidebarNav());
     if (lastQuotaSidebarOpen !== null && lastQuotaSidebarOpen !== sidebarOpen) {
       collapsedTempExpanded = false;
@@ -8730,6 +10517,14 @@
     const effectiveMinimized = sidebarOpen ? userMinimized : !collapsedTempExpanded;
     const sig = [
       peekText,
+      switcherInfo.baseLabel,
+      switcherInfo.effortKey || '',
+      switcherInfo.effortLabel || '',
+      switcherInfo.efforts.length,
+      switcherInfo.effortIndex,
+      switcherInfo.supported ? 'sw1' : 'sw0',
+      configuredShortcutCount,
+      shortcutsPopoverOpen ? 'pop1' : 'pop0',
       state.quotaSynced ? '1' : '0',
       show5hQuota ? '5h1' : '5h0',
       quotaDisplayMode,
@@ -8761,16 +10556,24 @@
     const selected = extractHostSelectedModel();
     if (!selected) {
       quotaHost.hidden = true;
+      if (shortcutsPopoverOpen) closeModelShortcutsPopover();
       return;
     }
 
-    const modelCandidates = [selected.rawText, selected.productLabel, selected.modelId];
+    const modelCandidates = [
+      selected.rawText,
+      switcherInfo.baseLabel,
+      switcherInfo.selectedModel?.label,
+      switcherInfo.selectedModel?.modelId,
+      selected.productLabel,
+      selected.modelId
+    ].filter(Boolean);
     const groupBuckets = typeof resolveModelQuotaGroupBuckets === 'function'
       ? resolveModelQuotaGroupBuckets(modelCandidates, state.modelQuotaGroups)
       : [];
     const pickValid = (q) => (q && isValidQuotaFraction(q.remainingFraction) ? q : null);
     const modelQuota = typeof resolveModelQuota === 'function'
-      ? (pickValid(resolveModelQuota(selected.modelId, configs)) || pickValid(resolveModelQuota(selected.rawText, configs)))
+      ? (pickValid(resolveModelQuota(switcherInfo.selectedModel?.modelId || selected.modelId, configs)) || pickValid(resolveModelQuota(selected.rawText, configs)))
       : null;
 
     const weeklyBucket = pickTightestQuotaBucket(groupBuckets.filter(b => classifyQuotaBucketKind(b) === 'weekly'));
@@ -8789,11 +10592,12 @@
 
     if (!hasPrimary && !state.quotaSynced) {
       quotaHost.hidden = true;
+      if (shortcutsPopoverOpen) closeModelShortcutsPopover();
       return;
     }
     if (!ensureModelQuotaDocked()) return;
 
-    const model = selected.productLabel || selected.rawText || t('quota.label');
+    const model = switcherInfo.baseLabel || selected.productLabel || selected.rawText || t('quota.label');
     const primaryUsed = hasPrimary ? calcQuotaUsedPct(primaryBucket.remainingFraction) : null;
     const primaryState = hasPrimary ? calcQuotaRowState(primaryBucket.remainingFraction, primaryUsed) : 'unknown';
     const primaryTitle = hasPrimary ? resolveQuotaWindowLabel(primaryBucket) : '';
@@ -8814,7 +10618,23 @@
     qSetAttr(quotaHost, 'data-minimized', effectiveMinimized ? 'true' : 'false');
     qSetHidden(qDom.dotBtn, !effectiveMinimized);
     qSetHidden(qDom.card, effectiveMinimized);
+    if (effectiveMinimized && shortcutsPopoverOpen) closeModelShortcutsPopover();
     qSetText(qDom.label, model);
+
+    // 快捷切换设置按钮与已配置指示点
+    if (qDom.shortcutsBtn) {
+      const scTip = configuredShortcutCount > 0
+        ? t('quota.shortcuts.btnTitleCount', { n: configuredShortcutCount })
+        : t('quota.shortcuts.btnTitle');
+      qSetAttr(qDom.shortcutsBtn, 'aria-label', scTip);
+      qSetAttr(qDom.shortcutsBtn, 'title', scTip);
+      qSetAttr(qDom.shortcutsBtn, 'aria-expanded', String(shortcutsPopoverOpen));
+      qSetAttr(qDom.shortcutsBtn, 'data-has-shortcuts', configuredShortcutCount > 0 ? 'true' : 'false');
+    }
+    qSetHidden(qDom.shortcutsDot, configuredShortcutCount === 0);
+
+    // Header 内的 Effort 展示与上下速切控件
+    renderEffortControls(switcherInfo);
 
     // 顶部操作按钮（展开/收起 5h 与最小化）
     qSetHidden(qDom.toggle5hBtn, !has5hToggle);
@@ -8866,8 +10686,11 @@
     syncQuotaDotRing(qDom.dotInnerRing, QUOTA_DOT_INNER_CIRC, show5h, show5h ? percent5h : null, show5h ? state5h : 'unknown');
 
     // 悬停完整信息
+    const modelDispForTip = switcherInfo.effortLabel
+      ? `${model} (${switcherInfo.effortLabel})`
+      : (selected.rawText || model);
     const tooltipParts = [
-      selected.rawText || model,
+      modelDispForTip,
       hasPrimary ? formatQuotaTooltipEntry(primaryBucket, primaryPercent) : t('quota.unavailable')
     ];
     if (secondary5hBucket) tooltipParts.push(formatQuotaTooltipEntry(secondary5hBucket, percent5h));
@@ -8878,9 +10701,14 @@
       if (qDom.dotBtn.title !== dotTip) qDom.dotBtn.title = dotTip;
       qSetAttr(qDom.dotBtn, 'aria-label', t('quota.expand'));
     }
+
+    if (shortcutsPopoverOpen) {
+      positionModelShortcutsPopover();
+    }
   }
 
   function getModelQuotaStateSnapshot() {
+    const info = lastRenderedEffortState || inspectHostModelSwitcherState();
     return {
       hidden: quotaHost.hidden,
       dock: quotaHost.getAttribute('data-dock'),
@@ -8897,6 +10725,15 @@
       cardVisible: !qDom.card?.hidden,
       quotaState: quotaHost.getAttribute('data-quota-state'),
       label: qDom.label?.textContent || '',
+      effortVisible: !qDom.effortBar?.hidden,
+      effortValue: qDom.effortValue?.textContent || '',
+      effortStepperVisible: !qDom.effortStepper?.hidden,
+      effortCanUp: Boolean(qDom.effortUpBtn && !qDom.effortUpBtn.disabled),
+      effortCanDown: Boolean(qDom.effortDownBtn && !qDom.effortDownBtn.disabled),
+      effortOptions: (info?.efforts || []).map(e => e.label),
+      shortcutsPopoverOpen,
+      shortcutsCount: countConfiguredModelShortcuts(modelShortcutsConfig),
+      shortcutsDotVisible: !qDom.shortcutsDot?.hidden,
       primaryTitle: qDom.primary.title?.textContent || '',
       primaryReset: qDom.primary.reset?.hidden ? '' : (qDom.primary.reset?.textContent || ''),
       amount: qDom.primary.amount?.textContent || '',
@@ -8918,9 +10755,16 @@
   }
 
   function disposeModelQuota() {
+    closeModelShortcutsPopover();
+    if (shortcutStatusTimer) { clearTimeout(shortcutStatusTimer); shortcutStatusTimer = null; }
+    if (switchToastTimer) { clearTimeout(switchToastTimer); switchToastTimer = null; }
+    try { window.removeEventListener?.('keydown', onModelShortcutsKeydown, true); } catch {}
+    try { window.removeEventListener?.('resize', positionModelShortcutsPopover); } catch {}
+    try { document.removeEventListener?.('mousedown', onShortcutsOutsideMouseDown, true); } catch {}
     try { quotaNavResizeObserver?.disconnect(); } catch {}
     quotaNavResizeObserver = null;
     observedQuotaNav = null;
+    try { shortcutsHost.remove(); } catch {}
     try { quotaHost.remove(); } catch {}
   }
 
@@ -13138,8 +14982,14 @@
       if (typeof quotaShadow !== 'undefined' && quotaShadow) {
         applyStaticPanelTranslations(quotaShadow);
       }
+      if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) {
+        applyStaticPanelTranslations(shortcutsShadow);
+      }
       if (typeof renderModelQuota === 'function') {
         renderModelQuota(true);
+      }
+      if (typeof renderModelShortcutsPopover === 'function' && typeof shortcutsPopoverOpen !== 'undefined' && shortcutsPopoverOpen) {
+        renderModelShortcutsPopover();
       }
     } catch {}
 
@@ -16519,6 +18369,13 @@
     toggleModelQuota5hForTest: () => toggleModelQuota5hState(),
     setModelQuotaMinimizedForTest: (val) => setModelQuotaMinimizedState(val),
     getModelQuotaStateForTest: () => getModelQuotaStateSnapshot(),
+    inspectModelSwitcherForTest: () => inspectHostModelSwitcherState(),
+    executeModelSwitchActionForTest: (actionId, opts) => executeModelSwitchAction(actionId, opts),
+    getModelShortcutsForTest: () => sanitizeModelShortcutsConfig(modelShortcutsConfig),
+    setModelShortcutsForTest: (cfg) => saveModelShortcutsConfig(cfg),
+    toggleModelShortcutsPopoverForTest: () => toggleModelShortcutsPopover(),
+    formatShortcutForDisplayForTest: (combo, isMac) => formatShortcutForDisplay(combo, isMac),
+    eventToShortcutComboForTest: (e) => eventToShortcutCombo(e),
     restoreSettingsForTest: () => restoreSettingsFromHost(),
     translateForTest: (key, vars) => t(key, vars),
     applyStaticTranslationsForTest: (rootNode) => applyStaticPanelTranslations(rootNode),
@@ -16564,6 +18421,7 @@
   syncPanelLanguageButtons(currentPanelLanguage);
   applyStaticPanelTranslations(shadow);
   applyStaticPanelTranslations(quotaShadow);
+  if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) applyStaticPanelTranslations(shortcutsShadow);
   renderEnhanceSectionUI();
   void restoreSettingsFromHost();
   installRequestInterceptor();

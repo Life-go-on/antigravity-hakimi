@@ -115,8 +115,14 @@
       if (typeof quotaShadow !== 'undefined' && quotaShadow) {
         applyStaticPanelTranslations(quotaShadow);
       }
+      if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) {
+        applyStaticPanelTranslations(shortcutsShadow);
+      }
       if (typeof renderModelQuota === 'function') {
         renderModelQuota(true);
+      }
+      if (typeof renderModelShortcutsPopover === 'function' && typeof shortcutsPopoverOpen !== 'undefined' && shortcutsPopoverOpen) {
+        renderModelShortcutsPopover();
       }
     } catch {}
 

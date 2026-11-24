@@ -208,8 +208,8 @@ function createMinimalDomHarness() {
     }
     get value() { return this._value; }
     set value(v) {
-      this._value = Number(v);
-      this.attributes.set('value', String(v));
+      this._value = this.tagName === 'PROGRESS' ? Number(v) : String(v ?? '');
+      this.attributes.set('value', String(v ?? ''));
     }
     set innerHTML(html) {
       this._innerHTML = String(html || '');
@@ -349,9 +349,12 @@ function createMinimalDomHarness() {
     if (sel === '[data-i18n-title]') return el.hasAttribute('data-i18n-title');
     if (sel === '[data-i18n-aria]') return el.hasAttribute('data-i18n-aria');
     if (sel === '[data-i18n-placeholder]') return el.hasAttribute('data-i18n-placeholder');
+    const attrMatch = sel.match(/^\[([a-zA-Z0-9_-]+)="([^"]*)"\]$/);
+    if (attrMatch) return el.getAttribute(attrMatch[1]) === attrMatch[2];
     return false;
   }
 
+  const docListeners = new Map();
   const doc = {
     hidden: false,
     documentElement: new FakeElement('html'),
@@ -364,8 +367,14 @@ function createMinimalDomHarness() {
     getElementById: (id) => doc.body.getElementById(id) || doc.head.getElementById(id),
     querySelector: (sel) => doc.body.querySelector(sel),
     querySelectorAll: (sel) => doc.body.querySelectorAll(sel),
-    addEventListener: () => {},
-    removeEventListener: () => {}
+    addEventListener: (type, fn) => {
+      if (!docListeners.has(type)) docListeners.set(type, new Set());
+      docListeners.get(type).add(fn);
+    },
+    removeEventListener: (type, fn) => { docListeners.get(type)?.delete(fn); },
+    _dispatch: (type, evt) => {
+      for (const fn of [...(docListeners.get(type) || [])]) fn(evt);
+    }
   };
   doc.documentElement.appendChild(doc.head);
   doc.documentElement.appendChild(doc.body);
@@ -413,6 +422,7 @@ function bootQuotaRendererFixture(options = {}) {
   trigger.rect = { left: 300, top: 740, width: 160, height: 28, right: 460, bottom: 768 };
   doc.body.appendChild(trigger);
 
+  const windowListeners = new Map();
   const sandbox = {
     console, Date, Math, JSON, Number, String, Boolean, Array, Object, Map, Set, RegExp, Promise, Error, URL, AbortController,
     document: doc,
@@ -425,18 +435,25 @@ function bootQuotaRendererFixture(options = {}) {
     clearInterval: () => {},
     setTimeout: () => 1,
     clearTimeout: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
+    addEventListener: (type, fn) => {
+      if (!windowListeners.has(type)) windowListeners.set(type, new Set());
+      windowListeners.get(type).add(fn);
+    },
+    removeEventListener: (type, fn) => { windowListeners.get(type)?.delete(fn); },
     ...(options.bootSettings !== undefined ? { __AGContextMeterSettings: options.bootSettings } : {}),
     ...(options.contextMeterAPI ? { contextMeterAPI: options.contextMeterAPI } : {})
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
 
+  const dispatchWindowEvent = (type, evt) => {
+    for (const fn of [...(windowListeners.get(type) || [])]) fn(evt);
+  };
+
   const coreSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'meter-core.js'), 'utf8');
   const rendererSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'meter-renderer.js'), 'utf8');
   vm.runInNewContext(`${coreSrc}\n${rendererSrc}`, sandbox, { filename: options.filename || 'meter-renderer-quota-test.js' });
-  return { doc, sandbox, api: sandbox.__AGContextMeter, navWrapper, nav, settingsFooter, trigger };
+  return { doc, sandbox, api: sandbox.__AGContextMeter, navWrapper, nav, settingsFooter, trigger, dispatchWindowEvent, windowListeners };
 }
 
 test('renderer mounts model quota above Settings in sidebar, survives language switch, and handles collapse memory', async () => {
@@ -772,6 +789,310 @@ test('model quota display state (weekly-only / minimized single or dual ring) pe
     assert.equal(qs.dotOuterState, 'normal');
     assert.equal(qs.dotInnerState, 'warn');
     api3.dispose();
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+function attachMockModelSelectorFiber(trigger) {
+  const neonLow = { label: 'Gemini 4 Neon (Low)', value: 'MODEL_NEON_LOW', modelId: 'gemini-4-neon-low', disabled: false };
+  const neonMed = { label: 'Gemini 4 Neon (Medium)', value: 'MODEL_NEON_MED', modelId: 'gemini-4-neon-medium', disabled: false };
+  const neonHigh = { label: 'Gemini 4 Neon (High)', value: 'MODEL_NEON_HIGH', modelId: 'gemini-4-neon-high', disabled: false };
+  const neonExtra = { label: 'Gemini 4 Neon (Extra)', value: 'MODEL_NEON_XHIGH', modelId: 'gemini-4-neon-xhigh', disabled: false };
+  const claudeLow = { label: 'Claude Opus 5.5 (Low)', value: 'MODEL_CLAUDE_LOW', modelId: 'claude-opus-5-5-low', disabled: false };
+  const claudeMed = { label: 'Claude Opus 5.5 (Medium)', value: 'MODEL_CLAUDE_MED', modelId: 'claude-opus-5-5-medium', disabled: false };
+  const claudeHigh = { label: 'Claude Opus 5.5 (High)', value: 'MODEL_CLAUDE_HIGH', modelId: 'claude-opus-5-5-high', disabled: false };
+  const flashOnly = { label: 'Gemini 3 Flash', value: 'MODEL_FLASH', modelId: 'gemini-3-flash', disabled: false };
+
+  const effortIndex = new Map([
+    ['gemini-4-neon', new Map([['low', neonLow], ['medium', neonMed], ['high', neonHigh], ['xhigh', neonExtra]])],
+    ['claude-opus-5-5', new Map([['low', claudeLow], ['medium', claudeMed], ['high', claudeHigh]])]
+  ]);
+  const groupedModels = {
+    'gemini-4-neon': {
+      displayName: 'Gemini 4 Neon',
+      supportedThinkingLevels: [
+        { thinkingSuffix: 'low', thinkingDisplayName: 'Low' },
+        { thinkingSuffix: 'medium', thinkingDisplayName: 'Medium' },
+        { thinkingSuffix: 'high', thinkingDisplayName: 'High' },
+        { thinkingSuffix: 'xhigh', thinkingDisplayName: 'Extra' }
+      ]
+    },
+    'claude-opus-5-5': {
+      displayName: 'Claude Opus 5.5',
+      supportedThinkingLevels: [
+        { thinkingSuffix: 'low', thinkingDisplayName: 'Low' },
+        { thinkingSuffix: 'medium', thinkingDisplayName: 'Medium' },
+        { thinkingSuffix: 'high', thinkingDisplayName: 'High' }
+      ]
+    }
+  };
+  const selectedCalls = [];
+  const providerValue = {
+    selectedModel: neonHigh,
+    modelOptions: [neonLow, neonMed, neonHigh, neonExtra, claudeLow, claudeMed, claudeHigh, flashOnly],
+    groups: [
+      { groupName: 'Recommended', options: [neonLow, claudeLow, flashOnly] }
+    ],
+    effortIndex,
+    userStatus: { cascadeModelConfigData: { groupedModels } },
+    setSelectedModel(opt) {
+      selectedCalls.push(opt);
+      providerValue.selectedModel = opt;
+      trigger.textContent = opt.label;
+    }
+  };
+  trigger.__reactFiber$mock = {
+    return: {
+      return: {
+        memoizedProps: { value: providerValue }
+      }
+    }
+  };
+  return { providerValue, selectedCalls, options: { neonLow, neonMed, neonHigh, neonExtra, claudeLow, claudeMed, claudeHigh, flashOnly } };
+}
+
+test('quota header displays effort with quick up/down/cycle controls and secondary shortcut popover', async () => {
+  const { doc, api, trigger, dispatchWindowEvent, windowListeners } = bootQuotaRendererFixture({
+    initialModel: 'Gemini 4 Neon (High)'
+  });
+  const mockFiber = attachMockModelSelectorFiber(trigger);
+
+  api.applyTokenHistoryPayload({
+    rawPlanStatus: {
+      status: 'identified',
+      email: 'user@example.com',
+      modelQuotaGroups: [
+        { displayName: 'Gemini Models', buckets: [{ window: 'weekly', remainingFraction: 0.7 }] },
+        { displayName: 'Claude & GPT Models', buckets: [{ window: 'weekly', remainingFraction: 0.5 }] }
+      ]
+    },
+    summary: { grandTotalTokens: 100 },
+    dailyMap: { '2026-11-24': { total: 100, input: 50, output: 25, cache: 25, steps: 1 } }
+  });
+
+  // 1. Shortcuts default to completely empty
+  const initShortcuts = JSON.parse(JSON.stringify(api.getModelShortcutsForTest()));
+  assert.deepEqual(initShortcuts.actions, {
+    effortUp: '',
+    effortDown: '',
+    effortCycle: '',
+    modelNext: '',
+    modelPrev: ''
+  });
+  assert.deepEqual(initShortcuts.presets, []);
+
+  // 2. Quota header shows clean model name + Effort + active up/down buttons
+  let qs = api.getModelQuotaStateForTest();
+  assert.equal(qs.label, 'Gemini 4 Neon');
+  assert.equal(qs.effortVisible, true);
+  assert.equal(qs.effortValue, 'High');
+  assert.equal(qs.effortStepperVisible, true);
+  assert.equal(qs.effortCanUp, true);
+  assert.equal(qs.effortCanDown, true);
+  assert.deepEqual([...qs.effortOptions], ['Low', 'Medium', 'High', 'Extra']);
+  assert.equal(qs.shortcutsCount, 0);
+  assert.equal(qs.shortcutsDotVisible, false);
+
+  const qShadow = doc.getElementById('ag-model-quota-host').shadowRoot;
+  const upBtn = qShadow.getElementById('model-quota-effort-up');
+  const downBtn = qShadow.getElementById('model-quota-effort-down');
+  const pillBtn = qShadow.getElementById('model-quota-effort-pill');
+  const shortcutsBtn = qShadow.getElementById('model-quota-shortcuts-btn');
+
+  // Step up: High -> Extra (max -> up button disabled)
+  upBtn.click();
+  qs = api.getModelQuotaStateForTest();
+  assert.equal(mockFiber.providerValue.selectedModel.modelId, 'gemini-4-neon-xhigh');
+  assert.equal(qs.effortValue, 'Extra');
+  assert.equal(qs.effortCanUp, false);
+  assert.equal(qs.effortCanDown, true);
+
+  // Step down x3: Extra -> High -> Medium -> Low (min -> down button disabled)
+  downBtn.click();
+  assert.equal(api.getModelQuotaStateForTest().effortValue, 'High');
+  downBtn.click();
+  assert.equal(api.getModelQuotaStateForTest().effortValue, 'Medium');
+  downBtn.click();
+  qs = api.getModelQuotaStateForTest();
+  assert.equal(qs.effortValue, 'Low');
+  assert.equal(qs.effortCanDown, false);
+  assert.equal(qs.effortCanUp, true);
+
+  // Click effort pill cycles Low -> Medium
+  pillBtn.click();
+  assert.equal(api.getModelQuotaStateForTest().effortValue, 'Medium');
+
+  // Non-effort model hides the effort bar cleanly
+  mockFiber.providerValue.setSelectedModel(mockFiber.options.flashOnly);
+  api.renderModelQuotaForTest(true);
+  qs = api.getModelQuotaStateForTest();
+  assert.equal(qs.label, 'Gemini 3 Flash');
+  assert.equal(qs.effortVisible, false);
+  assert.equal(qs.effortStepperVisible, false);
+
+  // Switch back to Neon (High) for shortcut tests
+  mockFiber.providerValue.setSelectedModel(mockFiber.options.neonHigh);
+  api.renderModelQuotaForTest(true);
+
+  // 3. Open secondary shortcuts popover mounted on document.body (never trapped inside sidebar nav)
+  shortcutsBtn.click();
+  const scHost = doc.getElementById('ag-model-shortcuts-host');
+  assert.ok(scHost, 'secondary shortcuts host should exist on document.body');
+  assert.equal(scHost.parentElement, doc.body);
+  assert.equal(api.getModelQuotaStateForTest().shortcutsPopoverOpen, true);
+
+  const scShadow = scHost.shadowRoot;
+  const makeKeyEvent = (opts) => ({
+    key: opts.key || '',
+    code: opts.code || '',
+    metaKey: Boolean(opts.metaKey),
+    ctrlKey: Boolean(opts.ctrlKey),
+    altKey: Boolean(opts.altKey),
+    shiftKey: Boolean(opts.shiftKey),
+    isComposing: Boolean(opts.isComposing),
+    prevented: false,
+    stopped: false,
+    preventDefault() { this.prevented = true; },
+    stopPropagation() { this.stopped = true; }
+  });
+
+  // Record Effort Up via popover button: bare key rejected, Meta+Q rejected, Alt+ArrowUp accepted
+  const recUpBtn = scShadow.querySelector('[data-ms-record-action="effortUp"]');
+  assert.ok(recUpBtn);
+  recUpBtn.click();
+
+  const bareEvt = makeKeyEvent({ key: 'e', code: 'KeyE' });
+  dispatchWindowEvent('keydown', bareEvt);
+  assert.equal(bareEvt.prevented, true);
+  assert.equal(api.getModelShortcutsForTest().actions.effortUp, '', 'bare letter without modifier must be rejected');
+
+  const reservedEvt = makeKeyEvent({ key: 'q', code: 'KeyQ', metaKey: true });
+  dispatchWindowEvent('keydown', reservedEvt);
+  assert.equal(api.getModelShortcutsForTest().actions.effortUp, '', 'Meta+KeyQ must be rejected');
+
+  const altUpEvt = makeKeyEvent({ key: 'ArrowUp', code: 'ArrowUp', altKey: true });
+  dispatchWindowEvent('keydown', altUpEvt);
+  assert.equal(api.getModelShortcutsForTest().actions.effortUp, 'Alt+ArrowUp');
+  assert.equal(api.formatShortcutForDisplayForTest('Alt+ArrowUp', true), '⌥↑');
+  assert.equal(api.formatShortcutForDisplayForTest('Alt+ArrowUp', false), 'Alt+↑');
+
+  // Record macOS Option+E (where e.key is mangled dead-key '´' but e.code is 'KeyE') for Effort Cycle
+  scShadow.querySelector('[data-ms-record-action="effortCycle"]').click();
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: '´', code: 'KeyE', altKey: true }));
+  assert.equal(api.getModelShortcutsForTest().actions.effortCycle, 'Alt+KeyE');
+
+  // Record Meta+Shift+] for Next Model
+  scShadow.querySelector('[data-ms-record-action="modelNext"]').click();
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: '}', code: 'BracketRight', metaKey: true, shiftKey: true }));
+  assert.equal(api.getModelShortcutsForTest().actions.modelNext, 'Meta+Shift+BracketRight');
+
+  // Add a Direct Model + Effort preset (Claude Opus 5.5 · Medium) via the popover UI and bind Alt+1
+  scShadow.getElementById('ms-btn-add-preset').click();
+  const modelSel = scShadow.getElementById('ms-preset-model');
+  const effortSel = scShadow.getElementById('ms-preset-effort');
+  modelSel.value = 'claude-opus-5-5';
+  for (const fn of modelSel._listeners.get('change') || []) fn({});
+  assert.equal(effortSel.hidden, false);
+  effortSel.value = 'medium';
+  scShadow.getElementById('ms-preset-confirm').click();
+  // Confirm auto-starts recording for the new preset!
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: '¡', code: 'Digit1', altKey: true }));
+
+  const savedSc = api.getModelShortcutsForTest();
+  assert.equal(savedSc.presets.length, 1);
+  assert.equal(savedSc.presets[0].modelKey, 'claude-opus-5-5');
+  assert.equal(savedSc.presets[0].effortKey, 'medium');
+  assert.equal(savedSc.presets[0].shortcut, 'Alt+Digit1');
+  assert.equal(api.getModelQuotaStateForTest().shortcutsCount, 4);
+  assert.equal(api.getModelQuotaStateForTest().shortcutsDotVisible, true);
+
+  // Close popover with Escape
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: 'Escape', code: 'Escape' }));
+  assert.equal(api.getModelQuotaStateForTest().shortcutsPopoverOpen, false);
+
+  // 4. Execute configured global shortcuts!
+  // Unbound key passes through untouched
+  const normalTyping = makeKeyEvent({ key: 'a', code: 'KeyA' });
+  dispatchWindowEvent('keydown', normalTyping);
+  assert.equal(normalTyping.prevented, false);
+
+  // IME composing event passes through untouched even if combo matches
+  const imeEvt = makeKeyEvent({ key: 'ArrowUp', code: 'ArrowUp', altKey: true, isComposing: true });
+  dispatchWindowEvent('keydown', imeEvt);
+  assert.equal(imeEvt.prevented, false);
+
+  // Alt+ArrowUp steps Neon High -> Extra
+  const runUp = makeKeyEvent({ key: 'ArrowUp', code: 'ArrowUp', altKey: true });
+  dispatchWindowEvent('keydown', runUp);
+  assert.equal(runUp.prevented, true);
+  assert.equal(mockFiber.providerValue.selectedModel.modelId, 'gemini-4-neon-xhigh');
+
+  // Alt+KeyE wraps Extra -> Low
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: '´', code: 'KeyE', altKey: true }));
+  assert.equal(mockFiber.providerValue.selectedModel.modelId, 'gemini-4-neon-low');
+
+  // Meta+Shift+BracketRight switches Next Model: Neon (Low) -> Claude Opus 5.5 (preserves matching Low!)
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: '}', code: 'BracketRight', metaKey: true, shiftKey: true }));
+  assert.equal(mockFiber.providerValue.selectedModel.modelId, 'claude-opus-5-5-low');
+
+  // Alt+Digit1 jumps directly to Claude Opus 5.5 · Medium
+  mockFiber.providerValue.setSelectedModel(mockFiber.options.flashOnly);
+  api.renderModelQuotaForTest(true);
+  dispatchWindowEvent('keydown', makeKeyEvent({ key: '¡', code: 'Digit1', altKey: true }));
+  assert.equal(mockFiber.providerValue.selectedModel.modelId, 'claude-opus-5-5-medium');
+
+  // 5. Dispose removes shortcuts host and keydown listener
+  api.dispose();
+  assert.equal(doc.getElementById('ag-model-shortcuts-host'), null);
+  assert.equal((windowListeners.get('keydown') || new Set()).size, 0);
+});
+
+test('model and effort shortcuts persist across random-port restarts via host uiPreferences', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hakimi-shortcuts-persist-'));
+  try {
+    const bootFresh = (bootSettings) => bootQuotaRendererFixture({
+      bootSettings,
+      filename: 'meter-renderer-shortcuts-persist.js',
+      contextMeterAPI: {
+        getSettings: async () => getPluginSettings({ agDir: tmpDir }),
+        saveSettings: async (p) => savePluginSettings(p, { agDir: tmpDir })
+      }
+    });
+
+    const { api: api1 } = bootFresh(getPluginSettings({ agDir: tmpDir }));
+    api1.setModelShortcutsForTest({
+      actions: {
+        effortUp: 'Alt+ArrowUp',
+        effortDown: 'Alt+ArrowDown',
+        effortCycle: '',
+        modelNext: 'Meta+Shift+BracketRight',
+        modelPrev: ''
+      },
+      presets: [
+        { id: 'p1', modelKey: 'claude-opus-5-5', modelLabel: 'Claude Opus 5.5', effortKey: 'high', effortLabel: 'High', shortcut: 'Alt+Digit2' }
+      ]
+    });
+    await new Promise(r => setTimeout(r, 20));
+    api1.dispose();
+
+    const disk = getPluginSettings({ agDir: tmpDir });
+    assert.equal(disk.uiPreferences.modelShortcuts.actions.effortUp, 'Alt+ArrowUp');
+    assert.equal(disk.uiPreferences.modelShortcuts.actions.effortDown, 'Alt+ArrowDown');
+    assert.equal(disk.uiPreferences.modelShortcuts.presets[0].shortcut, 'Alt+Digit2');
+
+    // Fresh origin with empty localStorage restores all shortcuts immediately
+    const { api: api2, trigger: trigger2, dispatchWindowEvent: dispatch2 } = bootFresh(disk);
+    const mock2 = attachMockModelSelectorFiber(trigger2);
+    const restored = api2.getModelShortcutsForTest();
+    assert.equal(restored.actions.effortUp, 'Alt+ArrowUp');
+    assert.equal(restored.presets.length, 1);
+    assert.equal(restored.presets[0].shortcut, 'Alt+Digit2');
+
+    // Persisted shortcut works immediately on fresh origin
+    dispatch2('keydown', { key: '™', code: 'Digit2', altKey: true, preventDefault() {}, stopPropagation() {} });
+    assert.equal(mock2.providerValue.selectedModel.modelId, 'claude-opus-5-5-high');
+    api2.dispose();
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
