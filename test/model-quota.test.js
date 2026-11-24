@@ -6,7 +6,13 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
-const { fetchUserStatusFromHost, getPluginSettings, savePluginSettings } = require('../payload/dist/meter-collector');
+const {
+  fetchUserStatusFromHost,
+  getPluginSettings,
+  savePluginSettings,
+  markConversationTurnCompleted,
+  QUOTA_FORCE_REFRESH_MIN_INTERVAL_MS
+} = require('../payload/dist/meter-collector');
 const { resolveModelQuotaGroup } = require('../payload/dist/meter-core');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -1096,4 +1102,66 @@ test('model and effort shortcuts persist across random-port restarts via host ui
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+});
+
+test('quota forceRefresh triggers only after completed turns and enforces a 10-minute minimum interval', async () => {
+  assert.equal(QUOTA_FORCE_REFRESH_MIN_INTERVAL_MS, 10 * 60 * 1000);
+  const hostId = 'quota-turn-throttle-test';
+  const quotaCalls = [];
+  let remaining = 0.85;
+  const requestFn = async (method, body) => {
+    if (method === 'GetUserStatus') return { userStatus: { email: 'user@example.com' } };
+    if (method === 'GetAvailableModels') return {};
+    if (method === 'RetrieveUserQuotaSummary') {
+      quotaCalls.push({ forceRefresh: body.forceRefresh });
+      if (body.forceRefresh) remaining = Math.max(0, Number((remaining - 0.1).toFixed(2)));
+      return {
+        response: {
+          groups: [
+            { displayName: 'Gemini Models', buckets: [{ window: 'weekly', remainingFraction: remaining }] }
+          ]
+        }
+      };
+    }
+    throw new Error(`Unexpected method: ${method}`);
+  };
+
+  const t0 = 1_700_000_000_000;
+
+  // 1. Initial idle fetch (no turn completed): forceRefresh must be false
+  const s0 = await fetchUserStatusFromHost({ requestFn, remoteHostId: hostId, now: t0 });
+  assert.equal(quotaCalls.length, 1);
+  assert.equal(quotaCalls[0].forceRefresh, false);
+  assert.equal(s0.modelQuotaGroups[0].buckets[0].remainingFraction, 0.85);
+
+  // 2. First completed turn at t0 + 10s (within 60s cache window): bypasses 60s cache and sends forceRefresh: true
+  const t1 = t0 + 10_000;
+  assert.equal(markConversationTurnCompleted(hostId, t1), true);
+  const s1 = await fetchUserStatusFromHost({ requestFn, remoteHostId: hostId, now: t1 });
+  assert.equal(quotaCalls.length, 2);
+  assert.equal(quotaCalls[1].forceRefresh, true);
+  assert.equal(s1.modelQuotaGroups[0].buckets[0].remainingFraction, 0.75);
+
+  // 3. Another completed turn 5 minutes later (< 10 min): must NOT forceRefresh
+  const t2 = t1 + 5 * 60 * 1000;
+  assert.equal(markConversationTurnCompleted(hostId, t2), false);
+  const s2 = await fetchUserStatusFromHost({ requestFn, remoteHostId: hostId, now: t2 });
+  assert.equal(quotaCalls.length, 3);
+  assert.equal(quotaCalls[2].forceRefresh, false);
+  assert.equal(s2.modelQuotaGroups[0].buckets[0].remainingFraction, 0.75);
+
+  // 4. Idle poll 15 minutes later (no completed turn): must stay forceRefresh: false
+  const t3 = t1 + 15 * 60 * 1000;
+  const s3 = await fetchUserStatusFromHost({ requestFn, remoteHostId: hostId, now: t3 });
+  assert.equal(quotaCalls.length, 4);
+  assert.equal(quotaCalls[3].forceRefresh, false);
+  assert.equal(s3.modelQuotaGroups[0].buckets[0].remainingFraction, 0.75);
+
+  // 5. Completed turn after >= 10 minutes: triggers forceRefresh: true immediately
+  const t4 = t3 + 5_000;
+  assert.equal(markConversationTurnCompleted(hostId, t4), true);
+  const s4 = await fetchUserStatusFromHost({ requestFn, remoteHostId: hostId, now: t4 });
+  assert.equal(quotaCalls.length, 5);
+  assert.equal(quotaCalls[4].forceRefresh, true);
+  assert.equal(s4.modelQuotaGroups[0].buckets[0].remainingFraction, 0.65);
 });

@@ -1499,6 +1499,33 @@ function savePluginSettings(payload = {}, options = {}) {
 let cachedHostUserStatus = null;
 let cachedHostUserStatusAt = 0;
 const remoteHostUserStatusCache = new Map();
+const QUOTA_FORCE_REFRESH_MIN_INTERVAL_MS = 10 * 60 * 1000;
+const lastQuotaForceRefreshAtByHost = new Map();
+const pendingQuotaForceRefreshHosts = new Set();
+
+function normalizeQuotaHostKey(hostKey) {
+  return String(hostKey || 'local').trim() || 'local';
+}
+
+function isQuotaForceRefreshDue(hostKey = 'local', now = Date.now()) {
+  const key = normalizeQuotaHostKey(hostKey);
+  const lastAt = lastQuotaForceRefreshAtByHost.get(key) || 0;
+  return lastAt === 0 || (now - lastAt) >= QUOTA_FORCE_REFRESH_MIN_INTERVAL_MS;
+}
+
+function markConversationTurnCompleted(hostKey = 'local', now = Date.now()) {
+  const key = normalizeQuotaHostKey(hostKey);
+  if (!isQuotaForceRefreshDue(key, now)) return false;
+  pendingQuotaForceRefreshHosts.add(key);
+  return true;
+}
+
+function consumePendingQuotaForceRefresh(hostKey = 'local', now = Date.now()) {
+  const key = normalizeQuotaHostKey(hostKey);
+  if (!pendingQuotaForceRefreshHosts.has(key)) return false;
+  pendingQuotaForceRefreshHosts.delete(key);
+  return isQuotaForceRefreshDue(key, now);
+}
 
 function pickTrimmedString(...values) {
   for (const v of values) {
@@ -1559,11 +1586,12 @@ function parseQuotaSummaryResponse(quotaRes) {
   return null;
 }
 
-async function fetchLiveUserStatus(request, prevStatus = null) {
+async function fetchLiveUserStatus(request, prevStatus = null, options = {}) {
+  const forceRefreshQuota = options?.forceRefreshQuota === true;
   const [res, availRes, quotaRes] = await Promise.all([
     request('GetUserStatus', {}),
     request('GetAvailableModels', { forceRefresh: false }).catch(() => null),
-    request('RetrieveUserQuotaSummary', { request: {}, forceRefresh: false }).catch(() => null)
+    request('RetrieveUserQuotaSummary', { request: {}, forceRefresh: forceRefreshQuota }).catch(() => null)
   ]);
   const parsed = parseUserPlanStatus(res);
   const configs = res?.userStatus?.cascadeModelConfigData?.clientModelConfigs || [];
@@ -1583,6 +1611,7 @@ async function fetchLiveUserStatus(request, prevStatus = null) {
 }
 
 async function fetchUserStatusFromHost(options = {}) {
+  const now = typeof options?.now === 'number' ? options.now : Date.now();
   if (options && options.userStatus !== undefined) {
     if (!options.userStatus) return null;
     const parsed = parseUserPlanStatus(options.userStatus);
@@ -1597,29 +1626,37 @@ async function fetchUserStatusFromHost(options = {}) {
     return parsed;
   }
   if (typeof options.requestFn === 'function') {
-    const cacheKey = String(options.remoteHostId || 'ssh');
+    const cacheKey = normalizeQuotaHostKey(options.remoteHostId || 'ssh');
     const cached = remoteHostUserStatusCache.get(cacheKey);
-    if (!options.force && cached && Date.now() - cached.at < 60000) {
+    const shouldForceQuota = consumePendingQuotaForceRefresh(cacheKey, now);
+    if (!options.force && !shouldForceQuota && cached && now - cached.at < 60000) {
       return cached.data;
     }
     try {
-      const parsed = await fetchLiveUserStatus(options.requestFn, cached?.data || null);
-      setBoundedMap(remoteHostUserStatusCache, cacheKey, { data: parsed, at: Date.now() }, MAX_REMOTE_HOST_STATUS_CACHE);
+      const parsed = await fetchLiveUserStatus(options.requestFn, cached?.data || null, { forceRefreshQuota: shouldForceQuota });
+      if (shouldForceQuota) {
+        setBoundedMap(lastQuotaForceRefreshAtByHost, cacheKey, now, MAX_REMOTE_HOST_STATUS_CACHE);
+      }
+      setBoundedMap(remoteHostUserStatusCache, cacheKey, { data: parsed, at: now }, MAX_REMOTE_HOST_STATUS_CACHE);
       return parsed;
     } catch {
       return cached?.data || null;
     }
   }
-  if (!options.agDir && !options.force && cachedHostUserStatus && Date.now() - cachedHostUserStatusAt < 60000) {
+  const shouldForceQuota = !options.agDir && consumePendingQuotaForceRefresh('local', now);
+  if (!options.agDir && !options.force && !shouldForceQuota && cachedHostUserStatus && now - cachedHostUserStatusAt < 60000) {
     return cachedHostUserStatus;
   }
   try {
     const { connect } = require('./local-api');
     const api = await connect();
-    const parsed = await fetchLiveUserStatus(api.call, !options.agDir ? cachedHostUserStatus : null);
+    const parsed = await fetchLiveUserStatus(api.call, !options.agDir ? cachedHostUserStatus : null, { forceRefreshQuota: shouldForceQuota });
+    if (shouldForceQuota) {
+      setBoundedMap(lastQuotaForceRefreshAtByHost, 'local', now, MAX_REMOTE_HOST_STATUS_CACHE);
+    }
     if (parsed && !options.agDir) {
       cachedHostUserStatus = parsed;
-      cachedHostUserStatusAt = Date.now();
+      cachedHostUserStatusAt = now;
     }
     return parsed;
   } catch {
@@ -1666,7 +1703,8 @@ async function collectTokenHistoryAsync(options = {}) {
     } catch {}
     return base;
   }
-  if (!options.force && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < 15000) {
+  const hasPendingLocalQuotaRefresh = !options.agDir && pendingQuotaForceRefreshHosts.has('local');
+  if (!options.force && !hasPendingLocalQuotaRefresh && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < 15000) {
     return cachedTokenHistory;
   }
   if (!options.agDir && activeScanPromise) {
@@ -2172,7 +2210,8 @@ async function collectTokenHistoryAsync(options = {}) {
 
 function collectTokenHistory(options = {}) {
   // 同步封装：如果缓存可用直接返回，否则启动异步刷新并返回缓存或空壳
-  if (!options.force && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < 15000) {
+  const hasPendingLocalQuotaRefresh = !options.agDir && pendingQuotaForceRefreshHosts.has('local');
+  if (!options.force && !hasPendingLocalQuotaRefresh && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < 15000) {
     return cachedTokenHistory;
   }
   // 触发异步更新
@@ -2205,6 +2244,8 @@ module.exports = {
   isCompanionOrTempFile,
   formatLocalDateKey,
   recordModelCalls,
+  markConversationTurnCompleted,
+  QUOTA_FORCE_REFRESH_MIN_INTERVAL_MS,
   flushPricingLedger,
   loadPricingLedger,
   savePricingLedger,

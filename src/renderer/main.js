@@ -1153,7 +1153,7 @@
         }
       }
       if (changed || hasFinalCall) {
-        void syncTokenHistoryFromHost(false);
+        void syncTokenHistoryFromHost(false, { followUp: changed && hasFinalCall });
       }
     } catch (err) {
       console.warn('Context Meter: 调用入账发生异常', err);
@@ -1251,11 +1251,14 @@
 
   let historySyncBusy = false;
   let pendingHistoryForce = false;
-  async function syncTokenHistoryFromHost(force = false) {
+  let pendingHistorySync = false;
+  async function syncTokenHistoryFromHost(force = false, opts = {}) {
     if (state.disposed) return;
     if (historySyncBusy) {
       if (force) {
         pendingHistoryForce = true;
+      } else if (opts?.followUp) {
+        pendingHistorySync = true;
       }
       return;
     }
@@ -1297,7 +1300,11 @@
       }
       if (pendingHistoryForce) {
         pendingHistoryForce = false;
+        pendingHistorySync = false;
         void syncTokenHistoryFromHost(true);
+      } else if (pendingHistorySync) {
+        pendingHistorySync = false;
+        void syncTokenHistoryFromHost(false);
       }
     }
   }

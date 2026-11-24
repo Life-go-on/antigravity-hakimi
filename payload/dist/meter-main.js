@@ -16,6 +16,7 @@ const {
   collectTokenHistory,
   collectTokenHistoryAsync,
   recordModelCalls,
+  markConversationTurnCompleted,
   flushPricingLedger,
   getPluginSettings,
   savePluginSettings,
@@ -305,7 +306,13 @@ function registerIpcOnce() {
     const url = isLocalMainFrameSender(event);
     if (!url) throw new Error('仅允许本机主聊天窗口');
     try {
+      const hasFinalCall = Array.isArray(calls) && calls.some(c => c?.status === 'final');
       const res = recordModelCalls(calls);
+      const changed = Boolean(res && typeof res === 'object' ? (res.ok !== false && res.changed) : res);
+      if (changed && hasFinalCall) {
+        const remote = getRemoteBackendForSender(event?.sender);
+        markConversationTurnCompleted(remote ? remote.hostId : 'local');
+      }
       if (res && typeof res === 'object') {
         if (res.ok === false) {
           return { ok: false, error: res.error || '入账失败', changed: false };
