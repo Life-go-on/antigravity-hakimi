@@ -355,17 +355,117 @@ test('official manifest YAML parsing, URL allowlist, SHA-512 verification, and G
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
-  // GitHub main compare: 404 (local unpushed commit) must NOT trigger downgrade
+  // Official minimal manifest (`version: 2.35.1` without `files:`) returned when x-app-version is already up-to-date
+  const minUpToDate = await builder.fetchOfficialLatestManifest({
+    currentVersion: '2.35.1',
+    httpRequest: async (_url, opts = {}) => {
+      assert.equal(opts.headers?.['x-app-version'], '2.35.1');
+      return { status: 200, text: 'version: 2.35.1\n' };
+    },
+  });
+  assert.equal(minUpToDate.version, '2.35.1');
+  assert.equal(minUpToDate.upToDate, true);
+  assert.equal(minUpToDate.url, '');
+  assert.equal(minUpToDate.sha512, '');
+
+  // Official minimal manifest reporting a NEWER version while x-app-version was sent: retries once without x-app-version
+  let manifestAttempts = 0;
+  const retriedNewer = await builder.fetchOfficialLatestManifest({
+    currentVersion: '2.34.0',
+    httpRequest: async (_url, opts = {}) => {
+      manifestAttempts++;
+      if (opts.headers?.['x-app-version']) {
+        return { status: 200, text: 'version: 2.35.1\n' };
+      }
+      return { status: 200, text: sampleLatestYml };
+    },
+  });
+  assert.equal(manifestAttempts, 2);
+  assert.equal(retriedNewer.version, '2.35.1');
+  assert.equal(retriedNewer.upToDate, false);
+  assert.equal(retriedNewer.sha512, 'arm64sha==');
+
+  // Official manifest genuinely lacking a ZIP when no x-app-version is sent still throws
+  await assert.rejects(
+    () =>
+      builder.fetchOfficialLatestManifest({
+        httpRequest: async () => ({ status: 200, text: 'version: 2.35.1\n' }),
+      }),
+    /官方更新清单中未找到 macOS ZIP 安装包/
+  );
+
+  // Helper to build GitHub commits/main.atom feed XML
+  const makeAtomXml = (commits) =>
+    `<?xml version="1.0" encoding="UTF-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom">\n` +
+    commits
+      .map(
+        (c) =>
+          `  <entry>\n` +
+          `    <id>tag:github.com,2008:Grit::Commit/${c.sha}</id>\n` +
+          `    <link type="text/html" rel="alternate" href="https://github.com/cli117/antigravity-hakimi/commit/${c.sha}"/>\n` +
+          `    <title>${c.title || 'commit'}</title>\n` +
+          `    <updated>${c.date || '2026-11-25T10:00:00Z'}</updated>\n` +
+          `  </entry>`
+      )
+      .join('\n') +
+    `\n</feed>`;
+
   const mainSha = '1'.repeat(40);
+  const prevSha1 = 'a'.repeat(40);
+  const prevSha2 = 'b'.repeat(40);
   const localSha = '2'.repeat(40);
+  const oldSha = '3'.repeat(40);
+  const aheadLocalSha = '4'.repeat(40);
+  const divergedSha = '5'.repeat(40);
+
+  // GitHub web Atom check: identical commit (0 api.github.com calls, 1 total request)
+  let identicalCalls = 0;
+  const identicalRes = await builder.checkHakimiMainUpdate({
+    installedCommit: mainSha,
+    httpRequest: async (url) => {
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      identicalCalls++;
+      assert.ok(url.endsWith('/commits/main.atom'));
+      return { status: 200, text: makeAtomXml([{ sha: mainSha, title: 'feat: latest &amp; clean' }]) };
+    },
+  });
+  assert.equal(identicalCalls, 1);
+  assert.equal(identicalRes.status, 'identical');
+  assert.equal(identicalRes.updateAvailable, false);
+  assert.equal(identicalRes.commitMessage, 'feat: latest & clean');
+
+  // GitHub web Atom fast path: installedCommit present in Atom feed -> ahead without compare request
+  let fastPathCalls = 0;
+  const atomAheadRes = await builder.checkHakimiMainUpdate({
+    installedCommit: prevSha2,
+    httpRequest: async (url) => {
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      fastPathCalls++;
+      return {
+        status: 200,
+        text: makeAtomXml([
+          { sha: mainSha, title: 'feat: newest' },
+          { sha: prevSha1, title: 'feat: mid' },
+          { sha: prevSha2, title: 'feat: old' },
+        ]),
+      };
+    },
+  });
+  assert.equal(fastPathCalls, 1);
+  assert.equal(atomAheadRes.status, 'ahead');
+  assert.equal(atomAheadRes.updateAvailable, true);
+  assert.equal(atomAheadRes.aheadBy, 2);
+
+  // GitHub web compare (.patch): 404 (local unpushed commit) must NOT trigger downgrade
   const unpushedRes = await builder.checkHakimiMainUpdate({
     installedCommit: localSha,
     httpRequest: async (url) => {
-      if (url.includes('/commits/')) {
-        return { status: 200, text: JSON.stringify({ sha: mainSha, commit: { message: 'main head', committer: { date: '2026-11-25T10:00:00Z' } } }) };
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      if (url.endsWith('/commits/main.atom')) {
+        return { status: 200, text: makeAtomXml([{ sha: mainSha, title: 'main head' }]) };
       }
-      if (url.includes('/compare/')) {
-        return { status: 404, text: '{"message":"Not Found"}' };
+      if (url.endsWith(`/compare/${localSha}...${mainSha}.patch`)) {
+        return { status: 404, text: 'Not Found' };
       }
       throw new Error(`Unexpected URL: ${url}`);
     },
@@ -373,32 +473,85 @@ test('official manifest YAML parsing, URL allowlist, SHA-512 verification, and G
   assert.equal(unpushedRes.status, 'local_unpushed');
   assert.equal(unpushedRes.updateAvailable, false);
 
-  // GitHub main compare: ahead -> updateAvailable = true
+  // GitHub web compare (.patch): older commit beyond Atom window -> fwd non-empty, rev empty -> ahead
   const aheadRes = await builder.checkHakimiMainUpdate({
-    installedCommit: '3'.repeat(40),
-    httpRequest: async (url) => {
-      if (url.includes('/commits/')) {
-        return { status: 200, text: JSON.stringify({ sha: mainSha, commit: { message: 'feat: new', committer: { date: '2026-11-25T10:00:00Z' } } }) };
+    installedCommit: oldSha,
+    httpRequest: async (url, opts = {}) => {
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      if (url.endsWith('/commits/main.atom')) {
+        return { status: 200, text: makeAtomXml([{ sha: mainSha, title: 'feat: new' }]) };
       }
-      return { status: 200, text: JSON.stringify({ status: 'ahead', ahead_by: 3, behind_by: 0 }) };
+      if (url.endsWith(`/compare/${oldSha}...${mainSha}.patch`)) {
+        assert.equal(opts.maxBytes, 1024);
+        return { status: 200, text: `From ${mainSha} Mon Sep 17 00:00:00 2001\n` };
+      }
+      if (url.endsWith(`/compare/${mainSha}...${oldSha}.patch`)) {
+        assert.equal(opts.maxBytes, 1024);
+        return { status: 200, text: '' };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
     },
   });
   assert.equal(aheadRes.status, 'ahead');
   assert.equal(aheadRes.updateAvailable, true);
-  assert.equal(aheadRes.aheadBy, 3);
 
-  // GitHub main compare: behind (local ahead of main) -> updateAvailable = false
+  // GitHub web compare (.patch): local ahead of main -> fwd empty, rev non-empty -> local_ahead
   const behindRes = await builder.checkHakimiMainUpdate({
-    installedCommit: '4'.repeat(40),
+    installedCommit: aheadLocalSha,
     httpRequest: async (url) => {
-      if (url.includes('/commits/')) {
-        return { status: 200, text: JSON.stringify({ sha: mainSha, commit: { message: 'older main' } }) };
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      if (url.endsWith('/commits/main.atom')) {
+        return { status: 200, text: makeAtomXml([{ sha: mainSha, title: 'older main' }]) };
       }
-      return { status: 200, text: JSON.stringify({ status: 'behind', ahead_by: 0, behind_by: 2 }) };
+      if (url.endsWith(`/compare/${aheadLocalSha}...${mainSha}.patch`)) {
+        return { status: 200, text: '' };
+      }
+      if (url.endsWith(`/compare/${mainSha}...${aheadLocalSha}.patch`)) {
+        return { status: 200, text: `From ${aheadLocalSha} Mon Sep 17 00:00:00 2001\n` };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
     },
   });
   assert.equal(behindRes.status, 'local_ahead');
   assert.equal(behindRes.updateAvailable, false);
+
+  // GitHub web compare (.patch): diverged -> both fwd and rev non-empty -> diverged
+  const divergedRes = await builder.checkHakimiMainUpdate({
+    installedCommit: divergedSha,
+    httpRequest: async (url) => {
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      if (url.endsWith('/commits/main.atom')) {
+        return { status: 200, text: makeAtomXml([{ sha: mainSha, title: 'main tip' }]) };
+      }
+      if (url.endsWith('.patch')) {
+        return { status: 200, text: 'From deadbeef Mon Sep 17 00:00:00 2001\n' };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+  });
+  assert.equal(divergedRes.status, 'diverged');
+  assert.equal(divergedRes.updateAvailable, false);
+
+  // Git Smart HTTP info/refs fallback when commits/main.atom returns 503
+  const fallbackRes = await builder.checkHakimiMainUpdate({
+    installedCommit: mainSha,
+    httpRequest: async (url) => {
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      if (url.endsWith('/commits/main.atom')) {
+        return { status: 503, text: 'Service Unavailable' };
+      }
+      if (url.endsWith('.git/info/refs?service=git-upload-pack')) {
+        return {
+          status: 200,
+          text: `001e# service=git-upload-pack\n00000159${mainSha} HEAD\0multi_ack\n003f${mainSha} refs/heads/main\n0000`,
+        };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+  });
+  assert.equal(fallbackRes.status, 'identical');
+  assert.equal(fallbackRes.updateAvailable, false);
+  assert.equal(fallbackRes.latestSha, mainSha);
 });
 
 test('dual-source updater enforces silent-until-ready, cleans failed downloads, skips known-incompatible until main advances, and falls back to Hakimi-only', async () => {
@@ -436,6 +589,7 @@ test('dual-source updater enforces silent-until-ready, cleans failed downloads, 
     let shouldFail2351 = true;
 
     const httpRequest = async (url, opts = {}) => {
+      assert.equal(url.includes('api.github.com'), false, `Updater must never hit api.github.com: ${url}`);
       if (url.endsWith('latest-arm64-mac.yml')) {
         return {
           status: 200,
@@ -451,14 +605,27 @@ test('dual-source updater enforces silent-until-ready, cleans failed downloads, 
         fs.copyFileSync(fakeZip2351, opts.destFilePath);
         return { status: 200, filePath: opts.destFilePath, sha512: zip2351Sha };
       }
-      if (url.includes('/commits/main')) {
+      if (url.endsWith('/commits/main.atom')) {
+        const entries =
+          remoteMainSha === installedSha
+            ? [installedSha]
+            : [remoteMainSha, installedSha];
         return {
           status: 200,
-          text: JSON.stringify({ sha: remoteMainSha, commit: { message: 'commit msg', committer: { date: '2026-11-25T12:00:00Z' } } }),
+          text:
+            '<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom">' +
+            entries
+              .map(
+                (sha) =>
+                  `<entry><id>tag:github.com,2008:Grit::Commit/${sha}</id><title>commit msg</title><updated>2026-11-25T12:00:00Z</updated></entry>`
+              )
+              .join('') +
+            '</feed>',
         };
       }
-      if (url.includes('/compare/')) {
-        return { status: 200, text: JSON.stringify({ status: 'ahead', ahead_by: 1, behind_by: 0 }) };
+      if (url.includes('/compare/') && url.endsWith('.patch')) {
+        const isForward = url.includes(`/${installedSha}...${remoteMainSha}.patch`);
+        return { status: 200, text: isForward ? `From ${remoteMainSha} Mon Sep 17 00:00:00 2001\n` : '' };
       }
       if (url.includes('/tar.gz/') && opts.destFilePath) {
         fs.copyFileSync(fakeHakimiTar, opts.destFilePath);
@@ -547,6 +714,132 @@ test('dual-source updater enforces silent-until-ready, cleans failed downloads, 
     assert.deepEqual(nativeBridge.getLastState(), { type: 'idle' }, 'Native AppUpdateButton state stays idle');
     // Only 1 staging directory should remain (old superseded staging dir cleaned)
     assert.equal(fs.readdirSync(paths.stagingDir).length, 1);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('updater handles minimal up-to-date official manifest cleanly and refetches full manifest without x-app-version when Hakimi-only update needs clean zip', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hakimi-minimal-manifest-'));
+  try {
+    const stateDir = path.join(tmp, 'state');
+    const nativeCacheDir = path.join(tmp, 'nativeCache');
+    const targetAppPath = path.join(tmp, 'Apps', '哈基米.app');
+    const installedSha = 'a'.repeat(40);
+    const newerSha = 'b'.repeat(40);
+
+    makeFakeBundle(targetAppPath, { version: '2.35.1', marker: 'installed-2351', commit: installedSha });
+
+    // Create a valid official 2.35.1 zip
+    const zipSrcDir = path.join(tmp, 'zip-src');
+    makeFakeBundle(path.join(zipSrcDir, 'Antigravity.app'), { version: '2.35.1', marker: 'official-2351' });
+    const fakeZip2351 = path.join(tmp, 'Antigravity-2.35.1.zip');
+    execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', path.join(zipSrcDir, 'Antigravity.app'), fakeZip2351]);
+    const zip2351Sha = await builder.computeFileSha512Base64(fakeZip2351);
+
+    // Create a valid Hakimi tarball for newerSha
+    const fakeTarSrc = path.join(tmp, 'tar-src', `antigravity-hakimi-${newerSha}`);
+    fs.mkdirSync(path.join(fakeTarSrc, 'scripts'), { recursive: true });
+    fs.mkdirSync(path.join(fakeTarSrc, 'payload', 'dist'), { recursive: true });
+    fs.writeFileSync(path.join(fakeTarSrc, 'scripts', 'pack-hakimi-asar.js'), '// stub\n', 'utf8');
+    fs.writeFileSync(path.join(fakeTarSrc, 'payload', 'dist', 'meter-region-unlock.js'), '// stub\n', 'utf8');
+    const fakeHakimiTar = path.join(tmp, 'hakimi.tar.gz');
+    execFileSync('/usr/bin/tar', ['-czf', fakeHakimiTar, '-C', path.join(tmp, 'tar-src'), `antigravity-hakimi-${newerSha}`]);
+
+    let remoteMainSha = installedSha;
+    let sawFullManifestRefetch = false;
+
+    const httpRequest = async (url, opts = {}) => {
+      assert.equal(url.includes('api.github.com'), false, `Must never hit api.github.com: ${url}`);
+      if (url.endsWith('latest-arm64-mac.yml')) {
+        if (opts.headers?.['x-app-version'] === '2.35.1') {
+          // Real Google Cloud Run behavior when client is already on latest 2.35.1
+          return { status: 200, text: 'version: 2.35.1\n' };
+        }
+        sawFullManifestRefetch = true;
+        return {
+          status: 200,
+          text: [
+            'version: 2.35.1',
+            'files:',
+            '  - url: https://storage.googleapis.com/antigravity-public/2.35.1/darwin-arm/Antigravity.zip',
+            `    sha512: ${zip2351Sha}`,
+          ].join('\n'),
+        };
+      }
+      if (url.includes('Antigravity.zip') && opts.destFilePath) {
+        fs.copyFileSync(fakeZip2351, opts.destFilePath);
+        return { status: 200, filePath: opts.destFilePath, sha512: zip2351Sha };
+      }
+      if (url.endsWith('/commits/main.atom')) {
+        const entries = remoteMainSha === installedSha ? [installedSha] : [remoteMainSha, installedSha];
+        return {
+          status: 200,
+          text:
+            '<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom">' +
+            entries
+              .map(
+                (sha) =>
+                  `<entry><id>tag:github.com,2008:Grit::Commit/${sha}</id><title>msg</title><updated>2026-11-25T14:00:00Z</updated></entry>`
+              )
+              .join('') +
+            '</feed>',
+        };
+      }
+      if (url.includes('/tar.gz/') && opts.destFilePath) {
+        fs.copyFileSync(fakeHakimiTar, opts.destFilePath);
+        return { status: 200, filePath: opts.destFilePath };
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    };
+
+    const updater = updaterMod.createHakimiUpdater({
+      platform: 'darwin',
+      stateDir,
+      homeDir: tmp,
+      nativeCacheDir,
+      targetAppPath,
+      officialAppPath: path.join(tmp, 'MissingOfficial.app'),
+      skipGoogleSignatureCheck: true,
+      skipOfficialRunningCheck: true,
+      httpRequest,
+      stageBuildImpl: async (spec) => {
+        makeFakeBundle(path.join(spec.stageDir, '哈基米.app'), {
+          version: spec.antigravityVersion,
+          marker: 'staged-hakimi-only',
+          commit: spec.hakimiCommit,
+        });
+        return {
+          ok: true,
+          stageDir: spec.stageDir,
+          stagedAppPath: path.join(spec.stageDir, '哈基米.app'),
+          antigravityVersion: spec.antigravityVersion,
+          hakimiVersion: '1.0.1',
+          hakimiCommit: spec.hakimiCommit,
+          asarSha256: 'e'.repeat(64),
+          usingCustomIcon: false,
+        };
+      },
+    });
+
+    // 1. Both official (minimal manifest) and Hakimi are up-to-date -> idle, zero errors!
+    const snapIdle = await updater.checkAndStageUpgrade({ manual: true });
+    assert.equal(snapIdle.status, 'idle');
+    assert.equal(snapIdle.lastError, null);
+    assert.equal(snapIdle.latestOfficial?.version, '2.35.1');
+    assert.equal(sawFullManifestRefetch, false);
+
+    // 2. Hakimi main advances while official stays on 2.35.1 (minimal manifest) and no local/cache base exists ->
+    //    must automatically refetch full official manifest without x-app-version and stage cleanly!
+    remoteMainSha = newerSha;
+    const snapReady = await updater.checkAndStageUpgrade({ manual: true });
+    assert.equal(sawFullManifestRefetch, true, 'Must refetch full official manifest without x-app-version');
+    assert.equal(snapReady.status, 'ready');
+    assert.equal(snapReady.lastError, null);
+    assert.equal(snapReady.staged.targetAntigravityVersion, '2.35.1');
+    assert.equal(snapReady.staged.targetHakimiCommit, newerSha);
+    assert.equal(snapReady.staged.hakimiChanged, true);
+    assert.equal(snapReady.staged.antigravityChanged, false);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

@@ -326,6 +326,7 @@ function createHakimiUpdater(defaultOptions = {}) {
   async function prepareCleanOfficialSource({
     targetAgVer,
     officialManifest,
+    targetAppPath,
     ephemeralTmpDir,
     opts,
   }) {
@@ -370,17 +371,33 @@ function createHakimiUpdater(defaultOptions = {}) {
 
     // 3. Acquire from official feed manifest (reuses verified pending zip or downloads over HTTPS)
     if (officialManifest && officialManifest.version === targetAgVer) {
-      const tmpZipPath = path.join(ephemeralTmpDir, `Antigravity-${targetAgVer}.zip`);
-      const acquired = await builder.acquireOfficialVerifiedZip(officialManifest, tmpZipPath, opts);
-      const extractDir = path.join(ephemeralTmpDir, `official-${targetAgVer}`);
-      const extractedApp = builder.extractOfficialZipAndVerify(acquired.zipPath, extractDir, opts);
-      const isEphemeralZip = path.resolve(acquired.zipPath) === path.resolve(tmpZipPath);
-      return {
-        sourceAppPath: extractedApp,
-        downloadedZipPath: isEphemeralZip ? acquired.zipPath : null,
-        sha512: acquired.sha512,
-        sourceKind: 'official-feed',
-      };
+      let downloadManifest = officialManifest;
+      if (!downloadManifest.url || !downloadManifest.sha512) {
+        try {
+          const fullManifest = await builder.fetchOfficialLatestManifest({
+            ...opts,
+            appBundlePath: targetAppPath || opts.targetAppPath,
+            currentVersion: undefined,
+            requireDownload: true,
+          });
+          if (fullManifest && fullManifest.version === targetAgVer && fullManifest.url && fullManifest.sha512) {
+            downloadManifest = fullManifest;
+          }
+        } catch {}
+      }
+      if (downloadManifest.url && downloadManifest.sha512) {
+        const tmpZipPath = path.join(ephemeralTmpDir, `Antigravity-${targetAgVer}.zip`);
+        const acquired = await builder.acquireOfficialVerifiedZip(downloadManifest, tmpZipPath, opts);
+        const extractDir = path.join(ephemeralTmpDir, `official-${targetAgVer}`);
+        const extractedApp = builder.extractOfficialZipAndVerify(acquired.zipPath, extractDir, opts);
+        const isEphemeralZip = path.resolve(acquired.zipPath) === path.resolve(tmpZipPath);
+        return {
+          sourceAppPath: extractedApp,
+          downloadedZipPath: isEphemeralZip ? acquired.zipPath : null,
+          sha512: acquired.sha512,
+          sourceKind: 'official-feed',
+        };
+      }
     }
 
     throw new Error(`找不到 v${targetAgVer} 对应的干净官方底包，无法在保持版本不降级的前提下重建`);
@@ -413,6 +430,7 @@ function createHakimiUpdater(defaultOptions = {}) {
     const officialSrc = await prepareCleanOfficialSource({
       targetAgVer,
       officialManifest,
+      targetAppPath,
       ephemeralTmpDir,
       opts,
     });

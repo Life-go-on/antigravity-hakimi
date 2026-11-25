@@ -256,6 +256,14 @@ function resolveFileDownloadUrl(rawFileUrl, feedUrl) {
   return new URL(s.replace(/^\/+/, ''), base).toString();
 }
 
+function manifestHasZipEntry(manifest) {
+  const files = Array.isArray(manifest?.files) ? manifest.files : [];
+  if (files.some((f) => f && typeof f.url === 'string' && /\.zip(?:$|\?)/i.test(f.url))) {
+    return true;
+  }
+  return Boolean(manifest?.path && /\.zip(?:$|\?)/i.test(manifest.path));
+}
+
 function selectMacZipFromManifest(manifest, feedUrl, arch = process.arch) {
   const files = Array.isArray(manifest?.files) ? manifest.files : [];
   const zipCandidates = files.filter((f) => f && typeof f.url === 'string' && /\.zip(?:$|\?)/i.test(f.url));
@@ -388,25 +396,49 @@ function defaultHttpRequest(targetUrl, options = {}) {
             return;
           }
 
+          const maxBytes =
+            Number.isFinite(options.maxBytes) && options.maxBytes > 0 ? Math.floor(options.maxBytes) : 0;
           const chunks = [];
-          res.on('data', (c) => chunks.push(c));
-          res.on('error', reject);
-          res.on('end', () => {
+          let totalBytes = 0;
+          let settled = false;
+          const finishBody = (truncated = false) => {
+            if (settled) return;
+            settled = true;
             const buf = Buffer.concat(chunks);
             resolve({
               status,
               headers: res.headers,
               text: buf.toString('utf8'),
               buffer: buf,
+              truncated,
             });
+          };
+          const failBody = (err) => {
+            if (settled) return;
+            settled = true;
+            reject(err);
+          };
+          res.on('data', (c) => {
+            if (settled) return;
+            chunks.push(c);
+            totalBytes += c.length;
+            if (maxBytes && totalBytes >= maxBytes) {
+              finishBody(true);
+              try { res.destroy(); } catch {}
+              try { req.destroy(); } catch {}
+            }
           });
+          res.on('error', failBody);
+          res.on('end', () => finishBody(false));
         }
       );
 
       req.on('timeout', () => {
         req.destroy(new Error(`网络请求超时 (${timeoutMs}ms): ${currentUrl}`));
       });
-      req.on('error', reject);
+      req.on('error', (err) => {
+        reject(err);
+      });
     };
 
     doRequest(targetUrl, maxRedirects);
@@ -428,25 +460,57 @@ async function fetchOfficialLatestManifest(options = {}) {
   const arch = options.arch || process.arch || 'arm64';
   const manifestUrl = new URL(`latest-${arch}-mac.yml`, feedUrl.endsWith('/') ? feedUrl : `${feedUrl}/`).toString();
   const httpImpl = options.httpRequest || defaultHttpRequest;
-  const headers = {};
-  if (options.currentVersion) {
-    headers['x-app-version'] = String(options.currentVersion);
+  const currentVersion = options.currentVersion ? String(options.currentVersion).trim() : '';
+  const requireDownload = options.requireDownload === true;
+
+  const requestManifest = async (includeCurrentVersion) => {
+    const headers = {};
+    if (includeCurrentVersion && currentVersion) {
+      headers['x-app-version'] = currentVersion;
+    }
+    const res = await httpImpl(manifestUrl, {
+      headers,
+      timeoutMs: options.timeoutMs || DEFAULT_HTTP_TIMEOUT_MS,
+      allowUrlFn: (u) => isAllowedOfficialUrl(u, feedUrl),
+    });
+    if (res.status < 200 || res.status >= 300) {
+      throw new Error(`拉取官方更新清单失败 (HTTP ${res.status}): ${manifestUrl}`);
+    }
+    const parsed = parseLatestMacYml(res.text);
+    if (!parsed.version) {
+      throw new Error('官方更新清单缺少 version 字段');
+    }
+    return parsed;
+  };
+
+  const sentCurrentVersion = Boolean(currentVersion && !requireDownload);
+  let parsed = await requestManifest(sentCurrentVersion);
+
+  if (!manifestHasZipEntry(parsed)) {
+    // Official manifest server omits `files:`/`path:` (returning only `version: X.Y.Z`) when
+    // `x-app-version` matches or exceeds the latest release. Treat as cleanly up-to-date.
+    if (sentCurrentVersion && compareSemver(parsed.version, currentVersion) <= 0) {
+      return {
+        version: String(parsed.version).trim(),
+        url: '',
+        sha512: '',
+        size: 0,
+        releaseDate: parsed.releaseDate || '',
+        upToDate: true,
+        feedUrl,
+        manifestUrl,
+      };
+    }
+    // If a newer version was returned without files while x-app-version was sent, retry once without it.
+    if (sentCurrentVersion) {
+      parsed = await requestManifest(false);
+    }
   }
-  const res = await httpImpl(manifestUrl, {
-    headers,
-    timeoutMs: options.timeoutMs || DEFAULT_HTTP_TIMEOUT_MS,
-    allowUrlFn: (u) => isAllowedOfficialUrl(u, feedUrl),
-  });
-  if (res.status < 200 || res.status >= 300) {
-    throw new Error(`拉取官方更新清单失败 (HTTP ${res.status}): ${manifestUrl}`);
-  }
-  const parsed = parseLatestMacYml(res.text);
-  if (!parsed.version) {
-    throw new Error('官方更新清单缺少 version 字段');
-  }
+
   const selected = selectMacZipFromManifest(parsed, feedUrl, arch);
   return {
     ...selected,
+    upToDate: Boolean(currentVersion && compareSemver(selected.version, currentVersion) <= 0),
     feedUrl,
     manifestUrl,
   };
@@ -625,34 +689,115 @@ function extractOfficialZipAndVerify(zipPath, extractDir, options = {}) {
   return appPath;
 }
 
+function decodeXmlEntities(str) {
+  return String(str || '').replace(/&(#x[0-9a-fA-F]+|#\d+|amp|lt|gt|quot|apos);/g, (m, entity) => {
+    if (entity === 'amp') return '&';
+    if (entity === 'lt') return '<';
+    if (entity === 'gt') return '>';
+    if (entity === 'quot') return '"';
+    if (entity === 'apos') return "'";
+    if (entity.startsWith('#x') || entity.startsWith('#X')) {
+      const cp = Number.parseInt(entity.slice(2), 16);
+      return Number.isFinite(cp) ? String.fromCodePoint(cp) : m;
+    }
+    if (entity.startsWith('#')) {
+      const cp = Number.parseInt(entity.slice(1), 10);
+      return Number.isFinite(cp) ? String.fromCodePoint(cp) : m;
+    }
+    return m;
+  });
+}
+
+function parseGithubCommitsAtom(xmlText) {
+  const entries = [];
+  const entryRe = /<entry\b[^>]*>([\s\S]*?)<\/entry>/gi;
+  let m;
+  while ((m = entryRe.exec(String(xmlText || ''))) !== null) {
+    const block = m[1];
+    const idMatch = block.match(/<id\b[^>]*>[^<]*Commit\/([0-9a-f]{40})\s*<\/id>/i);
+    const linkMatch = block.match(/<link\b[^>]*href="[^"]*\/commit\/([0-9a-f]{40})[^"]*"/i);
+    const sha = String((idMatch && idMatch[1]) || (linkMatch && linkMatch[1]) || '')
+      .trim()
+      .toLowerCase();
+    if (!SHA40_RE.test(sha)) continue;
+    const titleMatch = block.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
+    const updatedMatch = block.match(/<updated\b[^>]*>([^<]+)<\/updated>/i);
+    const message = decodeXmlEntities(titleMatch ? titleMatch[1] : '')
+      .trim()
+      .split(/\r?\n/)[0]
+      .trim();
+    const date = String(updatedMatch ? updatedMatch[1] : '').trim();
+    entries.push({ sha, message, date });
+  }
+  return entries;
+}
+
+function parseGitUploadPackBranchSha(rawText, branch = GITHUB_BRANCH) {
+  const escapedBranch = String(branch || GITHUB_BRANCH).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`([0-9a-f]{40})\\s+refs/heads/${escapedBranch}(?:\\0|\\r|\\n|$)`, 'i');
+  const m = String(rawText || '').match(re);
+  return m ? m[1].toLowerCase() : '';
+}
+
 async function checkHakimiMainUpdate(options = {}) {
   const owner = options.githubOwner || GITHUB_OWNER;
   const repo = options.githubRepo || GITHUB_REPO;
   const branch = options.githubBranch || GITHUB_BRANCH;
   const installedCommit = String(options.installedCommit || '').trim();
   const httpImpl = options.httpRequest || defaultHttpRequest;
-  const headers = {
-    Accept: 'application/vnd.github+json',
+  const timeoutMs = options.timeoutMs || DEFAULT_HTTP_TIMEOUT_MS;
+  const webHeaders = {
     'User-Agent': 'antigravity-hakimi-updater',
   };
 
-  const headUrl = `https://api.github.com/repos/${owner}/${repo}/commits/${encodeURIComponent(branch)}`;
-  const headRes = await httpImpl(headUrl, {
-    headers,
-    timeoutMs: options.timeoutMs || DEFAULT_HTTP_TIMEOUT_MS,
-    allowUrlFn: isAllowedGithubUrl,
-  });
-  if (headRes.status < 200 || headRes.status >= 300) {
-    throw new Error(`查询 GitHub main 最新提交失败 (HTTP ${headRes.status})`);
+  // Query public github.com web endpoints instead of api.github.com so checks never hit
+  // the 60 req/hr unauthenticated REST API rate limit on shared proxy/NAT egress IPs.
+  let atomCommits = [];
+  let latestSha = '';
+  let commitMessage = '';
+  let commitDate = '';
+  let atomError = null;
+
+  const atomUrl = `https://github.com/${owner}/${repo}/commits/${encodeURIComponent(branch)}.atom`;
+  try {
+    const atomRes = await httpImpl(atomUrl, {
+      headers: { ...webHeaders, Accept: 'application/atom+xml, application/xml, text/xml' },
+      timeoutMs,
+      allowUrlFn: isAllowedGithubUrl,
+    });
+    if (atomRes.status >= 200 && atomRes.status < 300) {
+      atomCommits = parseGithubCommitsAtom(atomRes.text);
+      if (atomCommits.length > 0) {
+        latestSha = atomCommits[0].sha;
+        commitMessage = atomCommits[0].message;
+        commitDate = atomCommits[0].date;
+      } else {
+        atomError = new Error('GitHub commits 订阅源未解析到有效提交记录');
+      }
+    } else {
+      atomError = new Error(`查询 GitHub main 最新提交失败 (HTTP ${atomRes.status})`);
+    }
+  } catch (err) {
+    atomError = err;
   }
-  const headData = JSON.parse(headRes.text || '{}');
-  const latestSha = String(headData.sha || '').trim();
+
   if (!SHA40_RE.test(latestSha)) {
-    throw new Error('GitHub 返回的 main commit SHA 格式无效');
+    const refsUrl = `https://github.com/${owner}/${repo}.git/info/refs?service=git-upload-pack`;
+    const refsRes = await httpImpl(refsUrl, {
+      headers: webHeaders,
+      timeoutMs,
+      allowUrlFn: isAllowedGithubUrl,
+    });
+    if (refsRes.status < 200 || refsRes.status >= 300) {
+      throw atomError || new Error(`查询 GitHub main 最新提交失败 (HTTP ${refsRes.status})`);
+    }
+    latestSha = parseGitUploadPackBranchSha(refsRes.text, branch);
+    if (!SHA40_RE.test(latestSha)) {
+      throw atomError || new Error('GitHub 返回的 main commit SHA 格式无效');
+    }
   }
+
   const latestShort = latestSha.slice(0, 7);
-  const commitMessage = String(headData?.commit?.message || '').split(/\r?\n/)[0].trim();
-  const commitDate = String(headData?.commit?.committer?.date || headData?.commit?.author?.date || '').trim();
 
   if (!installedCommit || !SHA40_RE.test(installedCommit)) {
     return {
@@ -668,7 +813,10 @@ async function checkHakimiMainUpdate(options = {}) {
     };
   }
 
-  if (installedCommit.toLowerCase() === latestSha.toLowerCase()) {
+  const installedLower = installedCommit.toLowerCase();
+  const latestLower = latestSha.toLowerCase();
+
+  if (installedLower === latestLower) {
     return {
       ok: true,
       status: 'identical',
@@ -682,14 +830,35 @@ async function checkHakimiMainUpdate(options = {}) {
     };
   }
 
-  const cmpUrl = `https://api.github.com/repos/${owner}/${repo}/compare/${installedCommit}...${latestSha}`;
-  const cmpRes = await httpImpl(cmpUrl, {
-    headers,
-    timeoutMs: options.timeoutMs || DEFAULT_HTTP_TIMEOUT_MS,
+  // Fast path: if installedCommit appears directly in main's recent Atom history,
+  // it is guaranteed to be an ancestor of latestSha (zero extra compare requests).
+  const atomIdx = atomCommits.findIndex((c) => c.sha.toLowerCase() === installedLower);
+  if (atomIdx > 0) {
+    return {
+      ok: true,
+      status: 'ahead',
+      updateAvailable: true,
+      aheadBy: atomIdx,
+      behindBy: 0,
+      installedCommit,
+      latestSha,
+      latestShort,
+      commitMessage,
+      commitDate,
+    };
+  }
+
+  // Ancestry comparison via public github.com .patch endpoints (zero api.github.com quota).
+  // `maxBytes: 1024` detects empty vs non-empty patch immediately without downloading large diffs.
+  const fwdUrl = `https://github.com/${owner}/${repo}/compare/${installedCommit}...${latestSha}.patch`;
+  const fwdRes = await httpImpl(fwdUrl, {
+    headers: webHeaders,
+    timeoutMs,
+    maxBytes: 1024,
     allowUrlFn: isAllowedGithubUrl,
   });
 
-  if (cmpRes.status === 404) {
+  if (fwdRes.status === 404) {
     // Installed commit does not exist on GitHub (developer local unpushed commit)
     return {
       ok: true,
@@ -703,22 +872,24 @@ async function checkHakimiMainUpdate(options = {}) {
       commitDate,
     };
   }
-  if (cmpRes.status < 200 || cmpRes.status >= 300) {
-    throw new Error(`比对 GitHub main 提交关系失败 (HTTP ${cmpRes.status})`);
+  if (fwdRes.status < 200 || fwdRes.status >= 300) {
+    throw new Error(`比对 GitHub main 提交关系失败 (HTTP ${fwdRes.status})`);
   }
 
-  const cmpData = JSON.parse(cmpRes.text || '{}');
-  const rawStatus = String(cmpData.status || '').toLowerCase();
-  const aheadBy = Number(cmpData.ahead_by || 0);
-  const behindBy = Number(cmpData.behind_by || 0);
+  const revUrl = `https://github.com/${owner}/${repo}/compare/${latestSha}...${installedCommit}.patch`;
+  const revRes = await httpImpl(revUrl, {
+    headers: webHeaders,
+    timeoutMs,
+    maxBytes: 1024,
+    allowUrlFn: isAllowedGithubUrl,
+  });
 
-  if (rawStatus === 'ahead') {
+  if (revRes.status === 404) {
     return {
       ok: true,
-      status: 'ahead',
-      updateAvailable: true,
-      aheadBy,
-      behindBy,
+      status: 'local_unpushed',
+      updateAvailable: false,
+      aheadBy: 0,
       installedCommit,
       latestSha,
       latestShort,
@@ -726,7 +897,28 @@ async function checkHakimiMainUpdate(options = {}) {
       commitDate,
     };
   }
-  if (rawStatus === 'identical') {
+  if (revRes.status < 200 || revRes.status >= 300) {
+    throw new Error(`比对 GitHub main 提交关系失败 (HTTP ${revRes.status})`);
+  }
+
+  const mainHasNew = String(fwdRes.text || '').trim().length > 0;
+  const localHasExtra = String(revRes.text || '').trim().length > 0;
+
+  if (mainHasNew && !localHasExtra) {
+    return {
+      ok: true,
+      status: 'ahead',
+      updateAvailable: true,
+      aheadBy: null,
+      behindBy: 0,
+      installedCommit,
+      latestSha,
+      latestShort,
+      commitMessage,
+      commitDate,
+    };
+  }
+  if (!mainHasNew && !localHasExtra) {
     return {
       ok: true,
       status: 'identical',
@@ -740,13 +932,13 @@ async function checkHakimiMainUpdate(options = {}) {
       commitDate,
     };
   }
-  if (rawStatus === 'behind') {
+  if (!mainHasNew && localHasExtra) {
     return {
       ok: true,
       status: 'local_ahead',
       updateAvailable: false,
-      aheadBy,
-      behindBy,
+      aheadBy: 0,
+      behindBy: null,
       installedCommit,
       latestSha,
       latestShort,
@@ -758,8 +950,8 @@ async function checkHakimiMainUpdate(options = {}) {
     ok: true,
     status: 'diverged',
     updateAvailable: false,
-    aheadBy,
-    behindBy,
+    aheadBy: null,
+    behindBy: null,
     installedCommit,
     latestSha,
     latestShort,
@@ -1405,7 +1597,11 @@ module.exports = {
   parseAppUpdateYml,
   resolveOfficialFeedUrl,
   parseLatestMacYml,
+  manifestHasZipEntry,
   selectMacZipFromManifest,
+  decodeXmlEntities,
+  parseGithubCommitsAtom,
+  parseGitUploadPackBranchSha,
   defaultHttpRequest,
   computeFileSha512Base64,
   fetchOfficialLatestManifest,
