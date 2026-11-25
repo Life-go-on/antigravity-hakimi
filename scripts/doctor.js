@@ -141,7 +141,15 @@ function runDoctor(options = {}) {
         'hakimi_version_sync',
         'WARN',
         '版本同步检查',
-        `官方 v${vs.officialVersion} 与 哈基米.app v${vs.hakimiVersion} 不一致，建议运行: bash ./build-hakimi.sh --force --restart`,
+        `官方 v${vs.officialVersion} 领先于 哈基米.app v${vs.hakimiVersion}，建议运行: bash ./build-hakimi.sh --force --restart`,
+        vs
+      );
+    } else if (vs.hakimiAhead) {
+      push(
+        'hakimi_version_sync',
+        'OK',
+        '版本同步检查',
+        `v${vs.hakimiVersion} (通过官方更新源领先于本机 /Applications/Antigravity.app v${vs.officialVersion})`,
         vs
       );
     } else {
@@ -227,6 +235,19 @@ function runDoctor(options = {}) {
         }
       } else {
         push('hakimi_ssh_hooks', 'OK', 'Remote SSH 远端钩子', '当前官方版本未含 Remote SSH 远端模块（跳过）');
+      }
+
+      if (mods.updaterSupported) {
+        if (mods.updaterReady) {
+          push('hakimi_updater', 'OK', '双源自更新接管', 'dist/updater.js 已安全接管（禁用 Squirrel.Mac 误覆盖）');
+        } else {
+          push(
+            'hakimi_updater',
+            'WARN',
+            '双源自更新接管',
+            '当前副本尚未接管 dist/updater.js，建议运行 bash ./build-hakimi.sh --force --restart 更新'
+          );
+        }
       }
     }
 

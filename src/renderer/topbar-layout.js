@@ -4,6 +4,8 @@
   let resizeObserver = null;
   let hostDomObserver = null;
   let observedTitlebar = null;
+  let observedRightGroup = null;
+  let observedRightNativeGroup = null;
   let layoutRaf = 0;
 
   function findHostTitlebar() {
@@ -235,12 +237,28 @@
       host.style.right = '';
       host.style.top = '';
 
-      if (observedTitlebar !== titlebar) {
+      const rightNativeGroup =
+        targetContainer !== titlebar
+          ? Array.from(targetContainer.children || []).find((c) => c !== host) || null
+          : null;
+      if (
+        observedTitlebar !== titlebar ||
+        observedRightGroup !== targetContainer ||
+        observedRightNativeGroup !== rightNativeGroup
+      ) {
         observedTitlebar = titlebar;
+        observedRightGroup = targetContainer;
+        observedRightNativeGroup = rightNativeGroup;
         try {
           if (resizeObserver) {
             resizeObserver.disconnect();
             resizeObserver.observe(titlebar);
+            if (targetContainer && targetContainer !== titlebar) {
+              resizeObserver.observe(targetContainer);
+            }
+            if (rightNativeGroup) {
+              resizeObserver.observe(rightNativeGroup);
+            }
             if (document.body) resizeObserver.observe(document.body);
           }
         } catch {}
@@ -402,8 +420,15 @@
   }
 
   function getTopbarVisibleQuickWidth() {
+    let w = 0;
     const btnCompact = el('btn-topbar-compact');
-    return (btnCompact && !btnCompact.hidden) ? 28 : 0;
+    if (btnCompact && !btnCompact.hidden) w += 28;
+    const btnUpgrade = el('btn-topbar-upgrade');
+    if (btnUpgrade && !btnUpgrade.hidden) {
+      const rectW = btnUpgrade.getBoundingClientRect ? Math.ceil(btnUpgrade.getBoundingClientRect().width || 0) : 0;
+      w += rectW > 0 ? rectW + 4 : 88;
+    }
+    return w;
   }
 
   function updateResponsiveLayout() {
@@ -414,7 +439,9 @@
     applyLayoutMode(nextMode);
     if (state.tooltipOpen) positionContextTooltip();
     if (el('topbar-action-tooltip')?.getAttribute('data-visible') === 'true') {
-      const anchor = activeTopbarTipKind === 'cache' ? el('badge-cache') : el('btn-topbar-compact');
+      const anchor = activeTopbarTipKind === 'cache'
+        ? el('badge-cache')
+        : (activeTopbarTipKind === 'upgrade' ? el('btn-topbar-upgrade') : el('btn-topbar-compact'));
       positionTopbarActionTooltip(anchor);
     }
     if (isAnyPanelOpen() || !el('overflow-menu')?.hidden) positionFloatingPanels();
@@ -531,6 +558,13 @@
     if (kind === 'compact') {
       titleEl.textContent = isQuickCompactBusy ? t('session.quick.compactBusy') : t('topbar.quick.compactTitle');
       descEl.textContent = isQuickCompactBusy ? t('topbar.quick.compactBusyDesc') : t('topbar.quick.compactDesc');
+      descEl.hidden = false;
+    } else if (kind === 'upgrade') {
+      tip.setAttribute('data-tone', 'success');
+      titleEl.textContent = t('upgrade.topbarTipTitle');
+      descEl.textContent = typeof formatHakimiUpgradeSummary === 'function'
+        ? formatHakimiUpgradeSummary(currentHakimiUpgradeState)
+        : t('upgrade.topbarTipFallback');
       descEl.hidden = false;
     } else if (kind === 'cache') {
       const cm = state.route ? getEffectiveCacheMetrics(state.latest) : null;
@@ -701,9 +735,18 @@
       if (document.body) resizeObserver.observe(document.body);
     }
     if (typeof MutationObserver !== 'undefined' && document.body) {
-      hostDomObserver = new MutationObserver(() => {
+      hostDomObserver = new MutationObserver((mutations) => {
         if (!host.isConnected || host.getAttribute('data-dock') !== 'flow' || !findHostTitlebar()?.contains?.(host)) {
           scheduleLayoutSync();
+          return;
+        }
+        if (observedRightGroup && Array.isArray(mutations)) {
+          for (const m of mutations) {
+            if (m.target === observedRightGroup || (observedRightGroup.contains && observedRightGroup.contains(m.target))) {
+              scheduleLayoutSync();
+              return;
+            }
+          }
         }
       });
       hostDomObserver.observe(document.body, { childList: true, subtree: true });

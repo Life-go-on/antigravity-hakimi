@@ -21,6 +21,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APP="/Applications/哈基米.app"
 SRC=""
+FETCH_LATEST=0
+SOURCE_KIND="official-local"
 STAGE_ONLY=0
 FORCE=0
 CLIENT_LANG=""
@@ -40,6 +42,7 @@ usage() {
   --force                         允许覆盖已存在的输出 .app 副本
   --stage-only                    仅在临时目录生成打好补丁的 哈基米.app，不写入 /Applications 且不改用户配置目录
   --from <path>                   指定只读官方 Antigravity.app 源路径 (默认优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
+  --fetch-latest                  直接从官方 app-update.yml 更新源拉取/复用最新 Antigravity.zip 并验签作为只读源（无需手动打开原版反重力更新）
   --app <path>                    指定输出 .app 路径 (默认: /Applications/哈基米.app；严禁指向官方 Antigravity.app)
   -i, --icon <path>               可选：指定本地图片 (PNG/JPG/WebP/HEIC/ICNS 等) 作为应用图标 (不传时若旧副本已有自定义图标会自动保留)
   --raw-icon                      可选：配合 --icon 使用，不自动添加 macOS 圆角矩形留白遮罩
@@ -74,6 +77,10 @@ while [[ $# -gt 0 ]]; do
       require_arg "$@"
       SRC="$2"
       shift 2
+      ;;
+    --fetch-latest)
+      FETCH_LATEST=1
+      shift
       ;;
     --app)
       require_arg "$@"
@@ -189,23 +196,10 @@ const { assertNotOfficialAntigravityApp } = require(path.join(process.argv[1], "
 assertNotOfficialAntigravityApp(process.argv[2], "写入目标应用");
 ' "$SCRIPT_DIR" "$APP"
 
-if [[ -z "$SRC" ]]; then
-  if [[ -d "/Applications/Antigravity.app.orig" ]]; then
-    SRC="/Applications/Antigravity.app.orig"
-  else
-    SRC="/Applications/Antigravity.app"
-  fi
+if [[ $FETCH_LATEST -eq 1 && -n "$SRC" ]]; then
+  echo "--fetch-latest 与 --from 不能同时指定" >&2
+  exit 2
 fi
-[[ -d "$SRC" ]] || { echo "找不到只读源应用: $SRC" >&2; exit 1; }
-[[ -f "$SRC/Contents/Resources/app.asar" ]] || { echo "源应用缺少 Contents/Resources/app.asar: $SRC" >&2; exit 1; }
-[[ -f "$SRC/Contents/Resources/bin/language_server" ]] || { echo "源应用缺少 Contents/Resources/bin/language_server: $SRC" >&2; exit 1; }
-
-SRC_VERSION="$(node -e '
-const path = require("path");
-const { readBundleShortVersion } = require(path.join(process.argv[1], "payload", "dist", "modules-config.js"));
-process.stdout.write(readBundleShortVersion(path.join(process.argv[2], "Contents", "Info.plist")) || "unknown");
-' "$SCRIPT_DIR" "$SRC")"
-echo "==> 只读官方源: $SRC (版本: v$SRC_VERSION)"
 
 if [[ $STAGE_ONLY -eq 0 && ( -e "$APP" || -L "$APP" ) && $FORCE -eq 0 ]]; then
   echo "输出路径已存在: $APP （如需覆盖请传入 --force，或用 --app 指定新路径）" >&2
@@ -238,6 +232,36 @@ if [[ $STAGE_ONLY -eq 0 && -d "$APP" ]]; then
   fi
 fi
 
+WORK="$(mktemp -d /tmp/hakimi-build.XXXXXX)"
+if [[ $STAGE_ONLY -eq 0 ]]; then
+  trap 'rm -rf "$WORK"' EXIT
+fi
+
+if [[ $FETCH_LATEST -eq 1 ]]; then
+  echo "==> [源获取] 正在从官方更新源拉取/复用最新 Antigravity 并验证 SHA-512 与 Google 签名..."
+  FETCH_OUT="$WORK/fetched-official"
+  SRC="$(node "$SCRIPT_DIR/payload/dist/hakimi-builder.js" fetch-official --out-app-dir "$FETCH_OUT")"
+  SOURCE_KIND="official-feed"
+fi
+
+if [[ -z "$SRC" ]]; then
+  if [[ -d "/Applications/Antigravity.app.orig" ]]; then
+    SRC="/Applications/Antigravity.app.orig"
+  else
+    SRC="/Applications/Antigravity.app"
+  fi
+fi
+[[ -d "$SRC" ]] || { echo "找不到只读源应用: $SRC" >&2; exit 1; }
+[[ -f "$SRC/Contents/Resources/app.asar" ]] || { echo "源应用缺少 Contents/Resources/app.asar: $SRC" >&2; exit 1; }
+[[ -f "$SRC/Contents/Resources/bin/language_server" ]] || { echo "源应用缺少 Contents/Resources/bin/language_server: $SRC" >&2; exit 1; }
+
+SRC_VERSION="$(node -e '
+const path = require("path");
+const { readBundleShortVersion } = require(path.join(process.argv[1], "payload", "dist", "modules-config.js"));
+process.stdout.write(readBundleShortVersion(path.join(process.argv[2], "Contents", "Info.plist")) || "unknown");
+' "$SCRIPT_DIR" "$SRC")"
+echo "==> 只读官方源: $SRC (版本: v$SRC_VERSION)"
+
 NEED_BUILD_RENDERER=0
 RENDERER_OUT="$SCRIPT_DIR/payload/dist/meter-renderer.js"
 if [[ ! -f "$RENDERER_OUT" ]]; then
@@ -253,11 +277,6 @@ fi
 if [[ $NEED_BUILD_RENDERER -eq 1 ]]; then
   echo "==> 编译 Context Meter 渲染层 (meter-renderer.js)"
   node "$SCRIPT_DIR/scripts/build-renderer.js"
-fi
-
-WORK="$(mktemp -d /tmp/hakimi-build.XXXXXX)"
-if [[ $STAGE_ONLY -eq 0 ]]; then
-  trap 'rm -rf "$WORK"' EXIT
 fi
 
 STAGE="$WORK/哈基米.app"
@@ -358,6 +377,30 @@ with open(plist_path, 'wb') as f:
     plistlib.dump(plist, f, sort_keys=False)
 PY
 
+# 写入构建回执（Contents/Resources/hakimi-build-meta.json），供应用内自更新识别当前版本与 commit
+HAKIMI_PKG_VERSION="$(node -e 'const fs=require("fs"); try{process.stdout.write(String(JSON.parse(fs.readFileSync(process.argv[1],"utf8")).version||""));}catch{}' "$SCRIPT_DIR/package.json")"
+HAKIMI_GIT_SHA=""
+HAKIMI_GIT_DATE=""
+HAKIMI_GIT_DIRTY="0"
+if command -v git >/dev/null 2>&1 && git -C "$SCRIPT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  HAKIMI_GIT_SHA="$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || true)"
+  HAKIMI_GIT_DATE="$(git -C "$SCRIPT_DIR" show -s --format=%cI HEAD 2>/dev/null || true)"
+  if [[ -n "$(git -C "$SCRIPT_DIR" status --porcelain 2>/dev/null || true)" ]]; then
+    HAKIMI_GIT_DIRTY="1"
+  fi
+fi
+META_ARGS=(
+  write-meta
+  --app "$STAGE"
+  --ag-version "$SRC_VERSION"
+  --source-kind "$SOURCE_KIND"
+  --dirty "$HAKIMI_GIT_DIRTY"
+)
+[[ -n "$HAKIMI_PKG_VERSION" ]] && META_ARGS+=(--hakimi-version "$HAKIMI_PKG_VERSION")
+[[ -n "$HAKIMI_GIT_SHA" ]] && META_ARGS+=(--commit "$HAKIMI_GIT_SHA")
+[[ -n "$HAKIMI_GIT_DATE" ]] && META_ARGS+=(--commit-date "$HAKIMI_GIT_DATE")
+node "$SCRIPT_DIR/payload/dist/hakimi-builder.js" "${META_ARGS[@]}" >/dev/null
+
 # 刷新主二进制 inode，避免 Apple Silicon cs_blob 缓存旧内核签名导致 SIGKILL
 MAIN_EXEC="$STAGE/Contents/MacOS/Antigravity"
 cp -p "$MAIN_EXEC" "$MAIN_EXEC.tmp_inode"
@@ -370,6 +413,7 @@ codesign --verify --strict "$STAGE_LS" || { echo "language_server 签名校验�
 codesign --verify --strict "$STAGE"    || { echo "外层应用包签名校验失败" >&2; exit 1; }
 
 if [[ $STAGE_ONLY -eq 1 ]]; then
+  rm -rf "$WORK/fetched-official"
   echo "==> 完成 (--stage-only): $STAGE"
   exit 0
 fi

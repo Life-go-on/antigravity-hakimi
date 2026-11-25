@@ -79,6 +79,7 @@
     try { render(); } catch {}
     try { renderSpeedComparisonTab(); } catch {}
     try { renderCliUnlockState(currentCliUnlockStatus); } catch {}
+    try { renderHakimiUpgradeState(currentHakimiUpgradeState); } catch {}
     try {
       if (typeof renderPlanDetail === 'function' && ANTIGRAVITY_TOKEN_DATA?.planStatus) {
         renderPlanDetail(ANTIGRAVITY_TOKEN_DATA.planStatus);
@@ -90,6 +91,7 @@
       }
       if (isContextSettingsView) {
         void refreshCliUnlockDisplay();
+        void refreshHakimiUpgradeStatus();
         if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } catch {}
@@ -191,7 +193,7 @@
     const banner = el('version-sync-banner');
     const textEl = el('version-sync-text');
     if (!banner || !textEl) return;
-    if (vs && vs.outdated && vs.officialVersion && vs.hakimiVersion) {
+    if (vs && vs.outdated && !vs.hakimiAhead && vs.officialVersion && vs.hakimiVersion) {
       textEl.textContent = t('versionSync.mismatch', {
         officialVer: vs.officialVersion,
         hakimiVer: vs.hakimiVersion
@@ -474,10 +476,363 @@
     }
   });
 
+  // -------------------------------------------------------------
+  // 模块 2.5: 哈基米双源自更新（官方反重力 + GitHub main）
+  // -------------------------------------------------------------
+  const btnTopbarUpgrade = el('btn-topbar-upgrade');
+  const hakimiUpgradeCard = el('hakimi-upgrade-card');
+  const hakimiUpgradeBadge = el('hakimi-upgrade-badge');
+  const hakimiUpgradeMeta = el('hakimi-upgrade-meta');
+  const hakimiUpgradeDiag = el('hakimi-upgrade-diag');
+  const hakimiUpgradeDiagTitle = el('hakimi-upgrade-diag-title');
+  const hakimiUpgradeDiagBody = el('hakimi-upgrade-diag-body');
+  const btnHakimiUpgradeInstall = el('btn-hakimi-upgrade-install');
+  const btnHakimiUpgradeSync = el('btn-hakimi-upgrade-sync');
+  const btnHakimiUpgradeForceMain = el('btn-hakimi-upgrade-force-main');
+  const btnHakimiUpgradeCopyDiag = el('btn-hakimi-upgrade-copy-diag');
+  const hakimiUpgradeResultBox = el('hakimi-upgrade-result');
+  const hakimiUpgradeResultText = el('hakimi-upgrade-result-text');
+  const hakimiUpgradeModal = el('hakimi-upgrade-modal');
+  const modalUpgradeBody = el('modal-upgrade-body');
+  const modalUpgradeFeedback = el('modal-upgrade-feedback');
+  const btnModalUpgradeCancel = el('btn-modal-upgrade-cancel');
+  const btnModalUpgradeConfirm = el('btn-modal-upgrade-confirm');
+
+  let currentHakimiUpgradeState = null;
+  let isHakimiUpgradeSyncBusy = false;
+  let isHakimiUpgradeInstallBusy = false;
+  let unsubscribeHakimiUpgradeChanged = null;
+
+  function formatHakimiUpgradeSummary(st = currentHakimiUpgradeState) {
+    const staged = st?.staged;
+    if (!staged) return t('upgrade.topbarTipFallback');
+    const agFrom = st?.installed?.antigravityVersion || '?';
+    const agTo = staged.targetAntigravityVersion || agFrom;
+    const cFrom = st?.installed?.hakimiCommitShort || 'local';
+    const cTo = staged.targetHakimiCommitShort || (staged.targetHakimiCommit ? staged.targetHakimiCommit.slice(0, 7) : 'latest');
+    if (staged.antigravityChanged && staged.hakimiChanged) {
+      return t('upgrade.readySummary.both', { agFrom, agTo, cFrom, cTo });
+    }
+    if (staged.antigravityChanged) {
+      return t('upgrade.readySummary.agOnly', { agFrom, agTo });
+    }
+    return t('upgrade.readySummary.hakimiOnly', { cFrom, cTo, agTo });
+  }
+
+  function showHakimiUpgradeResult(ok, msg) {
+    if (!hakimiUpgradeResultBox || !hakimiUpgradeResultText) return;
+    if (!msg) {
+      hakimiUpgradeResultBox.style.display = 'none';
+      return;
+    }
+    hakimiUpgradeResultBox.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
+    hakimiUpgradeResultBox.style.display = 'block';
+    hakimiUpgradeResultText.textContent = msg;
+  }
+
+  function renderHakimiUpgradeState(st = currentHakimiUpgradeState) {
+    const isRemote = Boolean(typeof getRemoteSshMeta === 'function' && getRemoteSshMeta());
+    const prevTopbarHidden = btnTopbarUpgrade ? btnTopbarUpgrade.hidden : true;
+
+    if (isRemote) {
+      if (hakimiUpgradeCard) hakimiUpgradeCard.hidden = true;
+      if (btnTopbarUpgrade) btnTopbarUpgrade.hidden = true;
+      if (btnTopbarUpgrade && prevTopbarHidden !== btnTopbarUpgrade.hidden) {
+        updateResponsiveLayout();
+      }
+      return;
+    }
+
+    if (hakimiUpgradeCard) hakimiUpgradeCard.hidden = false;
+
+    const status = st?.status || 'idle';
+    const isReady = Boolean(st && st.ok && st.supported !== false && status === 'ready' && st.staged);
+
+    // 严格「仅成功才提示」：顶栏按钮只在沙盒试构建与验签全绿（ready）时出现
+    if (btnTopbarUpgrade) {
+      btnTopbarUpgrade.hidden = !isReady;
+      if (prevTopbarHidden !== btnTopbarUpgrade.hidden) {
+        updateResponsiveLayout();
+      }
+    }
+
+    if (hakimiUpgradeBadge) {
+      if (!st || !st.ok) {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.error');
+        hakimiUpgradeBadge.className = 'key-pill pill-danger';
+      } else if (status === 'unsupported') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.unsupported');
+        hakimiUpgradeBadge.className = 'key-pill pill-muted';
+      } else if (status === 'ready') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.ready');
+        hakimiUpgradeBadge.className = 'key-pill pill-ok';
+      } else if (status === 'checking') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.checking');
+        hakimiUpgradeBadge.className = 'key-pill pill-warn';
+      } else if (status === 'staging') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.staging');
+        hakimiUpgradeBadge.className = 'key-pill pill-warn';
+      } else if (status === 'incompatible') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.incompatible');
+        hakimiUpgradeBadge.className = 'key-pill pill-warn';
+      } else if (status === 'local_dev') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.localDev');
+        hakimiUpgradeBadge.className = 'key-pill pill-muted';
+      } else if (status === 'error') {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.error');
+        hakimiUpgradeBadge.className = 'key-pill pill-danger';
+      } else {
+        hakimiUpgradeBadge.textContent = t('upgrade.badge.idle');
+        hakimiUpgradeBadge.className = 'key-pill pill-muted';
+      }
+    }
+
+    if (hakimiUpgradeMeta) {
+      if (!st || !st.ok) {
+        hakimiUpgradeMeta.textContent = st?.error || '—';
+      } else {
+        const lines = [];
+        const agVer = st.installed?.antigravityVersion || '?';
+        const commitShort = st.installed?.hakimiCommitShort || 'local';
+        lines.push(t('upgrade.meta.installed', { ag: agVer, commit: commitShort }));
+        if (isReady) {
+          lines.push(`✔ ${formatHakimiUpgradeSummary(st)}`);
+        }
+        const extras = [];
+        if (st.cleanBaseCache?.version) {
+          extras.push(t('upgrade.meta.cache', { ver: st.cleanBaseCache.version }));
+        }
+        if (st.lastCheckedAt) {
+          const ts = typeof formatMonthDayTime === 'function' ? formatMonthDayTime(st.lastCheckedAt) : st.lastCheckedAt;
+          if (ts) extras.push(t('upgrade.meta.checked', { time: ts }));
+        }
+        if (extras.length) lines.push(extras.join(' · '));
+        if (status === 'local_dev') {
+          lines.push(t('upgrade.meta.localDevNote'));
+        }
+        if (status === 'error' && st.lastError) {
+          lines.push(st.lastError);
+        }
+        hakimiUpgradeMeta.textContent = lines.join('\n');
+      }
+    }
+
+    const inc = st?.incompatible || null;
+    if (hakimiUpgradeDiag && hakimiUpgradeDiagTitle && hakimiUpgradeDiagBody) {
+      if (inc && inc.antigravityVersion) {
+        hakimiUpgradeDiagTitle.textContent = t('upgrade.diag.title', { ver: inc.antigravityVersion });
+        hakimiUpgradeDiagBody.textContent = t('upgrade.diag.body', {
+          stage: inc.failedStage || 'unknown',
+          err: inc.error || t('msg.unknownErr'),
+          commit: inc.testedHakimiCommitShort || String(inc.testedHakimiCommit || 'local').slice(0, 7),
+        });
+        hakimiUpgradeDiag.hidden = false;
+      } else {
+        hakimiUpgradeDiag.hidden = true;
+      }
+    }
+
+    const busy = isHakimiUpgradeSyncBusy || Boolean(st?.busy);
+    const unsupported = st?.supported === false;
+    if (btnHakimiUpgradeInstall) {
+      btnHakimiUpgradeInstall.hidden = !isReady;
+      btnHakimiUpgradeInstall.disabled = isHakimiUpgradeInstallBusy || !isReady;
+    }
+    if (btnHakimiUpgradeSync) {
+      btnHakimiUpgradeSync.disabled = busy || unsupported || isHakimiUpgradeInstallBusy;
+      btnHakimiUpgradeSync.textContent = busy ? t('upgrade.btn.syncBusy') : t('upgrade.btn.sync');
+    }
+    if (btnHakimiUpgradeForceMain) {
+      btnHakimiUpgradeForceMain.hidden = status !== 'local_dev';
+      btnHakimiUpgradeForceMain.disabled = busy || unsupported || isHakimiUpgradeInstallBusy;
+    }
+    if (btnHakimiUpgradeCopyDiag) {
+      btnHakimiUpgradeCopyDiag.hidden = !inc;
+    }
+  }
+
+  function closeHakimiUpgradeModal() {
+    if (hakimiUpgradeModal) hakimiUpgradeModal.hidden = true;
+    if (modalUpgradeFeedback) {
+      modalUpgradeFeedback.hidden = true;
+      modalUpgradeFeedback.textContent = '';
+    }
+  }
+
+  function openHakimiUpgradeModal() {
+    if (!currentHakimiUpgradeState?.staged || currentHakimiUpgradeState?.status !== 'ready') return;
+    if (el('panel')?.hidden) showPanel('context');
+    if (modalUpgradeBody) {
+      modalUpgradeBody.textContent = t('upgrade.modal.body', {
+        summary: formatHakimiUpgradeSummary(currentHakimiUpgradeState),
+      });
+    }
+    if (modalUpgradeFeedback) {
+      modalUpgradeFeedback.hidden = true;
+      modalUpgradeFeedback.textContent = '';
+    }
+    if (btnModalUpgradeConfirm) btnModalUpgradeConfirm.disabled = isHakimiUpgradeInstallBusy;
+    if (hakimiUpgradeModal) hakimiUpgradeModal.hidden = false;
+  }
+
+  async function refreshHakimiUpgradeStatus() {
+    if (typeof getRemoteSshMeta === 'function' && getRemoteSshMeta()) {
+      renderHakimiUpgradeState(null);
+      return null;
+    }
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.getHakimiUpgradeStatus !== 'function') {
+      return null;
+    }
+    try {
+      const res = await window.contextMeterAPI.getHakimiUpgradeStatus();
+      currentHakimiUpgradeState = res;
+      renderHakimiUpgradeState(res);
+      return res;
+    } catch (err) {
+      const fallback = { ok: false, error: err?.message || t('msg.unknownErr') };
+      currentHakimiUpgradeState = fallback;
+      renderHakimiUpgradeState(fallback);
+      return fallback;
+    }
+  }
+
+  async function triggerHakimiUpgradeSync(opts = {}) {
+    if (isHakimiUpgradeSyncBusy) return null;
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.syncHakimiUpgrade !== 'function') {
+      showHakimiUpgradeResult(false, t('msg.noHostBridge'));
+      return null;
+    }
+    isHakimiUpgradeSyncBusy = true;
+    showHakimiUpgradeResult(true, '');
+    renderHakimiUpgradeState(currentHakimiUpgradeState);
+    try {
+      const res = await window.contextMeterAPI.syncHakimiUpgrade(opts);
+      currentHakimiUpgradeState = res;
+      renderHakimiUpgradeState(res);
+      if (!res || !res.ok) {
+        showHakimiUpgradeResult(false, res?.error || t('msg.unknownErr'));
+      } else if (res.status === 'ready') {
+        showHakimiUpgradeResult(true, t('upgrade.sync.readyNow'));
+      } else if (res.status === 'idle' || res.status === 'local_dev') {
+        showHakimiUpgradeResult(true, t('upgrade.sync.upToDate'));
+      } else if (res.status === 'error' && res.lastError) {
+        showHakimiUpgradeResult(false, res.lastError);
+      }
+      return res;
+    } catch (err) {
+      showHakimiUpgradeResult(false, err?.message || t('msg.unknownErr'));
+      return null;
+    } finally {
+      isHakimiUpgradeSyncBusy = false;
+      renderHakimiUpgradeState(currentHakimiUpgradeState);
+    }
+  }
+
+  async function confirmInstallHakimiUpgrade() {
+    if (isHakimiUpgradeInstallBusy) return;
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.installHakimiUpgrade !== 'function') {
+      if (modalUpgradeFeedback) {
+        modalUpgradeFeedback.textContent = t('msg.noHostBridge');
+        modalUpgradeFeedback.hidden = false;
+      }
+      return;
+    }
+    isHakimiUpgradeInstallBusy = true;
+    if (btnModalUpgradeConfirm) btnModalUpgradeConfirm.disabled = true;
+    if (modalUpgradeFeedback) {
+      modalUpgradeFeedback.textContent = t('upgrade.modal.starting');
+      modalUpgradeFeedback.hidden = false;
+    }
+    try {
+      const res = await window.contextMeterAPI.installHakimiUpgrade();
+      if (!res || !res.ok) {
+        isHakimiUpgradeInstallBusy = false;
+        if (btnModalUpgradeConfirm) btnModalUpgradeConfirm.disabled = false;
+        if (modalUpgradeFeedback) {
+          modalUpgradeFeedback.textContent = t('upgrade.modal.failed', { err: res?.error || t('msg.unknownErr') });
+          modalUpgradeFeedback.hidden = false;
+        }
+      }
+    } catch (err) {
+      isHakimiUpgradeInstallBusy = false;
+      if (btnModalUpgradeConfirm) btnModalUpgradeConfirm.disabled = false;
+      if (modalUpgradeFeedback) {
+        modalUpgradeFeedback.textContent = t('upgrade.modal.failed', { err: err?.message || t('msg.unknownErr') });
+        modalUpgradeFeedback.hidden = false;
+      }
+    }
+  }
+
+  btnTopbarUpgrade?.addEventListener('click', () => {
+    hideTopbarActionTooltip(true);
+    openHakimiUpgradeModal();
+  });
+  btnTopbarUpgrade?.addEventListener('mouseenter', () => {
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('upgrade', btnTopbarUpgrade);
+  });
+  btnTopbarUpgrade?.addEventListener('mouseleave', () => {
+    hideTopbarActionTooltip(false);
+  });
+  btnTopbarUpgrade?.addEventListener('focus', () => {
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('upgrade', btnTopbarUpgrade);
+  });
+  btnTopbarUpgrade?.addEventListener('blur', () => {
+    hideTopbarActionTooltip(false);
+  });
+  btnHakimiUpgradeInstall?.addEventListener('click', openHakimiUpgradeModal);
+  btnHakimiUpgradeSync?.addEventListener('click', () => {
+    void triggerHakimiUpgradeSync({ forceMainSync: false });
+  });
+  btnHakimiUpgradeForceMain?.addEventListener('click', () => {
+    void triggerHakimiUpgradeSync({ forceMainSync: true });
+  });
+  btnHakimiUpgradeCopyDiag?.addEventListener('click', () => {
+    const inc = currentHakimiUpgradeState?.incompatible;
+    if (!inc) return;
+    const text = [
+      `Antigravity target: v${inc.antigravityVersion || '?'}`,
+      `Installed: Antigravity v${currentHakimiUpgradeState?.installed?.antigravityVersion || '?'} / Hakimi ${currentHakimiUpgradeState?.installed?.hakimiCommit || 'unknown'}`,
+      `Tested Hakimi commit: ${inc.testedHakimiCommit || 'unknown'}`,
+      `Failed stage: ${inc.failedStage || 'unknown'}`,
+      `Error: ${inc.error || 'unknown'}`,
+      `Tested at: ${inc.testedAt || ''}`,
+    ].join('\n');
+    try {
+      navigator?.clipboard?.writeText?.(text);
+      showHakimiUpgradeResult(true, t('upgrade.diag.copied'));
+    } catch {
+      showHakimiUpgradeResult(false, text);
+    }
+  });
+  btnModalUpgradeCancel?.addEventListener('click', closeHakimiUpgradeModal);
+  btnModalUpgradeConfirm?.addEventListener('click', () => {
+    void confirmInstallHakimiUpgrade();
+  });
+  hakimiUpgradeModal?.addEventListener('click', (e) => {
+    if (e.target === hakimiUpgradeModal && !isHakimiUpgradeInstallBusy) {
+      closeHakimiUpgradeModal();
+    }
+  });
+
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.contextMeterAPI?.onHakimiUpgradeChanged === 'function' &&
+    !(typeof getRemoteSshMeta === 'function' && getRemoteSshMeta())
+  ) {
+    try {
+      unsubscribeHakimiUpgradeChanged = window.contextMeterAPI.onHakimiUpgradeChanged((snap) => {
+        if (state.disposed) return;
+        currentHakimiUpgradeState = snap;
+        renderHakimiUpgradeState(snap);
+      });
+    } catch {}
+  }
+
   // 静默初始化检测各模块状态
   setTimeout(() => {
     void refreshModulesDisplay();
     void refreshCliUnlockDisplay();
+    void refreshHakimiUpgradeStatus();
   }, 500);
   setTimeout(() => {
     if (currentChineseEnabled) {
@@ -684,6 +1039,10 @@
   };
   const escape = e => {
     if (e.key === 'Escape') {
+      if (hakimiUpgradeModal && !hakimiUpgradeModal.hidden && !isHakimiUpgradeInstallBusy) {
+        closeHakimiUpgradeModal();
+        return;
+      }
       const pop = el('color-picker-popover');
       const isEscClosing = pop?.classList ? pop.classList.contains('is-closing') : pop?.getAttribute('data-closing') === 'true';
       if (pop && !pop.hidden && !isEscClosing) {

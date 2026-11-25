@@ -17,6 +17,14 @@
     </svg>
   </button>
 
+  <!-- 顶部就绪更新入口（仅后台沙盒试构建与验签全部通过后显示） -->
+  <button id="btn-topbar-upgrade" class="ag-unit ag-unit-upgrade" type="button" hidden aria-label="重启并应用更新" data-i18n-aria="upgrade.topbarAria" aria-describedby="topbar-action-tooltip">
+    <svg class="topbar-upgrade-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 12.5V3.5M4.5 7L8 3.5 11.5 7"></path>
+    </svg>
+    <span id="topbar-upgrade-label" class="topbar-upgrade-label" data-i18n="upgrade.topbarLabel">重启更新</span>
+  </button>
+
   <!-- 顶部基本单元 2: 输出速度 (tok/s) -->
   <button id="badge-speed" class="ag-unit" type="button" aria-label="模型输出速度与耗时统计" data-i18n-aria="badge.speed.aria" aria-expanded="false">
     <span class="speed-icon" aria-hidden="true">⚡</span>
@@ -257,6 +265,29 @@
           <div id="enhance-ssh-remote-banner-text" class="ssh-remote-banner-text"></div>
         </div>
 
+        <!-- 0. 自动更新（官方反重力 & 哈基米） -->
+        <div class="ctx-settings-card" id="hakimi-upgrade-card">
+          <div class="ctx-settings-card-hdr">
+            <div class="ctx-settings-card-title" data-i18n="upgrade.card.title">🚀 自动更新（反重力 &amp; 哈基米）</div>
+            <span id="hakimi-upgrade-badge" class="key-pill pill-muted" data-i18n="settings.common.reading">读取中…</span>
+          </div>
+          <div id="hakimi-upgrade-desc" class="ctx-settings-card-desc" data-i18n="upgrade.card.desc">后台静默检测官方 Antigravity 与哈基米 main 更新并在独立沙盒完成补丁与验签，仅全部通过后提示重启替换；试构建失败时安全保留当前版本。</div>
+          <div id="hakimi-upgrade-meta" class="ctx-client-lang-note">—</div>
+          <div id="hakimi-upgrade-diag" class="hakimi-upgrade-diag" hidden>
+            <div id="hakimi-upgrade-diag-title" class="hakimi-upgrade-diag-title"></div>
+            <div id="hakimi-upgrade-diag-body" class="hakimi-upgrade-diag-body"></div>
+          </div>
+          <div class="ctx-settings-card-actions">
+            <button id="btn-hakimi-upgrade-install" class="unlock-btn unlock-btn-upgrade" type="button" hidden data-i18n="upgrade.btn.install">立即重启并更新</button>
+            <button id="btn-hakimi-upgrade-sync" class="unlock-btn unlock-btn-primary" type="button" data-i18n="upgrade.btn.sync">立即检查更新</button>
+            <button id="btn-hakimi-upgrade-force-main" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="upgrade.btn.forceMain">强制同步远程 main</button>
+            <button id="btn-hakimi-upgrade-copy-diag" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="upgrade.btn.copyDiag">复制诊断</button>
+          </div>
+          <div id="hakimi-upgrade-result" class="unlock-result-box" style="display:none;">
+            <div id="hakimi-upgrade-result-text" class="unlock-result-text"></div>
+          </div>
+        </div>
+
         <!-- 1. 客户端界面语言 (哈基米) -->
         <div class="ctx-settings-card" id="client-lang-card">
           <div class="ctx-settings-card-hdr">
@@ -411,6 +442,19 @@
         <div class="ag-modal-actions">
           <button id="btn-modal-restart-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
           <button id="btn-modal-restart-confirm" class="unlock-btn unlock-btn-primary" type="button" data-i18n="models.restartConfirm.go">确认重启</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 哈基米冷切更新确认模态弹窗 -->
+    <div id="hakimi-upgrade-modal" class="ag-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-upgrade-title">
+      <div class="ag-modal-card">
+        <div id="modal-upgrade-title" class="ag-modal-title" data-i18n="upgrade.modal.title">重启并应用更新</div>
+        <div id="modal-upgrade-body" class="ag-modal-body"></div>
+        <div id="modal-upgrade-feedback" class="ag-modal-feedback" hidden></div>
+        <div class="ag-modal-actions">
+          <button id="btn-modal-upgrade-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
+          <button id="btn-modal-upgrade-confirm" class="unlock-btn unlock-btn-upgrade" type="button" data-i18n="upgrade.btn.install">立即重启并更新</button>
         </div>
       </div>
     </div>

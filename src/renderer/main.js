@@ -180,6 +180,7 @@
         renderSshRemoteContextBanners();
         void refreshModulesDisplay();
         void refreshCliUnlockDisplay();
+        if (typeof refreshHakimiUpgradeStatus === 'function') void refreshHakimiUpgradeStatus();
         if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } else {
@@ -763,6 +764,7 @@
       renderSshRemoteContextBanners();
       void refreshModulesDisplay();
       void refreshCliUnlockDisplay();
+      if (typeof refreshHakimiUpgradeStatus === 'function') void refreshHakimiUpgradeStatus();
       if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
     }
     positionFloatingPanels();
@@ -2233,6 +2235,11 @@
     getKnownModelProductsForTest: () => getKnownModelProducts(),
     refreshCliUnlockForTest: () => refreshCliUnlockDisplay(),
     refreshModulesForTest: () => refreshModulesDisplay(),
+    refreshHakimiUpgradeForTest: () => refreshHakimiUpgradeStatus(),
+    setHakimiUpgradeStateForTest: (st) => {
+      currentHakimiUpgradeState = st;
+      renderHakimiUpgradeState(st);
+    },
     triggerSessionCompactForTest: (src) => triggerSessionCompact(src),
     getPanelLanguage: () => getPanelLanguage(),
     setPanelLanguage: (lang, opts) => applyPanelLanguage(lang, opts),
@@ -2282,6 +2289,7 @@
       try { document.getElementById('ag-topbar-host-fix')?.remove?.(); } catch {}
       disposeModelQuota();
       if (typeof disposeAccountSwitcher === 'function') disposeAccountSwitcher();
+      try { if (typeof unsubscribeHakimiUpgradeChanged === 'function') unsubscribeHakimiUpgradeChanged(); } catch {}
       host.remove();
     }
   };

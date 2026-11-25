@@ -15,6 +15,8 @@ const TAGS = {
   SSH_BOOTSTRAP_END: '// --- Antigravity Hakimi SSH Bootstrap Injection End ---',
   SSH_MANAGER_START: '// --- Antigravity Hakimi SSH Manager Injection Start ---',
   SSH_MANAGER_END: '// --- Antigravity Hakimi SSH Manager Injection End ---',
+  UPDATER_WRAPPER_START: '// --- Antigravity Hakimi Updater Wrapper Start ---',
+  UPDATER_WRAPPER_END: '// --- Antigravity Hakimi Updater Wrapper End ---',
 };
 
 function validateSyntax(code, filename = 'script.js') {
@@ -42,7 +44,7 @@ function generateMeterUtilsCode() {
 function generateMeterPreloadCode() {
   return `\n${TAGS.METER_PRELOAD_START}
 // Context Meter v2: narrow read-only conversation scan API
-electron_1.contextBridge.exposeInMainWorld("contextMeterAPI", { scan: (id, force) => electron_1.ipcRenderer.invoke("context-meter:scan", id, force === true), getTokenHistory: (force) => electron_1.ipcRenderer.invoke("context-meter:token-history", force === true), syncOverlay: (opts) => electron_1.ipcRenderer.invoke("context-meter:sync-overlay", opts), recordCalls: (calls) => electron_1.ipcRenderer.invoke("context-meter:record-calls", calls), getSettings: (opts) => electron_1.ipcRenderer.invoke("context-meter:get-settings", opts), saveSettings: (payload) => electron_1.ipcRenderer.invoke("context-meter:save-settings", payload), openExternal: (url) => electron_1.ipcRenderer.invoke("context-meter:open-external", url), compactSession: (cascadeId) => electron_1.ipcRenderer.invoke("context-meter:compact-session", cascadeId), getCliUnlockStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-status", opts), applyCliUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-apply", opts), restartHost: () => electron_1.ipcRenderer.invoke("context-meter:restart-host"), restartLanguageServers: () => electron_1.ipcRenderer.invoke("context-meter:restart-language-servers"), getModulesStatus: () => electron_1.ipcRenderer.invoke("context-meter:modules-status"), toggleModule: (name, enable, opts) => electron_1.ipcRenderer.invoke("context-meter:toggle-module", name, enable, opts), getAccountsStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:accounts-status", opts), saveCurrentAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-save-current", payload), switchAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-switch", payload), prepareAddAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-prepare-add", payload), renameAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-rename", payload), removeAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-remove", payload) });
+electron_1.contextBridge.exposeInMainWorld("contextMeterAPI", { scan: (id, force) => electron_1.ipcRenderer.invoke("context-meter:scan", id, force === true), getTokenHistory: (force) => electron_1.ipcRenderer.invoke("context-meter:token-history", force === true), syncOverlay: (opts) => electron_1.ipcRenderer.invoke("context-meter:sync-overlay", opts), recordCalls: (calls) => electron_1.ipcRenderer.invoke("context-meter:record-calls", calls), getSettings: (opts) => electron_1.ipcRenderer.invoke("context-meter:get-settings", opts), saveSettings: (payload) => electron_1.ipcRenderer.invoke("context-meter:save-settings", payload), openExternal: (url) => electron_1.ipcRenderer.invoke("context-meter:open-external", url), compactSession: (cascadeId) => electron_1.ipcRenderer.invoke("context-meter:compact-session", cascadeId), getCliUnlockStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-status", opts), applyCliUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-apply", opts), restartHost: () => electron_1.ipcRenderer.invoke("context-meter:restart-host"), restartLanguageServers: () => electron_1.ipcRenderer.invoke("context-meter:restart-language-servers"), getModulesStatus: () => electron_1.ipcRenderer.invoke("context-meter:modules-status"), toggleModule: (name, enable, opts) => electron_1.ipcRenderer.invoke("context-meter:toggle-module", name, enable, opts), getAccountsStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:accounts-status", opts), saveCurrentAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-save-current", payload), switchAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-switch", payload), prepareAddAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-prepare-add", payload), renameAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-rename", payload), removeAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-remove", payload), getHakimiUpgradeStatus: () => electron_1.ipcRenderer.invoke("context-meter:hakimi-upgrade-status"), syncHakimiUpgrade: (opts) => electron_1.ipcRenderer.invoke("context-meter:hakimi-upgrade-sync", opts), installHakimiUpgrade: () => electron_1.ipcRenderer.invoke("context-meter:hakimi-upgrade-install"), onHakimiUpgradeChanged: (cb) => { if (typeof cb !== "function") return () => {}; const handler = (_ev, data) => { try { cb(data); } catch {} }; electron_1.ipcRenderer.on("context-meter:hakimi-upgrade-changed", handler); return () => electron_1.ipcRenderer.removeListener("context-meter:hakimi-upgrade-changed", handler); } });
 ${TAGS.METER_PRELOAD_END}\n`;
 }
 
@@ -333,6 +335,19 @@ function injectRemoteManagerSource(source) {
   return code;
 }
 
+function generateUpdaterWrapperSource() {
+  return `${TAGS.UPDATER_WRAPPER_START}
+'use strict';
+module.exports = require('./hakimi-updater').createNativeUpdaterBridge();
+${TAGS.UPDATER_WRAPPER_END}
+`;
+}
+
+function isUpdaterWrappedSource(source) {
+  if (!source || typeof source !== 'string') return false;
+  return source.includes(TAGS.UPDATER_WRAPPER_START) && source.includes(TAGS.UPDATER_WRAPPER_END);
+}
+
 module.exports = {
   TAGS,
   WINDOW_LOAD_ANCHOR_RE,
@@ -343,6 +358,8 @@ module.exports = {
   buildMarkdownMainWorldPatchScript,
   generateMarkdownPreloadCode,
   generateChinesePreloadCode,
+  generateUpdaterWrapperSource,
+  isUpdaterWrappedSource,
   cleanUtilsSource,
   cleanPreloadSource,
   cleanSshBootstrapSource,

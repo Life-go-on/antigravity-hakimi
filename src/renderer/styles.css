@@ -261,6 +261,35 @@
     .topbar-quick-icon{
       width:14px;height:14px;display:block;flex-shrink:0;
     }
+    .ag-unit-upgrade{
+      height:24px;padding:0 8px;border-radius:999px;gap:4px;
+      color:#22c55e;background:rgba(34,197,94,0.13);border-color:rgba(34,197,94,0.34);
+      font-size:11px;font-weight:600;
+    }
+    .ag-unit-upgrade[hidden]{
+      display:none!important;
+    }
+    .ag-unit-upgrade:hover,
+    .ag-unit-upgrade:focus-visible{
+      color:#4ade80;background:rgba(34,197,94,0.22);border-color:rgba(34,197,94,0.52);
+    }
+    :host([data-theme="light"]) .ag-unit-upgrade,
+    :host([data-panel-tone="light"]) .ag-unit-upgrade{
+      color:#15803d;background:rgba(22,163,74,0.12);border-color:rgba(22,163,74,0.32);
+    }
+    :host([data-theme="light"]) .ag-unit-upgrade:hover,
+    :host([data-panel-tone="light"]) .ag-unit-upgrade:hover{
+      color:#166534;background:rgba(22,163,74,0.20);
+    }
+    .topbar-upgrade-icon{
+      width:12px;height:12px;display:block;flex-shrink:0;
+    }
+    :host([data-layout="ring-only"]) .ag-unit-upgrade{
+      width:24px;min-width:24px;padding:0;
+    }
+    :host([data-layout="ring-only"]) .topbar-upgrade-label{
+      display:none!important;
+    }
     :host([data-occupancy="warn"]) .ag-unit-quick{
       color:var(--ag-ring-warn);
       background:rgba(245,158,11,0.10);
@@ -1519,6 +1548,12 @@
     .unlock-btn-danger{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.35)}
     .unlock-btn-danger:hover:not(:disabled){background:rgba(239,68,68,0.2)}
     :host([data-theme="light"]) .unlock-btn-danger{color:#dc2626}
+    .unlock-btn-upgrade{background:#16a34a;color:#fff;border:1px solid #15803d}
+    .unlock-btn-upgrade:hover:not(:disabled){background:#15803d}
+    .hakimi-upgrade-diag{background:rgba(245,158,11,0.09);border:1px solid rgba(245,158,11,0.32);border-radius:6px;padding:7px 9px;display:flex;flex-direction:column;gap:4px}
+    .hakimi-upgrade-diag[hidden]{display:none!important}
+    .hakimi-upgrade-diag-title{font-size:11px;font-weight:600;color:#f59e0b}
+    .hakimi-upgrade-diag-body{font-size:10px;line-height:1.45;color:var(--ag-text-secondary);white-space:pre-wrap;word-break:break-word;user-select:text;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
 
     .acc-settings-list{display:flex;flex-direction:column;gap:5px;margin:2px 0}
     .acc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:6px;background:var(--ag-bg-subcard);border:1px solid var(--ag-border-subcard)}

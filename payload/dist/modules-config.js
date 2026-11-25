@@ -257,6 +257,21 @@ function inspectDiskModules(customPath = null) {
   const sshSupported = entries.includes('/dist/remote/bootstrapScript.js');
   const sshReady = sshSupported ? (sshBootstrapInjected && sshManagerInjected && sshFilesOk) : sshFilesOk;
 
+  const updaterSupported = entries.includes('/dist/updater.js');
+  let updaterWrapped = false;
+  try {
+    if (updaterSupported) {
+      const updStr = builtinAsar.extractFile(asarPath, 'dist/updater.js').toString('utf8');
+      updaterWrapped = updStr.includes(TAGS.UPDATER_WRAPPER_START) && updStr.includes(TAGS.UPDATER_WRAPPER_END);
+    }
+  } catch {}
+  const updaterFilesOk =
+    entries.includes('/dist/hakimi-updater.js') &&
+    entries.includes('/dist/hakimi-builder.js') &&
+    entries.includes('/dist/hakimi-upgrade-helper.js') &&
+    entries.includes('/dist/hakimi-asar-packer.js');
+  const updaterReady = updaterSupported ? (updaterWrapped && updaterFilesOk) : updaterFilesOk;
+
   return {
     found: true,
     asarPath,
@@ -270,6 +285,8 @@ function inspectDiskModules(customPath = null) {
     chineseReason,
     sshSupported,
     sshReady,
+    updaterSupported,
+    updaterReady,
   };
 }
 
@@ -285,6 +302,31 @@ function readBundleShortVersion(plistPath) {
   }
 }
 
+function compareBundleSemver(a, b) {
+  const parse = (raw) => {
+    const clean = String(raw || '').trim().replace(/^v/i, '');
+    if (!clean) return { nums: [], pre: '' };
+    const [core, ...preParts] = clean.split('-');
+    const nums = core.split('.').map((n) => {
+      const v = Number.parseInt(n, 10);
+      return Number.isFinite(v) ? v : 0;
+    });
+    return { nums, pre: preParts.join('-') };
+  };
+  const pa = parse(a);
+  const pb = parse(b);
+  const len = Math.max(pa.nums.length, pb.nums.length);
+  for (let i = 0; i < len; i++) {
+    const na = pa.nums[i] || 0;
+    const nb = pb.nums[i] || 0;
+    if (na !== nb) return na > nb ? 1 : -1;
+  }
+  if (pa.pre === pb.pre) return 0;
+  if (!pa.pre && pb.pre) return 1;
+  if (pa.pre && !pb.pre) return -1;
+  return pa.pre > pb.pre ? 1 : -1;
+}
+
 function checkAppVersionSync(options = {}) {
   const officialPlist =
     options.officialPlist ||
@@ -296,11 +338,13 @@ function checkAppVersionSync(options = {}) {
 
   const officialVersion = readBundleShortVersion(officialPlist);
   const hakimiVersion = readBundleShortVersion(hakimiPlist);
+  const cmp = officialVersion && hakimiVersion ? compareBundleSemver(officialVersion, hakimiVersion) : 0;
 
   return {
     officialVersion,
     hakimiVersion,
-    outdated: Boolean(officialVersion && hakimiVersion && officialVersion !== hakimiVersion),
+    outdated: Boolean(officialVersion && hakimiVersion && cmp > 0),
+    hakimiAhead: Boolean(officialVersion && hakimiVersion && cmp < 0),
   };
 }
 

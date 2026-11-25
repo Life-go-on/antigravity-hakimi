@@ -608,6 +608,52 @@ function registerIpcOnce() {
       return { ok: false, error: e.message };
     }
   });
+
+  const rejectIfRemoteUpgradeSender = (event) => {
+    const url = isLocalMainFrameSender(event);
+    if (!url) throw new Error('仅允许本机主聊天窗口');
+    if (getRemoteBackendForSender(event?.sender)) {
+      return { ok: false, supported: false, error: 'SSH 远端窗口不支持本机自动更新' };
+    }
+    return null;
+  };
+
+  ipcMain.handle('context-meter:hakimi-upgrade-status', async (event) => {
+    const denied = rejectIfRemoteUpgradeSender(event);
+    if (denied) return denied;
+    try {
+      const { getDefaultUpdater } = require('./hakimi-updater');
+      return getDefaultUpdater().getStatus();
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:hakimi-upgrade-sync', async (event, options) => {
+    const denied = rejectIfRemoteUpgradeSender(event);
+    if (denied) return denied;
+    try {
+      const { getDefaultUpdater } = require('./hakimi-updater');
+      const opts = options && typeof options === 'object' ? options : {};
+      return await getDefaultUpdater().checkAndStageUpgrade({
+        manual: true,
+        forceMainSync: Boolean(opts.forceMainSync),
+      });
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:hakimi-upgrade-install', async (event) => {
+    const denied = rejectIfRemoteUpgradeSender(event);
+    if (denied) return denied;
+    try {
+      const { getDefaultUpdater } = require('./hakimi-updater');
+      return getDefaultUpdater().installStagedUpgrade();
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
 }
 
 function getWindowWebContents(win) {
