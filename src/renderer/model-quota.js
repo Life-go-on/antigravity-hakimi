@@ -103,7 +103,7 @@
     }
     .model-quota-actions{flex-shrink:0;display:inline-flex;align-items:center;gap:2px}
     .model-quota-actions .quota-icon-btn:not(#model-quota-display-mode){opacity:0.55}
-    #model-quota:hover .quota-icon-btn,.model-quota-actions .quota-icon-btn:not(#model-quota-display-mode):focus-visible,#model-quota-shortcuts-btn[aria-expanded="true"],#model-quota-shortcuts-btn[data-has-shortcuts="true"]{opacity:1}
+    #model-quota:hover .quota-icon-btn,.model-quota-actions .quota-icon-btn:not(#model-quota-display-mode):focus-visible,#model-quota-shortcuts-btn[aria-expanded="true"],#model-quota-shortcuts-btn[data-has-shortcuts="true"],#model-quota-accounts-btn[aria-expanded="true"],#model-quota-accounts-btn[data-has-accounts="true"]{opacity:1}
     .quota-icon-btn{
       position:relative;display:inline-flex;align-items:center;justify-content:center;
       width:18px;height:18px;padding:0;border:0;border-radius:5px;
@@ -112,7 +112,7 @@
     }
     #model-quota-display-mode{width:auto;min-width:28px;padding:0 4px;font:inherit;font-size:10px;white-space:nowrap}
     .quota-icon-btn[hidden]{display:none!important}
-    .quota-icon-btn:hover,#model-quota-shortcuts-btn[aria-expanded="true"]{background:var(--ag-quota-btn-hover);color:var(--ag-quota-text)}
+    .quota-icon-btn:hover,#model-quota-shortcuts-btn[aria-expanded="true"],#model-quota-accounts-btn[aria-expanded="true"]{background:var(--ag-quota-btn-hover);color:var(--ag-quota-text)}
     .quota-icon-btn svg{width:13px;height:13px;display:block;transition:transform .16s ease}
     #model-quota-toggle-5h[aria-pressed="false"] svg{transform:rotate(180deg)}
     .quota-5h-alert-dot{
@@ -226,6 +226,12 @@
         <span id="model-quota-label"></span>
         <span class="model-quota-actions">
           <button id="model-quota-display-mode" class="quota-icon-btn" type="button"></button>
+          <button id="model-quota-accounts-btn" class="quota-icon-btn" type="button" hidden aria-expanded="false" aria-haspopup="dialog" data-has-accounts="false">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="8" cy="5.25" r="2.6"></circle>
+              <path d="M2.75 13.5c.8-2.3 2.75-3.5 5.25-3.5s4.45 1.2 5.25 3.5"></path>
+            </svg>
+          </button>
           <button id="model-quota-shortcuts-btn" class="quota-icon-btn" type="button" aria-expanded="false" aria-haspopup="dialog" data-has-shortcuts="false">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="1.75" y="3.5" width="12.5" height="9" rx="1.8"></rect>
@@ -480,6 +486,7 @@
     dotInnerRing: qEl('model-quota-dot-inner-ring'),
     label: qEl('model-quota-label'),
     displayModeBtn: qEl('model-quota-display-mode'),
+    accountsBtn: qEl('model-quota-accounts-btn'),
     shortcutsBtn: qEl('model-quota-shortcuts-btn'),
     shortcutsDot: qEl('model-quota-shortcuts-dot'),
     toggle5hBtn: qEl('model-quota-toggle-5h'),
@@ -559,6 +566,7 @@
       if (customBg) targetHost.style.setProperty('--ag-custom-panel-bg', customBg);
       else if (targetHost.style?.removeProperty) targetHost.style.removeProperty('--ag-custom-panel-bg');
     }
+    if (typeof syncAccountsTheme === 'function') syncAccountsTheme();
   }
   syncModelQuotaTheme();
 
@@ -1118,6 +1126,7 @@
 
   function openModelShortcutsPopover() {
     if (state.disposed) return false;
+    if (typeof closeAccountsPopover === 'function') closeAccountsPopover();
     if (!ensureShortcutsHostMounted()) return false;
     syncModelQuotaTheme();
     shortcutsPopoverOpen = true;
@@ -1212,6 +1221,10 @@
     quotaDisplayMode = quotaDisplayMode === 'used' ? 'remaining' : 'used';
     persistModelQuotaPrefs({ quotaDisplayMode });
     renderModelQuota(true);
+  });
+  qDom.accountsBtn?.addEventListener('click', (e) => {
+    e?.stopPropagation?.();
+    if (typeof toggleAccountsPopover === 'function') toggleAccountsPopover(qDom.accountsBtn);
   });
   qDom.shortcutsBtn?.addEventListener('click', (e) => {
     e?.stopPropagation?.();
@@ -1678,6 +1691,7 @@
     if (!selected) {
       quotaHost.hidden = true;
       if (shortcutsPopoverOpen) closeModelShortcutsPopover();
+      if (typeof syncQuotaCardAccountsButton === 'function') syncQuotaCardAccountsButton();
       return;
     }
 
@@ -1714,6 +1728,7 @@
     if (!hasPrimary && !state.quotaSynced) {
       quotaHost.hidden = true;
       if (shortcutsPopoverOpen) closeModelShortcutsPopover();
+      if (typeof syncQuotaCardAccountsButton === 'function') syncQuotaCardAccountsButton();
       return;
     }
     if (!ensureModelQuotaDocked()) return;
@@ -1740,6 +1755,8 @@
     qSetHidden(qDom.dotBtn, !effectiveMinimized);
     qSetHidden(qDom.card, effectiveMinimized);
     if (effectiveMinimized && shortcutsPopoverOpen) closeModelShortcutsPopover();
+    if (effectiveMinimized && typeof closeAccountsPopover === 'function') closeAccountsPopover();
+    if (typeof syncQuotaCardAccountsButton === 'function') syncQuotaCardAccountsButton();
     qSetText(qDom.label, model);
 
     // 快捷切换设置按钮与已配置指示点

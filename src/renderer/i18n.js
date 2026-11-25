@@ -705,6 +705,83 @@
       'quota.shortcuts.modelNotFound': { 'zh-CN': '当前列表未找到模型：{model}', 'zh-TW': '目前清單未找到模型：{model}', en: 'Model unavailable: {model}' },
       'quota.shortcuts.unavailable': { 'zh-CN': '当前页面暂不支持快捷切换', 'zh-TW': '目前頁面暫不支援快捷切換', en: 'Quick switch unavailable on this view' },
 
+      // 多账号冷切换（macOS 钥匙串）
+      'accounts.title': { 'zh-CN': '账号冷切换', 'zh-TW': '帳號冷切換', en: 'Cold Account Switcher' },
+      'accounts.loginPill': { 'zh-CN': '切换已保存账号', 'zh-TW': '切換已儲存帳號', en: 'Switch saved account' },
+      'accounts.settingsTitle': { 'zh-CN': '👤 多账号冷切换（钥匙串）', 'zh-TW': '👤 多帳號冷切換（鑰匙圈）', en: '👤 Cold Account Switcher (Keychain)' },
+      'accounts.settingsDesc': {
+        'zh-CN': '仅在 macOS 系统钥匙串内搬运登录快照（零明文落盘），切号时通过外部接力进程全冷停重启以防串号，并保留共享历史对话；添加新账号前自动备份当前账号且不吊销原 Token。',
+        'zh-TW': '僅在 macOS 系統鑰匙圈內搬運登入快照（零明文落盤），切號時透過外部接力行程全冷停重啟以防串號，並保留共享歷史對話；新增帳號前自動備份目前帳號且不撤銷原 Token。',
+        en: 'Stores account snapshots strictly inside macOS Keychain (zero plaintext files). Switching performs a full cold restart via a detached helper to prevent cross-account state leakage while preserving shared conversation history.'
+      },
+      'accounts.btnTitle': { 'zh-CN': '账号冷切换（macOS 钥匙串）', 'zh-TW': '帳號冷切換（macOS 鑰匙圈）', en: 'Cold account switcher (macOS Keychain)' },
+      'accounts.btnTitleCount': { 'zh-CN': '当前：{email} · 已保存 {n} 个账号（点击切换）', 'zh-TW': '目前：{email} · 已儲存 {n} 個帳號（點擊切換）', en: 'Active: {email} · {n} saved (click to switch)' },
+      'accounts.currentLabel': { 'zh-CN': '当前登录', 'zh-TW': '目前登入', en: 'Active' },
+      'accounts.savedHeading': { 'zh-CN': '已保存账号（系统钥匙串）', 'zh-TW': '已儲存帳號（系統鑰匙圈）', en: 'Saved accounts (Keychain)' },
+      'accounts.savedCountBadge': { 'zh-CN': '已存 {n} 个', 'zh-TW': '已存 {n} 個', en: '{n} saved' },
+      'accounts.saveCurrent': { 'zh-CN': '保存当前', 'zh-TW': '儲存目前', en: 'Save current' },
+      'accounts.updateSnapshot': { 'zh-CN': '更新快照', 'zh-TW': '更新快照', en: 'Update' },
+      'accounts.switchBtn': { 'zh-CN': '切换', 'zh-TW': '切換', en: 'Switch' },
+      'accounts.switchConfirmText': {
+        'zh-CN': '即将安全关闭并自动重启 哈基米.app（约 3–5 秒）以无串号切换到「{name}」；当前账号最新凭据将自动回写备份，历史对话保持共享。',
+        'zh-TW': '即將安全關閉並自動重啟 哈基米.app（約 3–5 秒）以無串號切換至「{name}」；目前帳號最新憑證將自動回寫備份，歷史對話維持共享。',
+        en: 'Safely quits and relaunches 哈基米.app (~3–5s) for a clean cold switch to "{name}". Current credentials are backed up automatically and conversation history remains shared.'
+      },
+      'accounts.switchConfirmGo': { 'zh-CN': '确认冷切换', 'zh-TW': '確認冷切換', en: 'Cold switch' },
+      'accounts.renameTip': { 'zh-CN': '编辑备注名', 'zh-TW': '編輯備註名', en: 'Rename label' },
+      'accounts.renamePlaceholder': { 'zh-CN': '输入备注（如 主力 Pro）', 'zh-TW': '輸入備註（如 主力 Pro）', en: 'Label (e.g. Work Pro)' },
+      'accounts.renameSave': { 'zh-CN': '保存', 'zh-TW': '儲存', en: 'Save' },
+      'accounts.deleteBtn': { 'zh-CN': '删除', 'zh-TW': '刪除', en: 'Delete' },
+      'accounts.deleteTip': { 'zh-CN': '删除该备份快照（不影响当前登录）', 'zh-TW': '刪除該備份快照（不影響目前登入）', en: 'Remove snapshot (does not sign out active session)' },
+      'accounts.confirmDelete': { 'zh-CN': '确认删除', 'zh-TW': '確認刪除', en: 'Confirm' },
+      'accounts.cancel': { 'zh-CN': '取消', 'zh-TW': '取消', en: 'Cancel' },
+      'accounts.addBtn': { 'zh-CN': '+ 添加新账号', 'zh-TW': '+ 新增帳號', en: '+ Add account' },
+      'accounts.addConfirmText': {
+        'zh-CN': '将先自动备份当前账号至系统钥匙串，再重启并清除本地活动凭据以进入官方登录页（不会吊销原账号 Token，历史对话保持共享）。',
+        'zh-TW': '將先自動備份目前帳號至系統鑰匙圈，再重啟並清除本機活動憑證以進入官方登入頁（不會撤銷原帳號 Token，歷史對話維持共享）。',
+        en: 'Automatically backs up the current account to Keychain, then restarts cleanly with an empty local credential slot so you can sign into another account without revoking the previous token.'
+      },
+      'accounts.addConfirmGo': { 'zh-CN': '备份并重启登录', 'zh-TW': '備份並重啟登入', en: 'Backup & Restart' },
+      'accounts.footerNote': { 'zh-CN': '钥匙串冷切 · 共享历史对话', 'zh-TW': '鑰匙圈冷切 · 共享歷史對話', en: 'Cold Keychain switch · Shared chats' },
+      'accounts.loading': { 'zh-CN': '读取钥匙串状态中…', 'zh-TW': '讀取鑰匙圈狀態中…', en: 'Checking Keychain…' },
+      'accounts.notSignedIn': { 'zh-CN': '当前未登录（等待登录）', 'zh-TW': '目前未登入（等待登入）', en: 'Not signed in' },
+      'accounts.notSignedInSummary': { 'zh-CN': '当前活动凭据为空，可在此一键冷切回已保存账号', 'zh-TW': '目前活動憑證為空，可在此一鍵冷切回已儲存帳號', en: 'No active login; cold-switch back to any saved account below' },
+      'accounts.unknownEmail': { 'zh-CN': '当前已登录账号', 'zh-TW': '目前已登入帳號', en: 'Signed-in account' },
+      'accounts.pill.saved': { 'zh-CN': '已保存', 'zh-TW': '已儲存', en: 'Saved' },
+      'accounts.pill.unsaved': { 'zh-CN': '未保存', 'zh-TW': '未儲存', en: 'Unsaved' },
+      'accounts.pill.current': { 'zh-CN': '当前', 'zh-TW': '目前', en: 'Active' },
+      'accounts.vaultMissing': { 'zh-CN': '钥匙串快照缺失', 'zh-TW': '鑰匙圈快照遺失', en: 'Snapshot missing' },
+      'accounts.emptyHint': {
+        'zh-CN': '尚未保存任何账号快照。点击上方「保存当前」备份当前登录态，再点「+ 添加新账号」即可在多号间一键冷切。',
+        'zh-TW': '尚未儲存任何帳號快照。點擊上方「儲存目前」備份目前登入態，再點「+ 新增帳號」即可在多號間一鍵冷切。',
+        en: 'No snapshots saved yet. Click "Save current" to back up this session, then "+ Add account" to enable cold switching.'
+      },
+      'accounts.agyBlockedBanner': {
+        'zh-CN': '检测到终端正在运行 agy CLI（PID: {pids}）。为避免并发抢写钥匙串，请先退出 agy 后点右上角刷新再切号。',
+        'zh-TW': '偵測到終端正在執行 agy CLI（PID: {pids}）。為避免並行搶寫鑰匙圈，請先結束 agy 後點右上角重新整理再切號。',
+        en: 'agy CLI is currently running (PID: {pids}). Exit agy and refresh before switching to avoid Keychain contention.'
+      },
+      'accounts.agyBlockedShort': {
+        'zh-CN': '检测到 agy CLI 运行中（PID: {pids}），请先退出后再切号',
+        'zh-TW': '偵測到 agy CLI 執行中（PID: {pids}），請先結束後再切號',
+        en: 'agy CLI running (PID: {pids}); exit it before switching'
+      },
+      'accounts.msg.saved': { 'zh-CN': '已备份当前账号快照：{name}', 'zh-TW': '已備份目前帳號快照：{name}', en: 'Saved snapshot: {name}' },
+      'accounts.msg.coldSwitching': { 'zh-CN': '正在安全关闭并冷切换至「{name}」，客户端将在数秒后自动重开…', 'zh-TW': '正在安全關閉並冷切換至「{name}」，用戶端將於數秒後自動重開…', en: 'Safely closing to cold-switch to "{name}"; relaunching shortly…' },
+      'accounts.msg.coldPreparingAdd': { 'zh-CN': '正在安全关闭、备份当前账号并进入官方登录页，客户端将在数秒后自动重开…', 'zh-TW': '正在安全關閉、備份目前帳號並進入官方登入頁，用戶端將於數秒後自動重開…', en: 'Backing up current account and restarting to official sign-in…' },
+      'accounts.msg.switched': { 'zh-CN': '已无串号冷切换至：{name}', 'zh-TW': '已無串號冷切換至：{name}', en: 'Cold-switched to: {name}' },
+      'accounts.msg.switchedAutoSaved': { 'zh-CN': '已冷切换至 {name}（原未保存账号已自动备份进钥匙串）', 'zh-TW': '已冷切換至 {name}（原未儲存帳號已自動備份進鑰匙圈）', en: 'Cold-switched to {name} (previous account auto-backed up)' },
+      'accounts.msg.coldFailed': { 'zh-CN': '上次冷切换未完成：{err}', 'zh-TW': '上次冷切換未完成：{err}', en: 'Last cold switch failed: {err}' },
+      'accounts.msg.renamed': { 'zh-CN': '备注已更新', 'zh-TW': '備註已更新', en: 'Label updated' },
+      'accounts.msg.removed': { 'zh-CN': '已删除该账号快照（不影响当前登录态）', 'zh-TW': '已刪除該帳號快照（不影響目前登入態）', en: 'Removed snapshot (active login unchanged)' },
+      'accounts.toast.switched': { 'zh-CN': '已冷切换账号：{name}', 'zh-TW': '已冷切換帳號：{name}', en: 'Switched account: {name}' },
+      'accounts.err.noBridge': { 'zh-CN': '当前宿主版本缺少账号切换桥接，请重新构建 哈基米.app', 'zh-TW': '目前宿主版本缺少帳號切換橋接，請重新建置 哈基米.app', en: 'Account switcher bridge unavailable; rebuild 哈基米.app' },
+      'accounts.err.saveFail': { 'zh-CN': '保存当前账号失败', 'zh-TW': '儲存目前帳號失敗', en: 'Failed to save current account' },
+      'accounts.err.switchFail': { 'zh-CN': '发起账号冷切换失败', 'zh-TW': '發起帳號冷切換失敗', en: 'Failed to start cold switch' },
+      'accounts.err.addFail': { 'zh-CN': '发起新增账号冷切换失败', 'zh-TW': '發起新增帳號冷切換失敗', en: 'Failed to prepare new account' },
+      'accounts.err.renameFail': { 'zh-CN': '更新账号备注失败', 'zh-TW': '更新帳號備註失敗', en: 'Failed to rename account' },
+      'accounts.err.removeFail': { 'zh-CN': '删除账号快照失败', 'zh-TW': '刪除帳號快照失敗', en: 'Failed to remove snapshot' },
+
       // 订阅与额度详情
       'plan.detail.toggleOpen': { 'zh-CN': '详情 ▼', 'zh-TW': '詳情 ▼', en: 'Details ▼' },
       'plan.detail.toggleClose': { 'zh-CN': '详情收回 ▲', 'zh-TW': '詳情收回 ▲', en: 'Hide ▲' },

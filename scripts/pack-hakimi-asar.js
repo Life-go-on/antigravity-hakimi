@@ -44,6 +44,8 @@ const PAYLOAD_FILES = [
   'attachment_scan.py',
   'binary-utils.js',
   'local-api.js',
+  'meter-account-cold-helper.js',
+  'meter-account-switcher.js',
   'meter-cli-unlock.js',
   'meter-collector.js',
   'meter-core.js',

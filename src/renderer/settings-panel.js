@@ -90,6 +90,7 @@
       }
       if (isContextSettingsView) {
         void refreshCliUnlockDisplay();
+        if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } catch {}
     try {
@@ -104,8 +105,14 @@
       if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) {
         applyStaticPanelTranslations(shortcutsShadow);
       }
+      if (typeof accountsShadow !== 'undefined' && accountsShadow) {
+        applyStaticPanelTranslations(accountsShadow);
+      }
       if (typeof renderModelQuota === 'function') {
         renderModelQuota(true);
+      }
+      if (typeof renderAccountsUI === 'function') {
+        renderAccountsUI();
       }
       if (typeof renderModelShortcutsPopover === 'function' && typeof shortcutsPopoverOpen !== 'undefined' && shortcutsPopoverOpen) {
         renderModelShortcutsPopover();

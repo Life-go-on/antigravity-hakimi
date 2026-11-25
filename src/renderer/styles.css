@@ -1520,6 +1520,14 @@
     .unlock-btn-danger:hover:not(:disabled){background:rgba(239,68,68,0.2)}
     :host([data-theme="light"]) .unlock-btn-danger{color:#dc2626}
 
+    .acc-settings-list{display:flex;flex-direction:column;gap:5px;margin:2px 0}
+    .acc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:6px;background:var(--ag-bg-subcard);border:1px solid var(--ag-border-subcard)}
+    .acc-settings-row-info{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+    .acc-settings-row-info strong{font-size:11px;color:var(--ag-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .acc-settings-row-info span{font-size:10px;color:var(--ag-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .acc-settings-row-actions{display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+    .acc-settings-mini-btn{padding:2px 8px;font-size:10.5px}
+
     @media (max-width:440px){
       .ctx-preset-grid{grid-template-columns:1fr}
       .ctx-tier-grid{grid-template-columns:repeat(3,minmax(0,1fr))}

@@ -295,6 +295,25 @@
           </div>
         </div>
 
+        <!-- 3. 多账号快捷冷切换（macOS 系统钥匙串） -->
+        <div class="ctx-settings-card" id="accounts-settings-card" hidden>
+          <div class="ctx-settings-card-hdr">
+            <div class="ctx-settings-card-title" data-i18n="accounts.settingsTitle">👤 多账号冷切换（钥匙串）</div>
+            <span id="accounts-settings-badge" class="key-pill pill-muted">0</span>
+          </div>
+          <div class="ctx-settings-card-desc" data-i18n="accounts.settingsDesc">仅在 macOS 系统钥匙串内搬运登录快照（零明文落盘），切号时通过外部接力进程全冷停重启以防串号，并保留共享历史对话；添加新账号前自动备份当前账号且不吊销原 Token。</div>
+          <div id="accounts-settings-summary" class="ctx-client-lang-note">—</div>
+          <div id="accounts-settings-list" class="acc-settings-list"></div>
+          <div class="ctx-settings-card-actions">
+            <button id="btn-accounts-settings-save" class="unlock-btn unlock-btn-primary" type="button" data-i18n="accounts.saveCurrent">保存当前</button>
+            <button id="btn-accounts-settings-add" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="accounts.addBtn">+ 添加新账号</button>
+            <button id="btn-accounts-settings-refresh" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.btn.refreshStatus">刷新状态</button>
+          </div>
+          <div id="accounts-settings-result" class="unlock-result-box" style="display:none;">
+            <div id="accounts-settings-result-text" class="unlock-result-text"></div>
+          </div>
+        </div>
+
         <!-- 保留：兼容隐藏旧中文折叠触发节点 -->
         <div id="chinese-i18n-drawer" hidden>
           <button id="btn-toggle-chinese" type="button" hidden></button>

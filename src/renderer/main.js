@@ -180,6 +180,7 @@
         renderSshRemoteContextBanners();
         void refreshModulesDisplay();
         void refreshCliUnlockDisplay();
+        if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } else {
       setPlanDetailExpanded(false, { skipReposition: true });
@@ -272,6 +273,7 @@
   /* @INSERT_DROPDOWN_MODULE */
   /* @INSERT_MODEL_SWITCHER_MODULE */
   /* @INSERT_MODEL_QUOTA_MODULE */
+  /* @INSERT_ACCOUNT_SWITCHER_MODULE */
 
   function renderPlanDetail(ps) {
     if (!ps) return;
@@ -761,6 +763,7 @@
       renderSshRemoteContextBanners();
       void refreshModulesDisplay();
       void refreshCliUnlockDisplay();
+      if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
     }
     positionFloatingPanels();
   }
@@ -2242,6 +2245,10 @@
     getModelShortcutsForTest: () => sanitizeModelShortcutsConfig(modelShortcutsConfig),
     setModelShortcutsForTest: (cfg) => saveModelShortcutsConfig(cfg),
     toggleModelShortcutsPopoverForTest: () => toggleModelShortcutsPopover(),
+    getAccountsUiSnapshotForTest: () => getAccountsUiSnapshotForTest(),
+    refreshAccountsStatusForTest: (opts) => refreshAccountsStatus(opts),
+    openAccountsPopoverForTest: () => openAccountsPopover(),
+    closeAccountsPopoverForTest: () => closeAccountsPopover(),
     formatShortcutForDisplayForTest: (combo, isMac) => formatShortcutForDisplay(combo, isMac),
     eventToShortcutComboForTest: (e) => eventToShortcutCombo(e),
     restoreSettingsForTest: () => restoreSettingsFromHost(),
@@ -2274,6 +2281,7 @@
       try { document.getElementById('ag-wco-spacer')?.remove?.(); } catch {}
       try { document.getElementById('ag-topbar-host-fix')?.remove?.(); } catch {}
       disposeModelQuota();
+      if (typeof disposeAccountSwitcher === 'function') disposeAccountSwitcher();
       host.remove();
     }
   };
@@ -2281,9 +2289,11 @@
   applyStaticPanelTranslations(shadow);
   applyStaticPanelTranslations(quotaShadow);
   if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) applyStaticPanelTranslations(shortcutsShadow);
+  if (typeof accountsShadow !== 'undefined' && accountsShadow) applyStaticPanelTranslations(accountsShadow);
   applyContextViewVisibility();
   renderSshRemoteContextBanners();
   void restoreSettingsFromHost();
+  if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true, consumeLastResult: true });
   render();
   tick();
 })();

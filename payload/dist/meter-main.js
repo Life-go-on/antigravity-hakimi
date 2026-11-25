@@ -17,6 +17,7 @@ const {
   collectTokenHistoryAsync,
   recordModelCalls,
   markConversationTurnCompleted,
+  invalidateLocalAccountCaches,
   flushPricingLedger,
   getPluginSettings,
   savePluginSettings
@@ -136,6 +137,7 @@ function resolveTargetWindow(sender) {
 
 let registered = false;
 let isAppQuitting = false;
+let coldAccountSwitchInFlight = false;
 const boundWindows = new WeakSet();
 const boundWebContents = new WeakSet();
 const injectionTimers = new WeakMap();
@@ -498,6 +500,114 @@ function registerIpcOnce() {
 
   ipcMain.handle('context-meter:modules-status', handleModulesStatus);
   ipcMain.handle('context-meter:toggle-module', handleToggleModule);
+
+  const rejectIfRemoteAccountSender = (event) => {
+    const url = isLocalMainFrameSender(event);
+    if (!url) throw new Error('仅允许本机主聊天窗口');
+    if (getRemoteBackendForSender(event?.sender)) {
+      return { ok: false, supported: false, error: 'SSH 远端窗口不支持本机钥匙串账号切换' };
+    }
+    return null;
+  };
+
+  const triggerColdQuitAfterHandoff = (delayMs = 120) => {
+    const doQuit = () => {
+      try {
+        setAppQuitting(true);
+        if (app && typeof app.quit === 'function') {
+          app.quit();
+        }
+      } catch {}
+    };
+    if (delayMs <= 0) doQuit();
+    else setTimeout(doQuit, delayMs);
+  };
+
+  ipcMain.handle('context-meter:accounts-status', async (event, options) => {
+    const denied = rejectIfRemoteAccountSender(event);
+    if (denied) return denied;
+    try {
+      const { getAccountsStatus } = require('./meter-account-switcher');
+      return getAccountsStatus(options && typeof options === 'object' ? options : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:accounts-save-current', async (event, payload) => {
+    const denied = rejectIfRemoteAccountSender(event);
+    if (denied) return denied;
+    try {
+      const { saveCurrentAccount } = require('./meter-account-switcher');
+      return saveCurrentAccount(payload && typeof payload === 'object' ? payload : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:accounts-switch', async (event, payload) => {
+    const denied = rejectIfRemoteAccountSender(event);
+    if (denied) return denied;
+    if (coldAccountSwitchInFlight) {
+      return { ok: false, supported: true, error: '正在执行账号冷切换，请稍候…' };
+    }
+    try {
+      const { startColdSwitchAccount } = require('./meter-account-switcher');
+      const res = startColdSwitchAccount(payload && typeof payload === 'object' ? payload : {});
+      if (res && res.ok && res.coldSwitching) {
+        coldAccountSwitchInFlight = true;
+        try { invalidateLocalAccountCaches(); } catch {}
+        try { flushPricingLedger(); } catch {}
+        triggerColdQuitAfterHandoff(120);
+      }
+      return res;
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:accounts-prepare-add', async (event, payload) => {
+    const denied = rejectIfRemoteAccountSender(event);
+    if (denied) return denied;
+    if (coldAccountSwitchInFlight) {
+      return { ok: false, supported: true, error: '正在执行账号冷切换，请稍候…' };
+    }
+    try {
+      const { startColdPrepareAddAccount } = require('./meter-account-switcher');
+      const res = startColdPrepareAddAccount(payload && typeof payload === 'object' ? payload : {});
+      if (res && res.ok && res.coldSwitching) {
+        coldAccountSwitchInFlight = true;
+        try { invalidateLocalAccountCaches(); } catch {}
+        try { flushPricingLedger(); } catch {}
+        triggerColdQuitAfterHandoff(120);
+      }
+      return res;
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:accounts-rename', async (event, payload) => {
+    const denied = rejectIfRemoteAccountSender(event);
+    if (denied) return denied;
+    try {
+      const { renameAccount } = require('./meter-account-switcher');
+      return renameAccount(payload && typeof payload === 'object' ? payload : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:accounts-remove', async (event, payload) => {
+    const denied = rejectIfRemoteAccountSender(event);
+    if (denied) return denied;
+    try {
+      const { removeAccount } = require('./meter-account-switcher');
+      return removeAccount(payload && typeof payload === 'object' ? payload : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
 }
 
 function getWindowWebContents(win) {

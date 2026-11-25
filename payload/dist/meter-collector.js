@@ -1360,6 +1360,14 @@ function consumePendingQuotaForceRefresh(hostKey = 'local', now = Date.now()) {
   return isQuotaForceRefreshDue(key, now);
 }
 
+function invalidateLocalAccountCaches() {
+  cachedHostUserStatus = null;
+  cachedHostUserStatusAt = 0;
+  cachedTokenHistoryAt = 0;
+  lastQuotaForceRefreshAtByHost.delete('local');
+  pendingQuotaForceRefreshHosts.add('local');
+}
+
 function pickTrimmedString(...values) {
   for (const v of values) {
     if (typeof v === 'string' && v.trim()) return v.trim();
@@ -2078,6 +2086,7 @@ module.exports = {
   formatLocalDateKey,
   recordModelCalls,
   markConversationTurnCompleted,
+  invalidateLocalAccountCaches,
   QUOTA_FORCE_REFRESH_MIN_INTERVAL_MS,
   flushPricingLedger,
   loadPricingLedger,
