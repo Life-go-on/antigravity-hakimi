@@ -1,45 +1,49 @@
 # antigravity-hakimi (`哈基米.app`)
 
-> 专注 **macOS Apple Silicon (ARM64)**，基于只读官方 `/Applications/Antigravity.app` 复制并构建完全独立的增强版客户端 **`/Applications/哈基米.app`**，与官方客户端共享 Google 登录状态、历史对话与设置，同时**绝对不修改官方原版 `/Applications/Antigravity.app`（及 `.orig`）任何文件**。
+> 面向 **macOS Apple Silicon (ARM64)**，基于只读官方 `/Applications/Antigravity.app` 复制并构建独立增强版桌面客户端 **`/Applications/哈基米.app`**。与官方客户端共享 Google 登录态、历史对话与设置，同时严格保持官方 `/Applications/Antigravity.app`（及 `.orig`）只读不改。
 
 ---
 
 ## 核心特性
 
-1. **账号地区 / Free-tier 限制自适应解锁与版本同步检测**
-   - 通过 [`meter-region-unlock.js`](payload/dist/meter-region-unlock.js) 动态解析 `language_server` Mach-O Go `.gopclntab` 符号表与 `authclient.ValidateAndOnboardAccount` 指令特征，自动定位 `"free-tier"` 限制分支并打入无条件跳转补丁——**不再依赖写死二进制 SHA-256 或固定偏移 `+0x294`**；只有当新版底层函数或逻辑本身消失时才会安全中止报错。
-   - **版本同步横幅**：面板自动对比只读官方 `/Applications/Antigravity.app` 与 `/Applications/哈基米.app` 的 `CFBundleShortVersionString`，当检测到官方客户端已更新时会在面板顶部提示重建命令。
-   - **不可回滚保证**：脚本先应用地区解锁再由引擎生成备份，且 UI 内“恢复官方设置”仅原位还原上下文与界面语言，**绝不会回滚地区解锁**。
-2. **上下文窗口解锁（桌面端 + `agy` CLI 联动）**
-   - 桌面端原生支持 `default`（恢复官方默认策略，当前如 512K）、`fixed` (`16384 ~ 2097152`) 与 `dynamic`（默认启用，跟随模型原生上限透传），通过 ARM64 Gate 3A (`CLAMP_256K_ARM64` / `DEF_ORIG_ARM64` 底层 256K 钳位) 与 Gate 3B (`applyFeatureProviderCheckpointOverrideConfig`) 双重修补生效。
-   - 渲染层 Hook 在发送 `SendUserCascadeMessage` 请求时按当前配置动态覆写 `checkpointConfig.maxTokenLimit`；设置面板与顶栏快调浮层均提供 `512K`、`1M` 与 `动态跟随` 预设，支持自定义整数与 Apple Silicon (`arm64`) 在 UI 内即时保存应用。
-   - **`agy` CLI 解锁（macOS ARM64 & Linux `x86-64` / `arm64`）**：内置 [`meter-cli-unlock.js`](payload/dist/meter-cli-unlock.js) 与独立 Python 版 [`unlock/agy-cli/agy-patch.py`](unlock/agy-cli/agy-patch.py)，支持在 macOS 与 Linux 开发机（兼容 PIE `.rela.dyn`）上一键修补本机 `agy` CLI 二进制：解锁账号地区 / Free-tier 限制（`ValidateAndOnboardAccount`）、绕过 `/model` 上下文选择器机型白名单（`offersContextWindow`）、解锁内置检查点上下文窗口（Gate 3A / 3B）、修复 `AGY_CLI_AUTO_COMPACT_OVERRIDE` 读取（ARM64），并同步 CLI 上下文配置文件。
-3. **实时上下文监控、缓存命中率告警与会话快捷操作**
-   - 内置右上角悬浮胶囊（Context Meter）：实时展示当前上下文 Token 占用进度、输入/输出速率（tok/s）、**上下文缓存命中率**、附件扫描预算估计（[`attachment_scan.py`](payload/dist/attachment_scan.py)），以及 8 类失败原因自动分类诊断。
-   - **上下文缓存命中率与低命中提醒**：一级顶栏紧邻输出速度（`tok/s`）展示实时缓存命中率（`cacheReadTokens / (inputTokens + cacheReadTokens)`），宽屏显示 `缓存 XX%`、窄屏自动收缩至 `XX%` 或收入溢出菜单；智能区分新会话首轮冷启动（不误报）与多轮长上下文缓存失效/低命中（琥珀色 `warn` / 红色 `low` 高亮告警 + 悬停即时构成气泡，提示潜在 Token 重算开销），并在「当前会话」面板提供「上下文缓存命中」四维速览卡片（本轮命中率、缓存复用、未缓存新增、会话累计命中率）与底层输入构成明细。
-   - **一级顶栏纯图标快捷入口 + 窗口快速微浮层**：顶部监控条紧邻圆环提供**纯图标**按钮（无文字占位，悬停显示说明气泡）：一键触发 `/compact` 压缩当前会话，以及点击弹出**上下文窗口快调浮层**——顶部自动标识并一键切换 `全部模型统一 / 仅当前模型` 作用域，原地直选 `512K / 1M / 动态` 即时生效；当前会话详情卡片同步提供即时预设条与 `512K → 1M` 下条生效预览。
-4. **纯 Token 消耗历史与额度池看板**
-   - 专注于统计桌面端与 CLI 的纯 Token 历史用量（输入 / 输出 / 缓存读取）、日/周/月/年/累计热力图（日/月悬浮气泡与区间汇总栏支持展示缓存命中率），以及账号套餐与 Prompt / Flow 额度池状态（已移除全部 API 参考费率、货币换算与订阅价格表单）。
+1. **账号地区 / Free-tier 自适应解锁与版本同步检测**
+   - [`meter-region-unlock.js`](payload/dist/meter-region-unlock.js) 动态解析 `language_server` Mach-O Go `.gopclntab` 符号表与 `authclient.ValidateAndOnboardAccount` 指令特征，自动定位 `"free-tier"` 限制分支并写入无条件跳转，不依赖写死 SHA-256 或固定偏移。
+   - **`agy` CLI 地区解锁（macOS ARM64 & Linux `x86-64` / `arm64`）**：[`meter-cli-unlock.js`](payload/dist/meter-cli-unlock.js) 与独立 Python 版 [`unlock/agy-cli/agy-patch.py`](unlock/agy-cli/agy-patch.py) 支持在 macOS 和 Linux（兼容 ELF64 PIE `.rela.dyn`）上对本机 `agy` CLI 二进制执行自适应地区解锁。
+   - **版本同步横幅**：面板自动比对只读官方 `/Applications/Antigravity.app` 与 `/Applications/哈基米.app` 的 `CFBundleShortVersionString`，检测到官方版本更新时提示重建。
+
+2. **macOS 钥匙串多账号冷切换**
+   - 入口位于左下角模型额度卡片标题栏人像图标（停留在未登录页且已有备份账号时，左下角自动浮现快捷切回胶囊；「配置」页同步提供管理卡片），支持保存/更新账号快照、行内编辑备注名、添加新账号（不吊销原号 Refresh Token）与两步删除 Vault 备份。
+   - **外部接力全冷停换盘**：切换时由零外部依赖的脱离式子进程 [`meter-account-cold-helper.js`](payload/dist/meter-account-cold-helper.js) 等待 `哈基米.app`、`language_server` 与 sidecars 全部归零并清理残留 `SingletonLock`，再执行原子换盘与干净环境变量重启（`open -n`），避免运行中热切导致的内存旧状态残留。
+   - **防串号与零明文落盘**：凭据严格存放于 macOS 系统钥匙串（活动槽位 `("gemini", "antigravity")` ↔ Vault `antigravity-hakimi-accounts`），写入走 `/usr/bin/security -i` stdin 管道，状态刷新仅用不带 `-w` 的元数据探测；切换时拦截运行中的 `agy` CLI，清理 `credential-user-scope`、降级 Token 文件与缓存 Mendel 开关，并按账号还原 `agy.onboarding.lastLoginUsername` / `lastLoginIsGcpTos` 以免重复弹出引导确认窗，同时保留 `installation_id` 与共享历史对话。
+   - 仅限 macOS 本机窗口生效，Remote SSH 窗口自动隐藏并拦截。
+
+3. **左下角模型额度卡片、Effort 速切与自定义快捷键**
+   - 独立停靠于左侧栏底部「设置」上方（侧栏收起或手动最小化时自动缩为双/单同心圆环状态点），实时展示当前模型本周额度与可折叠的 5 小时额度，支持一键切换「已用 / 剩余」口径并在每轮对话结束后自动刷新（10 分钟冷却防抖）。
+   - 卡片内置当前模型 **Effort 思考档位**速切步进按钮，并配备二级快捷键浮层，支持录制全局组合键以直达指定模型/档位、上下切换模型或调整 Effort。
+
+4. **实时上下文监控、缓存命中率告警与纯 Token 历史看板**
+   - 顶栏悬浮胶囊（Context Meter）实时展示当前会话上下文 Token 占用进度、输入/输出速率（`tok/s`）、上下文缓存命中率、附件扫描预算估算（[`attachment_scan.py`](payload/dist/attachment_scan.py)），以及 8 类失败原因自动分类诊断。
+   - 顶栏内置纯图标 `/compact` 快捷压缩按钮；缓存命中率智能区分新会话首轮冷启动与多轮缓存失效（琥珀色/红色告警与悬停构成气泡），并在会话详情提供四维缓存速览卡片。
+   - 历史看板统计桌面端与 CLI 的纯 Token 消耗（输入 / 输出 / 缓存读取），提供日/周/月/年/累计热力图、按模型与档位分组的输出速率中位数对比，以及订阅套餐与 Prompt / Flow 额度池详情。
+
 5. **桌面端简体中文界面**
-   - 通过 `app.asar` 预加载注入全量简体中文词库（`zh-CN.json`）与 DOM 翻译引擎（`i18n-runtime.js`），仅作用于本地 Electron 界面渲染（不触碰聊天正文、代码块或任何外发请求），支持在面板中随时切回英文界面。
+   - 通过 `app.asar` 预加载注入全量简体中文词库（`zh-CN.json`）与 DOM 翻译引擎（`i18n-runtime.js`），严格限定于本地 Electron DOM 界面渲染，不触碰聊天正文、代码块或外发请求，支持在面板中随时切回英文界面。
+
 6. **Remote SSH 远端无缝适配（Linux `x86-64` & `arm64`）**
-   - 内置 [`meter-ssh.js`](payload/dist/meter-ssh.js)，在打包 `app.asar` 时注入 `dist/remote/bootstrapScript.js` 与 `dist/remote/remoteManager.js`：当用户通过 Remote SSH 连接任意 Linux 主机时，自动对远端 `~/.antigravity-hub-server/bin/<ver>-<arch>/language_server`（64 位 ELF `x86-64` / `arm64`，兼容 PIE `.rela.dyn`）执行**自适应账号地区解锁**与**上下文窗口 Gate 3A / Gate 3B 解锁**（自动同步本机当前上下文模式与上限），且能平滑接管并重启已运行的未修补官方远端服务（日志位于远端 `~/.antigravity-hub-server/data/hakimi-patch.log`，不污染 SSH 引导协议且异常自动 fail-open）。
-   - SSH 窗口内同样完整生效：桌面端简体中文界面、顶部 Context Meter 监控条（复用窗口独立 Electron `session` 走反重力内置 SSH SOCKS5 通道直连远端语言服务，实时展示上下文占比、`tok/s`、缓存命中率、`/compact`、窗口快调、会话详情与额度池），并与本机窗口严格隔离。
-7. **自定义应用图标（可选 `--icon`）与一键健康诊断（`npm run doctor`）**
-   - 支持传入本地图片（`PNG` / `JPG` / `WebP` / `HEIC` / `ICNS` 等）作为 `哈基米.app` 的应用图标；覆盖构建时不传 `--icon` 会自动保留旧副本已有的自定义图标，也可传入 `--default-icon` 恢复官方默认图标。
-   - 对非透明背景照片会自动居中裁剪为 1:1 并施加 macOS 圆角矩形留白遮罩（带透明圆角/边缘的图标则原样保留，也可配合 `--raw-icon` 禁用遮罩），同时更新 **`Contents/Resources/icon.icns`**（访达 / 启动台 / Spotlight）与 **`app.asar/icon.png`**（运行态 Dock 图标）。
-   - 提供只读健康诊断工具 `npm run doctor`（[`scripts/doctor.js`](scripts/doctor.js)），一键核查官方包纯净隔离、版本同步、`ElectronAsarIntegrity` 摘要、`codesign --verify --strict`、地区/上下文补丁状态、运行中进程及 `agy` CLI 状态。
+   - [`meter-ssh.js`](payload/dist/meter-ssh.js) 注入 `dist/remote/bootstrapScript.js` 与 `dist/remote/remoteManager.js`：通过 Remote SSH 连接 Linux 主机时，自动对远端 `~/.antigravity-hub-server/bin/<ver>-<arch>/language_server`（64 位 ELF `x86-64` / `arm64`，兼容 PIE `.rela.dyn`）执行自适应地区解锁并接管重启未修补服务（日志写远端 `hakimi-patch.log`，异常自动 fail-open，不污染引导 stdout）。
+   - SSH 窗口内同样生效简体中文界面与顶部 Context Meter 监控条，复用窗口独立 Electron `session` 走内置 SSH SOCKS5 通道直连远端语言服务，与本机窗口严格隔离。
+
+7. **自定义应用图标与一键健康诊断**
+   - 支持传入本地图片（`PNG` / `JPG` / `WebP` / `HEIC` / `ICNS`）替换 `Contents/Resources/icon.icns` 与 `app.asar/icon.png`（非透明背景自动居中 1:1 裁剪并施加圆角留白遮罩，可用 `--raw-icon` 禁用）；后续覆盖构建自动沿用已有自定义图标，传 `--default-icon` 可恢复官方图标。
+   - `npm run doctor`（[`scripts/doctor.js`](scripts/doctor.js)）一键只读核查官方纯净隔离、版本同步、`ElectronAsarIntegrity` 摘要、`codesign --verify --strict`、地区解锁状态、运行进程与 `agy` CLI 状态。
 
 ---
 
-## 架构隔离与精简边界
+## 安全与隔离设计
 
-- **只读官方守卫 (`assertNotOfficialAntigravityApp`)**：构建脚本与核心引擎在所有写入路径（`language_server`、`app.asar`、`icon.icns`、`codesign`）均强制校验目标绝非 `/Applications/Antigravity.app`、`/Applications/Antigravity.app.orig` 或指向它们的符号链接。
-- **Bundle 身份保留**：`/Applications/哈基米.app` 保留内部 `CFBundleIdentifier` (`com.google.antigravity`)、`CFBundleName`/`CFBundleExecutable` (`Antigravity`) 与内部 `package.json`，从而与官方版无缝共享 Google 登录态、会话记录及 `ElectronAsarIntegrity` 校验流程。
-- **明确裁剪移除的模块**：
-  - 系统提示词精简与防幻觉重写（0~4 档）及会话/章节标题提示词改写（零 Prompt 改动）
-  - 免 TUN 代理（`meter-proxy.js`）
-  - 一键开 CLI 按钮（`meter-cli-launcher.js`）、GitHub 自动更新器、CDP 热注入及就地覆盖官方应用的安装器
+- **只读官方守卫 (`assertNotOfficialAntigravityApp`)**：构建、签名、图标替换与冷切换重启全链路强制校验目标路径绝非 `/Applications/Antigravity.app`、`/Applications/Antigravity.app.orig` 或其符号链接。
+- **Bundle 身份保留**：`/Applications/哈基米.app` 保留内部 `CFBundleIdentifier` (`com.google.antigravity`) 与可执行文件名 `Antigravity`，与官方客户端共享登录态与本地会话目录。
+- **零提示词与零外发请求篡改**：不修改任何系统提示词、工具声明或会话消息正文，预加载脚本与渲染层不包含任何 `fetch` / `WebSocket` / `XMLHttpRequest` 外发请求拦截钩子。
 
 ---
 
@@ -48,16 +52,16 @@
 ### 1. 构建并安装 `/Applications/哈基米.app`
 
 ```bash
-# 构建并安装 `/Applications/哈基米.app`（若旧副本已有自定义图标会自动保留；正在运行时可加 --restart 自动重启）
+# 构建并安装 /Applications/哈基米.app（已运行时加 --restart 自动退出并重启）
 bash ./build-hakimi.sh --force --restart
 
-# 同时修补本机 agy CLI 二进制并同步 CLI 上下文配置
+# 同时对本机 agy CLI 执行地区解锁
 bash ./build-hakimi.sh --force --patch-cli --restart
 
-# 可选：指定一张本地图片作为 哈基米.app 的图标（支持 PNG/JPG/WebP/HEIC/ICNS）
+# 指定一张本地图片作为应用图标（支持 PNG/JPG/WebP/HEIC/ICNS）
 bash ./build-hakimi.sh --force --icon ~/Pictures/hakimi.jpg
 
-# 单独修补本机 agy CLI 或执行只读健康诊断
+# 单独解锁本机 agy CLI 或运行只读健康诊断
 npm run unlock:cli
 npm run doctor
 
@@ -67,34 +71,34 @@ open "/Applications/哈基米.app"
 
 ### 2. 在 Linux 开发机解锁 `agy` CLI（支持 `x86-64` / `arm64`）
 
-Linux 环境无需 macOS `codesign` 或桌面版 `Antigravity.app`，支持直接修补本机 `agy` CLI 二进制（自动探测 `~/.local/bin/agy`、`~/.antigravity/antigravity/bin/agy`、`$PATH` 或通过 `--binary` / `AGY_CLI_BIN` 指定）：
+Linux 环境无需 macOS `codesign` 或桌面端应用，自动探测 `~/.local/bin/agy`、`~/.antigravity/antigravity/bin/agy`、`$PATH`（或通过 `--binary` / `AGY_CLI_BIN` 指定）：
 
 ```bash
-# 方式一（推荐，需 Node.js）：自动修补地区解锁 + 上下文窗口（默认 dynamic）并同步配置
+# 方式一（推荐，需 Node.js）：自适应地区解锁
 npm run unlock:cli
-# 或显式指定路径 / 固定上限 / 仅检测状态：
+# 仅检测状态或显式指定二进制路径：
 node scripts/cli-unlock.js --analyze
-node scripts/cli-unlock.js --apply --binary ~/.local/bin/agy --mode fixed --limit 524288
+node scripts/cli-unlock.js --apply --binary ~/.local/bin/agy
 
-# 方式二：通过构建脚本仅执行 CLI 解锁（Linux 下传 --patch-cli 也会自动跳过桌面构建直跑 CLI 解锁）
+# 方式二：通过构建脚本仅执行 CLI 地区解锁（Linux 传 --patch-cli 也会自动直跑 CLI 解锁）
 bash ./build-hakimi.sh --cli-only
 
 # 方式三（无 Node.js 环境，纯 Python 3）：
 python3 unlock/agy-cli/agy-patch.py --in-place
 ```
 
-### 3. 为已构建的 `哈基米.app` 快速换图标（免重跑完整 Build）
+### 3. 为已构建的 `哈基米.app` 快速换图标
 
-如果 `/Applications/哈基米.app` 已经打包好，只想更换图标或恢复默认图标，可直接运行 `set-hakimi-icon.sh`（耗时约 1~2 秒，不重新复制/修改 205MB `language_server`，保留全部解锁与汉化配置）：
+`set-hakimi-icon.sh` 原位替换 `.icns` 与 `app.asar/icon.png` 并刷新完整性与签名（约 1~2 秒，不重新复制 `language_server`）：
 
 ```bash
-# 直接替换图标（需先 Cmd+Q 退出 哈基米.app，或加上 --restart 自动退出并重开）
+# 替换图标（应用正在运行时可加 --restart 自动重启）
 bash ./set-hakimi-icon.sh ~/Pictures/new-icon.png --restart
 
-# 传入自定义图标且不自动加圆角遮罩
+# 自定义图标不加圆角遮罩
 bash ./set-hakimi-icon.sh --icon ~/Pictures/logo.png --raw-icon
 
-# 还原为默认官方图标（从官方 app 只读提取）
+# 还原为官方默认图标（从官方 app 只读提取）
 bash ./set-hakimi-icon.sh --restore --restart
 ```
 
@@ -104,18 +108,16 @@ bash ./set-hakimi-icon.sh --restore --restart
 ./build-hakimi.sh [选项]
   --force                         允许覆盖已存在的输出 .app 副本
   --stage-only                    仅在 /tmp 临时目录构建并签名，不写入 /Applications，也不改用户配置目录
-  --from <path>                   指定只读源 Antigravity.app (默认优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
+  --from <path>                   指定只读官方源 Antigravity.app (默认优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
   --app <path>                    指定输出 .app 路径 (默认: /Applications/哈基米.app；严禁指向官方应用)
-  -i, --icon <path>               可选：指定本地图片作为应用图标 (不传时若旧副本已有自定义图标会自动保留)
-  --raw-icon                      可选：配合 --icon 使用，不自动添加 macOS 圆角矩形留白遮罩
-  --default-icon                  可选：覆盖旧副本时强制恢复为默认官方图标
-  -r, --restart                   若目标应用当前正在运行，构建完成后自动优雅退出旧进程并重启新版
-  --context-mode <mode>           上下文窗口模式: default | fixed | dynamic (默认: dynamic)
-  --context-limit <tokens>        当 --context-mode fixed 时指定固定 token 上限 (16384 ~ 2097152)
-  --patch-cli                     构建完成后联动修补本机 agy CLI 二进制并同步 CLI 上下文配置（Linux 下自动仅执行 CLI 修补）
-  --cli-only                      仅修补本机 agy CLI 二进制并同步 CLI 配置，跳过 macOS 桌面应用构建（支持 Linux 与 macOS）
-  --cli-bin <path>                可选：配合 --patch-cli / --cli-only 指定 agy 二进制路径
-  --client-lang <zh-CN|en>        初始化/强制覆盖桌面端界面语言 (默认首次为 zh-CN)
+  -i, --icon <path>               指定本地图片作为应用图标 (不传时若旧副本已有自定义图标会自动保留)
+  --raw-icon                      配合 --icon 使用，不自动添加 macOS 圆角矩形留白遮罩
+  --default-icon                  覆盖旧副本时强制恢复为官方默认图标
+  -r, --restart                   若目标应用正在运行，构建完成后自动优雅退出旧进程并重启新版
+  --patch-cli                     构建完成后联动对本机 agy CLI 执行地区解锁（Linux 下自动仅执行 CLI 解锁）
+  --cli-only                      仅对本机 agy CLI 执行地区解锁，跳过 macOS 桌面应用构建（支持 Linux 与 macOS）
+  --cli-bin <path>                配合 --patch-cli / --cli-only 指定 agy 二进制路径
+  --client-lang <zh-CN|en>        初始化桌面端界面语言 (首次默认为 zh-CN)
 ```
 
 ---
@@ -123,34 +125,41 @@ bash ./set-hakimi-icon.sh --restore --restart
 ## 开发与测试
 
 ```bash
-# 重新编译 Context Meter 渲染层 -> payload/dist/meter-renderer.js
+# 编译渲染层 src/renderer/* -> payload/dist/meter-renderer.js
 npm run build:renderer
 
-# 运行自动化测试（ASAR 打包校验、DOM 守卫、官方路径守卫、自适应解锁、SSH 与诊断测试）
+# 自动编译渲染层并运行全部自动化单测
 npm test
 
-# 一键只读健康诊断（支持 --json / --allow-missing）
+# 只读健康诊断（支持 --json / --allow-missing）
 npm run doctor
+
+# 安全沙盒构建验证（仅在 /tmp 目录构建与验签，不动 /Applications）
+bash ./build-hakimi.sh --stage-only
 ```
 
 ## 目录结构
 
-- `build-hakimi.sh`：一键复制、自定义图标处理、自适应地区解锁、上下文窗口二进制补丁、ASAR 重打包、`ElectronAsarIntegrity` 更新与 `codesign` 签名脚本
-- `set-hakimi-icon.sh`：对已构建 `哈基米.app` 原位秒级替换应用图标 / 还原默认图标的轻量脚本（无需重跑完整构建）
-- `scripts/doctor.js`：一键只读健康诊断 CLI（核查官方只读隔离、版本同步、ASAR 摘要、签名、各类补丁与 `agy` CLI 状态）
-- `scripts/region-unlock.js` / `scripts/cli-unlock.js`：自适应地区解锁 CLI 与 `agy` CLI 联动解锁 CLI
-- `scripts/build-macos-icon.js`：将本地图片转换为标准 macOS `.icns` 与 `512x512` Dock 图标 PNG（自适应圆角留白遮罩）
-- `scripts/replace-asar-icon.js`：仅替换已打包 `app.asar` 内根目录 `icon.png` 并保留全部钩子与元数据
-- `scripts/build-renderer.js`：将 `src/renderer/*` 编译为 `payload/dist/meter-renderer.js`
-- `scripts/pack-hakimi-asar.js`：解包官方只读 `app.asar`、清理并注入 4 处 `dist/utils.js` 钩子、`dist/preload.js` 与 Remote SSH 钩子（`dist/remote/bootstrapScript.js`、`dist/remote/remoteManager.js`）、支持替换内置 `icon.png` 并计算头摘要 SHA-256
-- `payload/dist/`：主进程监听、自适应地区解锁、桌面/CLI 上下文解锁引擎、Remote SSH 远端自适应 ELF64 解锁与会话通道（`meter-ssh.js`）、纯 Token 统计存储与汉化词库运行时
-- `src/renderer/`：Context Meter 悬浮胶囊、缓存命中率监控与低命中告警、快捷操作、速率/纯 Token 历史看板与设置弹窗源码
-- `unlock/agy-cli/agy-patch.py`：独立命令行二进制上下文窗口解锁工具（Python 版）
-- `test/`：自动化单元测试套件
+- `build-hakimi.sh`：一键复制官方源、自定义图标处理、自适应地区解锁、ASAR 重打包、`ElectronAsarIntegrity` 同步与 `codesign` 签名脚本
+- `set-hakimi-icon.sh`：针对已构建 `哈基米.app` 原位秒级替换/还原图标的轻量脚本
+- `scripts/`：
+  - `build-renderer.js`：将 `src/renderer/*` 编译拼装为 `payload/dist/meter-renderer.js`
+  - `pack-hakimi-asar.js` / `replace-asar-icon.js`：解包官方 `app.asar`、注入主进程/预加载/Remote SSH 钩子、替换内置 `icon.png` 并计算头摘要 SHA-256
+  - `build-macos-icon.js`：本地图片转 `.icns` 与 `512x512` Dock PNG
+  - `region-unlock.js` / `cli-unlock.js` / `doctor.js`：地区解锁 CLI、`agy` CLI 解锁 CLI、只读健康诊断工具
+  - `lib/target-app-lifecycle.sh`：目标 `.app` 进程探测与零存活退出屏障公共库
+- `payload/dist/`：
+  - `asar-engine.js` / `modular-installer.js` / `modules-config.js` / `binary-utils.js`：ASAR 读写、官方路径守卫、钩子注入、状态持久化与 Mach-O/ELF Go 符号解析公共工具
+  - `meter-region-unlock.js` / `meter-cli-unlock.js` / `meter-ssh.js` / `meter-enhance.js`：桌面端与 `agy` CLI 地区解锁、Remote SSH 远端 ELF64 自动解锁与会话通道、后台语言服务检测与重启
+  - `meter-account-cold-helper.js` / `meter-account-switcher.js`：macOS 钥匙串多账号冷切换独立工作进程与编排引擎
+  - `meter-main.js` / `local-api.js` / `meter-collector.js` / `meter-core.js` / `meter-storage.js` / `attachment_scan.py`：主进程 IPC、本地 API、对话轨迹采集、纯 Token 统计分析与附件预算扫描
+  - `i18n/i18n-runtime.js` & `i18n/zh-CN.json`：桌面端简体中文 DOM 翻译运行时与词库
+- `src/renderer/`：Context Meter 悬浮胶囊、左下角模型额度与 Effort 速切卡片、自定义快捷键浮层、多账号冷切换浮层、速率对比与纯 Token 热力图源码
+- `unlock/agy-cli/agy-patch.py`：独立 Python 版 `agy` CLI 自适应地区解锁工具
+- `test/`：自动化单元测试套件（冷切账号、ARM64/ELF64 地区解锁、ASAR 打包与符号守卫、模型额度与快捷键、Remote SSH）
 
 ---
 
 ## 致谢与上游项目
 
-- **Context Meter / 看板 / 汉化与解锁框架**：本项目的前端监控面板、纯 Token 用量统计、桌面端简体中文化运行时及上下文解锁基础代码基于 [`elviscjn-cjn/antigravity-context-viewer`](https://github.com/elviscjn-cjn/antigravity-context-viewer)（基于 `v0.8.3`）改造，在此基础上新增了 macOS Apple Silicon (`arm64`) 独立 `/Applications/哈基米.app` 构建流程、自适应账号地区与 `agy` CLI 解锁、Remote SSH 远端自动解锁、快捷操作与自定义图标支持，并移除了计价/代理/自动更新等模块。
-- **上下文解锁方案原作者**：致谢 [Linux.do @23375](https://linux.do/t/topic/3117832) 提供的上下文窗口解锁技术方案。
+- **Context Meter / 看板与汉化基础**：本项目的前端监控面板、纯 Token 统计与桌面端简体中文化运行时基于 [`elviscjn-cjn/antigravity-context-viewer`](https://github.com/elviscjn-cjn/antigravity-context-viewer)（`v0.8.3`）演进，在此基础上构建了 macOS Apple Silicon 独立 `/Applications/哈基米.app` 打包体系、自适应账号地区与 `agy` CLI 解锁、Remote SSH 远端自动解锁、左下角模型额度/Effort/快捷键卡片、macOS 钥匙串多账号冷切换及自定义图标能力。
