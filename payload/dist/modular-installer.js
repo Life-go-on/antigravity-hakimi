@@ -9,6 +9,8 @@ const TAGS = {
   METER_UTILS_END: '// --- Antigravity Context Meter utils Injection End ---',
   METER_PRELOAD_START: '// --- Antigravity Context Meter preload Injection Start ---',
   METER_PRELOAD_END: '// --- Antigravity Context Meter preload Injection End ---',
+  MARKDOWN_PRELOAD_START: '// --- Antigravity Markdown Render Fix Injection Start ---',
+  MARKDOWN_PRELOAD_END: '// --- Antigravity Markdown Render Fix Injection End ---',
   SSH_BOOTSTRAP_START: '// --- Antigravity Hakimi SSH Bootstrap Injection Start ---',
   SSH_BOOTSTRAP_END: '// --- Antigravity Hakimi SSH Bootstrap Injection End ---',
   SSH_MANAGER_START: '// --- Antigravity Hakimi SSH Manager Injection Start ---',
@@ -42,6 +44,77 @@ function generateMeterPreloadCode() {
 // Context Meter v2: narrow read-only conversation scan API
 electron_1.contextBridge.exposeInMainWorld("contextMeterAPI", { scan: (id, force) => electron_1.ipcRenderer.invoke("context-meter:scan", id, force === true), getTokenHistory: (force) => electron_1.ipcRenderer.invoke("context-meter:token-history", force === true), syncOverlay: (opts) => electron_1.ipcRenderer.invoke("context-meter:sync-overlay", opts), recordCalls: (calls) => electron_1.ipcRenderer.invoke("context-meter:record-calls", calls), getSettings: (opts) => electron_1.ipcRenderer.invoke("context-meter:get-settings", opts), saveSettings: (payload) => electron_1.ipcRenderer.invoke("context-meter:save-settings", payload), openExternal: (url) => electron_1.ipcRenderer.invoke("context-meter:open-external", url), compactSession: (cascadeId) => electron_1.ipcRenderer.invoke("context-meter:compact-session", cascadeId), getCliUnlockStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-status", opts), applyCliUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-apply", opts), restartHost: () => electron_1.ipcRenderer.invoke("context-meter:restart-host"), restartLanguageServers: () => electron_1.ipcRenderer.invoke("context-meter:restart-language-servers"), getModulesStatus: () => electron_1.ipcRenderer.invoke("context-meter:modules-status"), toggleModule: (name, enable, opts) => electron_1.ipcRenderer.invoke("context-meter:toggle-module", name, enable, opts), getAccountsStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:accounts-status", opts), saveCurrentAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-save-current", payload), switchAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-switch", payload), prepareAddAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-prepare-add", payload), renameAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-rename", payload), removeAccount: (payload) => electron_1.ipcRenderer.invoke("context-meter:accounts-remove", payload) });
 ${TAGS.METER_PRELOAD_END}\n`;
+}
+
+function buildMarkdownMainWorldPatchScript() {
+  return `(function() {
+  try {
+    var g = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : null);
+    if (!g || g.__AGY_REMARK_GFM_NO_SINGLE_TILDE__) return;
+    g.__AGY_REMARK_GFM_NO_SINGLE_TILDE__ = true;
+    function wrapRemarkGfm(mod) {
+      if (!mod || (typeof mod !== 'object' && typeof mod !== 'function')) return mod;
+      var origDefault = mod.default;
+      if (typeof origDefault !== 'function') return mod;
+      if (origDefault.__agyNoSingleTilde) return mod;
+      var patchedDefault = function remarkGfmNoSingleTilde(options) {
+        var merged = options && typeof options === 'object'
+          ? Object.assign({}, options, { singleTilde: options.singleTilde === true })
+          : { singleTilde: false };
+        return origDefault.call(this, merged);
+      };
+      patchedDefault.__agyNoSingleTilde = true;
+      var out = {};
+      var keys = Object.getOwnPropertyNames(mod);
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (k === 'default') continue;
+        var desc = Object.getOwnPropertyDescriptor(mod, k);
+        if (desc) Object.defineProperty(out, k, desc);
+      }
+      var syms = Object.getOwnPropertySymbols(mod);
+      for (var j = 0; j < syms.length; j++) {
+        var s = syms[j];
+        var sdesc = Object.getOwnPropertyDescriptor(mod, s);
+        if (sdesc) Object.defineProperty(out, s, sdesc);
+      }
+      Object.defineProperty(out, 'default', {
+        value: patchedDefault,
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
+      return out;
+    }
+    var current = g['remark-gfm'];
+    var wrapped = current !== undefined ? wrapRemarkGfm(current) : undefined;
+    Object.defineProperty(g, 'remark-gfm', {
+      configurable: true,
+      enumerable: true,
+      get: function() { return wrapped; },
+      set: function(v) { wrapped = wrapRemarkGfm(v); },
+    });
+  } catch (e) {}
+})();`;
+}
+
+function generateMarkdownPreloadCode() {
+  const mainWorldCode = buildMarkdownMainWorldPatchScript();
+  return `\n${TAGS.MARKDOWN_PRELOAD_START}
+(function() {
+  try {
+    var g = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : null);
+    var h = g && g.location && g.location.hostname;
+    var okHost = !g || !g.location || (/^https?:$/.test(g.location.protocol || '') && (h === '127.0.0.1' || h === 'localhost' || h === '[::1]' || h === '::1'));
+    if (!okHost || (g && g.top && g.self && g.top !== g.self)) {
+      return;
+    }
+    if (typeof electron_1 !== 'undefined' && electron_1.webFrame && typeof electron_1.webFrame.executeJavaScript === 'function') {
+      void Promise.resolve(electron_1.webFrame.executeJavaScript(${JSON.stringify(mainWorldCode)})).catch(function() {});
+    }
+  } catch (e) {}
+})();
+${TAGS.MARKDOWN_PRELOAD_END}\n`;
 }
 
 function generateChinesePreloadCode(_dictContent, runtimeContent) {
@@ -174,6 +247,12 @@ function cleanPreloadSource(source) {
   );
   code = code.replace(meterRegex, '\n');
 
+  const markdownRegex = new RegExp(
+    `\\n?\\s*${TAGS.MARKDOWN_PRELOAD_START}[\\s\\S]*?${TAGS.MARKDOWN_PRELOAD_END}\\n?`,
+    'g'
+  );
+  code = code.replace(markdownRegex, '\n');
+
   const legacyMeterRegex =
     /\r?\n?\/\/ Context Meter v2: narrow read-only conversation scan API\r?\nelectron_1\.contextBridge\.exposeInMainWorld\("contextMeterAPI",\s*\{[\s\S]*?\}\);\r?\n?/g;
   code = code.replace(legacyMeterRegex, '\n');
@@ -261,6 +340,8 @@ module.exports = {
   validateSyntax,
   generateMeterUtilsCode,
   generateMeterPreloadCode,
+  buildMarkdownMainWorldPatchScript,
+  generateMarkdownPreloadCode,
   generateChinesePreloadCode,
   cleanUtilsSource,
   cleanPreloadSource,

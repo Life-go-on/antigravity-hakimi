@@ -1811,3 +1811,215 @@ test('meter-storage byte verification, collector bounded caches, SSH renderer ba
   assert.ok(renderedJs.includes('renderSshRemoteContextBanners'));
   assert.ok(renderedJs.includes('ssh.remote.contextBanner'));
 });
+
+test('markdown preload patch disables remark-gfm singleTilde by default with host/frame guard and clean round-trip', () => {
+  const modularInstaller = require(path.join(ROOT, 'payload', 'dist', 'modular-installer.js'));
+  const preloadSnippet = modularInstaller.generateMarkdownPreloadCode();
+  assert.ok(modularInstaller.validateSyntax(preloadSnippet, 'markdown-preload.js'));
+  assert.ok(preloadSnippet.includes(modularInstaller.TAGS.MARKDOWN_PRELOAD_START));
+  assert.ok(preloadSnippet.includes(modularInstaller.TAGS.MARKDOWN_PRELOAD_END));
+
+  const basePreload = 'const electron_1 = require("electron");\n';
+  const cleaned = modularInstaller.cleanPreloadSource(basePreload + preloadSnippet);
+  assert.equal(cleaned.includes(modularInstaller.TAGS.MARKDOWN_PRELOAD_START), false);
+  assert.equal(cleaned.includes('__AGY_REMARK_GFM_NO_SINGLE_TILDE__'), false);
+  assert.ok(modularInstaller.validateSyntax(cleaned, 'cleaned-preload.js'));
+
+  const runPreload = (location, isTop) => {
+    const executed = [];
+    const topObj = {};
+    const sandbox = {
+      location,
+      top: topObj,
+      self: isTop ? topObj : {},
+      electron_1: {
+        webFrame: {
+          executeJavaScript(code) {
+            executed.push(code);
+            return Promise.resolve();
+          },
+        },
+      },
+      Promise,
+      RegExp,
+      Object,
+    };
+    sandbox.globalThis = sandbox;
+    sandbox.window = sandbox;
+    vm.runInNewContext(preloadSnippet, sandbox, { filename: 'preload-markdown.js' });
+    return executed;
+  };
+
+  assert.equal(runPreload({ protocol: 'https:', hostname: 'example.com' }, true).length, 0);
+  assert.equal(runPreload({ protocol: 'https:', hostname: '127.0.0.1' }, false).length, 0);
+
+  const localRuns = runPreload({ protocol: 'https:', hostname: '127.0.0.1' }, true);
+  assert.equal(localRuns.length, 1);
+
+  const mainWorld = { Object, Symbol, console };
+  mainWorld.globalThis = mainWorld;
+  mainWorld.window = mainWorld;
+  vm.runInNewContext(localRuns[0], mainWorld, { filename: 'main-world-markdown.js' });
+  // Idempotent second run must not break or double-wrap
+  vm.runInNewContext(localRuns[0], mainWorld, { filename: 'main-world-markdown-2.js' });
+
+  const calls = [];
+  function fakeRemarkGfm(opts) {
+    calls.push({ self: this, opts });
+    return 'ok';
+  }
+  const extraSym = Symbol('extra');
+  const esmLike = Object.defineProperties(
+    { __esModule: true, namedExport: 42, [extraSym]: 'sym' },
+    { default: { get: () => fakeRemarkGfm, enumerable: true, configurable: false } }
+  );
+  mainWorld['remark-gfm'] = esmLike;
+  const wrapped = mainWorld['remark-gfm'];
+  assert.equal(wrapped.__esModule, true);
+  assert.equal(wrapped.namedExport, 42);
+  assert.equal(wrapped[extraSym], 'sym');
+
+  const processor = { id: 'proc' };
+  wrapped.default.call(processor);
+  wrapped.default.call(processor, null);
+  wrapped.default.call(processor, { tablePipeAlign: false });
+  wrapped.default.call(processor, { singleTilde: undefined, firstLineBlank: true });
+  wrapped.default.call(processor, { singleTilde: true, tablePipeAlign: false });
+
+  assert.equal(calls.length, 5);
+  for (const call of calls) assert.equal(call.self, processor);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(calls.map((c) => c.opts))),
+    [
+      { singleTilde: false },
+      { singleTilde: false },
+      { tablePipeAlign: false, singleTilde: false },
+      { singleTilde: false, firstLineBlank: true },
+      { singleTilde: true, tablePipeAlign: false },
+    ]
+  );
+
+  // Also handles non-configurable non-writable data property without Proxy invariant error
+  const frozenMod = Object.defineProperty(
+    { __esModule: true },
+    'default',
+    { value: fakeRemarkGfm, writable: false, configurable: false, enumerable: true }
+  );
+  mainWorld['remark-gfm'] = frozenMod;
+  calls.length = 0;
+  mainWorld['remark-gfm'].default.call(processor);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].self, processor);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[0].opts)), { singleTilde: false });
+});
+
+test('markdown preload patch prevents single-tilde strikethrough in real language_server remark-gfm bundle', (t) => {
+  const lsBin = '/Applications/Antigravity.app/Contents/Resources/bin/language_server';
+  if (!fs.existsSync(lsBin)) {
+    t.skip('official language_server not present');
+    return;
+  }
+  const zlib = require('zlib');
+  const modularInstaller = require(path.join(ROOT, 'payload', 'dist', 'modular-installer.js'));
+  const bin = fs.readFileSync(lsBin);
+
+  let mainJs = null;
+  let pos = 0;
+  while (true) {
+    const idx = bin.indexOf(Buffer.from([0x50, 0x4b, 0x03, 0x04]), pos);
+    if (idx === -1 || idx + 30 > bin.length) break;
+    pos = idx + 4;
+    const comp = bin.readUInt16LE(idx + 8);
+    const csize = bin.readUInt32LE(idx + 18);
+    const fnlen = bin.readUInt16LE(idx + 26);
+    const exlen = bin.readUInt16LE(idx + 28);
+    if (fnlen === 7 && bin.subarray(idx + 30, idx + 37).toString('utf8') === 'main.js') {
+      const start = idx + 30 + fnlen + exlen;
+      const raw = bin.subarray(start, start + csize);
+      mainJs = (comp === 8 ? zlib.inflateRawSync(raw) : raw).toString('utf8');
+      break;
+    }
+  }
+  if (!mainJs || !mainJs.includes('globalThis["remark-gfm"]=')) {
+    t.skip('embedded main.js does not expose globalThis["remark-gfm"]');
+    return;
+  }
+
+  const extractGlobalIife = (name) => {
+    const endIdx = mainJs.indexOf(`globalThis["${name}"]=`);
+    const callEnd = mainJs.indexOf('}).call(globalThis);', endIdx) + '}).call(globalThis);'.length;
+    const re = /\*\/\s*\(function\(\)\{/g;
+    let lastStart = -1;
+    let m;
+    while ((m = re.exec(mainJs)) && m.index < endIdx) {
+      lastStart = m.index + m[0].indexOf('(function(){');
+    }
+    return mainJs.slice(lastStart, callEnd);
+  };
+
+  const remarkParseIife = extractGlobalIife('remark-parse');
+  const remarkGfmIife = extractGlobalIife('remark-gfm');
+  const patchScript = modularInstaller.buildMarkdownMainWorldPatchScript();
+
+  const parseDeletes = (withPatch, samples) => {
+    const ctx = vm.createContext({
+      globalThis: null,
+      window: null,
+      safevalues_raw: { dom: { setElementInnerHtml() {} }, htmlEscape: (s) => s },
+      document: { createElement: () => ({ textContent: '' }) },
+      Object,
+      Array,
+      Map,
+      Set,
+      RegExp,
+      Error,
+      TypeError,
+      Number,
+      String,
+      Boolean,
+      Math,
+      Symbol,
+      console,
+    });
+    ctx.globalThis = ctx;
+    ctx.window = ctx;
+    if (withPatch) vm.runInContext(patchScript, ctx);
+    vm.runInContext(remarkParseIife, ctx);
+    vm.runInContext(remarkGfmIife, ctx);
+    ctx.__samples = samples;
+    return vm.runInContext(`
+      var gfm = globalThis['remark-gfm'].default;
+      var parse = globalThis['remark-parse'].default;
+      var store = {};
+      var proc = { data: function(k) { return k ? store[k] : store; } };
+      gfm.call(proc);
+      parse.call(proc);
+      __samples.map(function(s) {
+        var tree = proc.parser(s);
+        var nodes = [];
+        (function walk(n) {
+          if (n.type === 'delete') nodes.push(n.children.map(function(c) { return c.value; }).join(''));
+          if (n.children) n.children.forEach(walk);
+        })(tree);
+        return nodes;
+      });
+    `, ctx);
+  };
+
+  const samples = [
+    'Get 平均耗时从 ~150ms 恶化至 300~514ms、',
+    '1~2 分钟....15:29~17:11',
+    '这是 ~~真正删除线~~ 和 ~约100ms~ 未误伤',
+  ];
+
+  assert.deepEqual(JSON.parse(JSON.stringify(parseDeletes(false, samples))), [
+    ['150ms 恶化至 300'],
+    ['2 分钟....15:29'],
+    ['真正删除线', '约100ms'],
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(parseDeletes(true, samples))), [
+    [],
+    [],
+    ['真正删除线'],
+  ]);
+});

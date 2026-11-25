@@ -188,6 +188,8 @@ function inspectDiskModules(customPath = null) {
   const meterPreload = preloadStr.includes(TAGS.METER_PRELOAD_START) || preloadStr.includes('contextMeterAPI');
   const meterFilesOk = entries.includes('/dist/meter-main.js') && entries.includes('/dist/meter-core.js');
   const meterReady = meterInjected && meterPreload && meterFilesOk;
+  const markdownFixReady =
+    preloadStr.includes(TAGS.MARKDOWN_PRELOAD_START) && preloadStr.includes(TAGS.MARKDOWN_PRELOAD_END);
 
   const chineseHasTags = preloadStr.includes(TAGS.CHINESE_START) && preloadStr.includes(TAGS.CHINESE_END);
   let chineseStatus = 'not_injected';
@@ -260,6 +262,7 @@ function inspectDiskModules(customPath = null) {
     asarPath,
     meter: meterInjected,
     meterReady,
+    markdownFixReady,
     chinese: chineseHasTags,
     chineseReady,
     chineseGate: chineseStatus === 'ready',

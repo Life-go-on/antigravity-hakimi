@@ -20,6 +20,7 @@ const {
   validateSyntax,
   generateMeterUtilsCode,
   generateMeterPreloadCode,
+  generateMarkdownPreloadCode,
   generateChinesePreloadCode,
   cleanUtilsSource,
   cleanPreloadSource,
@@ -267,7 +268,10 @@ function packHakimiAsar(rawOpts = {}) {
       throw new Error('i18n/zh-CN.json is empty or missing exact dictionary entries');
     }
     const runtimeContent = fs.readFileSync(path.join(PAYLOAD_DIST, 'i18n', 'i18n-runtime.js'), 'utf8');
-    preload += generateMeterPreloadCode() + generateChinesePreloadCode(dictContent, runtimeContent);
+    preload +=
+      generateMeterPreloadCode() +
+      generateMarkdownPreloadCode() +
+      generateChinesePreloadCode(dictContent, runtimeContent);
 
     if (!validateSyntax(preload, 'dist/preload.js')) {
       throw new Error('Syntax validation failed for injected dist/preload.js');
@@ -342,7 +346,7 @@ function packHakimiAsar(rawOpts = {}) {
     verifyHeaderMetadataPreserved(srcAsar, destAsar);
 
     const inspect = inspectDiskModules(destAsar);
-    if (!inspect.found || !inspect.meterReady || !inspect.chineseReady || inspect.chineseStatus !== 'ready') {
+    if (!inspect.found || !inspect.meterReady || !inspect.markdownFixReady || !inspect.chineseReady || inspect.chineseStatus !== 'ready') {
       throw new Error(
         `Packed ASAR failed inspectDiskModules check: ${JSON.stringify(inspect)}`
       );
