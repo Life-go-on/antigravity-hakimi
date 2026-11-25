@@ -139,6 +139,7 @@ let registered = false;
 let isAppQuitting = false;
 let coldAccountSwitchInFlight = false;
 const boundWindows = new WeakSet();
+const hiddenOnClose = new WeakSet();
 const boundWebContents = new WeakSet();
 const injectionTimers = new WeakMap();
 const inFlightInjections = new WeakMap();
@@ -889,13 +890,23 @@ exports.installContextMeter = function (win) {
     win.on?.('restore', onWinVisibleOrActive);
     win.on?.('focus', onWinVisibleOrActive);
 
-    // 托盘常驻与会话保持：点击窗口右上角关闭时，若满足后台常驻与主会话条件，隐藏至托盘而非销毁，避免重新打开丢失会话
+    const isMac = process.platform === 'darwin';
+    if (isMac) {
+      win.on?.('show', () => hiddenOnClose.delete(win));
+      win.once?.('closed', () => hiddenOnClose.delete(win));
+    }
+
+    // 后台常驻时隐藏最后一个符合条件的主窗口，保留会话。
     try {
       win.on?.('close', (event) => {
         if (shouldInterceptWindowClose(win)) {
           if (typeof event?.preventDefault === 'function') {
+            if (isMac && (!win.isVisible?.() || typeof win.hide !== 'function')) return;
             event.preventDefault();
-            if (typeof win.hide === 'function') win.hide();
+            if (typeof win.hide === 'function') {
+              win.hide();
+              if (isMac && !win.isDestroyed?.() && !win.isVisible()) hiddenOnClose.add(win);
+            }
           }
         }
       });
@@ -1001,6 +1012,9 @@ try {
     app.on('activate', () => {
       try {
         const utils = require('./utils');
+        if (process.platform === 'darwin' && !isAppQuitting) {
+          try { reopenHiddenLocalHubWindow(utils); } catch {}
+        }
         const wins = typeof utils.getHubWindows === 'function' ? utils.getHubWindows() : [];
         for (const w of wins) {
           exports.installContextMeter(w);
@@ -1024,6 +1038,19 @@ try {
     });
   }
 } catch {}
+
+function reopenHiddenLocalHubWindow(utils) {
+  const localWindows = (utils.getLocalHubWindows?.() || []).filter(
+    win => !win.isDestroyed?.() && !getRemoteBackendForWindow(win)
+  );
+  if (localWindows.some(win => win.isVisible?.())) return;
+
+  // 只恢复本钩子隐藏的原窗口；没有窗口时仍由宿主负责新建。
+  const win = localWindows.find(win => hiddenOnClose.has(win));
+  if (!win) return;
+  win.show();
+  if (!win.isDestroyed?.()) win.focus();
+}
 
 function isHostRunInBackgroundEnabled() {
   try {
@@ -1068,6 +1095,7 @@ function shouldInterceptWindowClose(win, options = {}) {
     } else {
       try {
         const utils = require('./utils');
+        if (process.platform === 'darwin' && !utils.getLocalHubWindows?.()?.includes(win)) return false;
         if (typeof utils.getHubWindows === 'function') wins = utils.getHubWindows();
       } catch {}
     }
