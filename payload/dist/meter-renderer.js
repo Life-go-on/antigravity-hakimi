@@ -2501,7 +2501,7 @@
     'tab.settings': { 'zh-CN': '配置', 'zh-TW': '配置', en: 'setting' },
 
     // 分页 1: 当前会话与版本同步提示
-    'versionSync.mismatch': { 'zh-CN': '⚠️ 检测到官方 Antigravity 已更新至 v{officialVer}（当前哈基米基于 v{hakimiVer}）。如需同步新版底座，请运行：bash ./build-hakimi.sh --force --restart', 'zh-TW': '⚠️ 偵測到官方 Antigravity 已更新至 v{officialVer}（目前哈基米基於 v{hakimiVer}）。如需同步新版底座，請執行：bash ./build-hakimi.sh --force --restart', en: '⚠️ Official Antigravity updated to v{officialVer} (Hakimi is on v{hakimiVer}). Rebuild with: bash ./build-hakimi.sh --force --restart' },
+    'versionSync.mismatch': { 'zh-CN': '⚠️ 检测到官方 Antigravity 已更新至 v{officialVer}（当前哈基米基于 v{hakimiVer}）。如需同步新版底座，请运行：bash ./build-hakimi.sh', 'zh-TW': '⚠️ 偵測到官方 Antigravity 已更新至 v{officialVer}（目前哈基米基於 v{hakimiVer}）。如需同步新版底座，請執行：bash ./build-hakimi.sh', en: '⚠️ Official Antigravity updated to v{officialVer} (Hakimi is on v{hakimiVer}). Rebuild with: bash ./build-hakimi.sh' },
     'ssh.remote.contextBanner': {
       'zh-CN': '🌐 SSH 远端窗口（{host}）：远端 language_server 已在连接时自动应用地区解锁；客户端界面语言与 CLI 地区解锁设置仅作用于本机。',
       'zh-TW': '🌐 SSH 遠端視窗（{host}）：遠端 language_server 已在連線時自動套用地區解鎖；用戶端介面語言與 CLI 地區解鎖設定僅作用於本機。',
@@ -2859,7 +2859,7 @@
     'mod.zh.descOffReady': { 'zh-CN': '客户端当前保持官方原生英文（磁盘已具备简体中文资源与配置门禁，切换为简体中文并重启即可生效）。', 'zh-TW': '用戶端目前保持官方原生英文（磁碟已具備簡體中文資源與設定門禁，切換為簡體中文並重啟即可生效）。', en: 'Client is running native English (zh-CN resources are staged on disk; switch to zh-CN and restart to apply).' },
     'mod.zh.descOffNotInstalled': { 'zh-CN': '客户端汉化处于未安装状态，保持官方原生英文界面。', 'zh-TW': '用戶端中文化處於未安裝狀態，保持官方原生英文介面。', en: 'Client localization is not installed; running native English.' },
     'mod.zh.descActive': { 'zh-CN': '客户端简体中文运行中：DOM 监听器正常工作，左侧边栏与核心菜单已翻译。', 'zh-TW': '用戶端簡體中文執行中：DOM 監聽器正常運作，左側邊欄與核心選單已翻譯。', en: 'Client zh-CN localization is active.' },
-    'mod.zh.descNeedInject': { 'zh-CN': '配置已开启简体中文，但当前磁盘 ASAR 未注入汉化资源；请重新运行 bash ./build-hakimi.sh --force 重建 哈基米.app。', 'zh-TW': '設定已開啟簡體中文，但目前磁碟 ASAR 未注入中文化資源；請重新執行 bash ./build-hakimi.sh --force 重建 哈基米.app。', en: 'zh-CN is enabled in config, but ASAR lacks localization injection. Rebuild with: bash ./build-hakimi.sh --force' },
+    'mod.zh.descNeedInject': { 'zh-CN': '配置已开启简体中文，但当前磁盘 ASAR 未注入汉化资源；请重新运行 bash ./build-hakimi.sh 重建 哈基米.app。', 'zh-TW': '設定已開啟簡體中文，但目前磁碟 ASAR 未注入中文化資源；請重新執行 bash ./build-hakimi.sh 重建 哈基米.app。', en: 'zh-CN is enabled in config, but ASAR lacks localization injection. Rebuild with: bash ./build-hakimi.sh' },
     'mod.zh.descPendingRestart': { 'zh-CN': '简体中文代码已注入且配置已开启；需完全退出并重新打开 Antigravity 客户端加载生效。', 'zh-TW': '簡體中文程式碼已注入且設定已開啟；需完全結束並重新開啟 Antigravity 用戶端載入生效。', en: 'zh-CN localization is injected and enabled; quit and reopen Antigravity to take effect.' },
     'mod.zh.btnDisable': { 'zh-CN': '切换为官方英文 (需重启)', 'zh-TW': '切換為官方英文 (需重啟)', en: 'Switch to English (Restart)' },
     'mod.zh.btnEnable': { 'zh-CN': '切换为简体中文 (需重启)', 'zh-TW': '切換為簡體中文 (需重啟)', en: 'Switch to 简体中文 (Restart)' },

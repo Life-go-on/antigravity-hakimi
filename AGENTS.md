@@ -7,7 +7,7 @@
 ## 1. 项目概述
 
 - **运行环境**：macOS Apple Silicon (`arm64`)，Node.js `>=22.4.0`（`agy` CLI 地区解锁同时支持 Linux `x86-64` / `arm64`）。
-- **核心机制**：从只读官方 `/Applications/Antigravity.app`（或 `/Applications/Antigravity.app.orig`）复制并构建独立增强版桌面客户端 `/Applications/哈基米.app`。
+- **核心机制**：默认从官方更新源拉取/复用单槽位缓存最新 Antigravity（或通过 `--local` / `--from` 读取本地只读 `/Applications/Antigravity.app` / `.orig`），构建独立增强版桌面客户端 `/Applications/哈基米.app`。
 - **身份复用**：保留内部 `CFBundleIdentifier` (`com.google.antigravity`) 与主可执行文件名 `Antigravity`，以与官方客户端共享 Google 登录态、历史会话及用户数据目录，同时严格隔离应用二进制本身。
 
 ---
@@ -18,8 +18,8 @@
    - 任何时候都**不得**写入、修补、替换、关闭或重签名 `/Applications/Antigravity.app`、`/Applications/Antigravity.app.orig` 或指向它们的符号链接。
    - 所有写入/删除/签名/冷重启目标路径必须通过 `payload/dist/asar-engine.js` 中的 `assertNotOfficialAntigravityApp()`（以及 `meter-account-cold-helper.js`、`hakimi-upgrade-helper.js` 中的 `isOfficialAntigravityBundle()`）守卫。
 2. **禁止在 Agent 会话内自动杀掉或重启运行中的 `哈基米.app`**
-   - 若 Agent 正运行在 `/Applications/哈基米.app` 内，**禁止**主动执行 `build-hakimi.sh --restart`、`set-hakimi-icon.sh --restart`，或手工 `kill`/`pkill` `哈基米.app` / `language_server`（会导致当前宿主进程与对话直接中断）；仅在用户明确要求立刻重启时例外。
-   - 会话内验证优先使用 `npm test`、`npm run doctor`，或 `bash ./build-hakimi.sh --stage-only`（仅在 `/tmp` 构建并校验签名，不动 `/Applications` 与用户配置目录）。
+   - 若 Agent 正运行在 `/Applications/哈基米.app` 内，**禁止**主动执行裸命令 `bash ./build-hakimi.sh`（默认会覆盖并自动重启运行中的 `哈基米.app`）、`set-hakimi-icon.sh --restart`，或手工 `kill`/`pkill` `哈基米.app` / `language_server`（会导致当前宿主进程与对话直接中断）；仅在用户明确要求立刻重启时例外。
+   - 会话内验证优先使用 `npm test`、`npm run doctor`，或 `bash ./build-hakimi.sh --stage-only`（默认同正式版走官方最新且只读复用缓存；离线可加 `--local`，仅在 `/tmp` 构建并校验签名，不动 `/Applications` 与用户配置目录）。
 3. **禁止直接手改渲染层编译产物**
    - `payload/dist/meter-renderer.js` 是由 `src/renderer/*` 编译生成的单文件产物。所有 UI / 前端逻辑修改必须改在 `src/renderer/` 下，并运行 `npm run build:renderer`（`npm test` 的 `pretest` 钩子也会自动执行）。
 4. **禁止重新引入已裁剪功能符号（`EXCLUDED_SYMBOLS`）**
@@ -44,14 +44,14 @@ npm test
 npm run doctor
 # 支持参数：node scripts/doctor.js --json --allow-missing
 
-# 安全沙盒构建验证（仅在 /tmp 目录构建并执行 codesign --verify --strict，不改 /Applications）
+# 安全沙盒构建验证（仅在 /tmp 目录构建并执行 codesign --verify --strict，不改 /Applications 与用户目录）
 bash ./build-hakimi.sh --stage-only
-bash ./build-hakimi.sh --fetch-latest --stage-only
+bash ./build-hakimi.sh --stage-only --local
 
 # 构建并安装到 /Applications/哈基米.app（由用户在独立终端按需执行）
-bash ./build-hakimi.sh --force --restart
-bash ./build-hakimi.sh --fetch-latest --force --restart
-bash ./build-hakimi.sh --force --patch-cli --restart
+# 默认一步到位：拉取/复用官方最新 + 覆盖安装 + 解锁本机 agy CLI + 自动打开/重启
+bash ./build-hakimi.sh
+bash ./build-hakimi.sh --local --no-restart
 
 # 仅对已构建的 哈基米.app 秒级更换图标或还原默认图标
 bash ./set-hakimi-icon.sh <img_path|--restore> [--raw-icon] [--restart]
@@ -64,7 +64,7 @@ npm run unlock:cli
 
 ## 4. 仓库结构与核心模块
 
-- `build-hakimi.sh`：主构建脚本（只读源拷贝或 `--fetch-latest` 拉取并验签官方最新版、可选图标处理、`language_server` 地区解锁、ASAR 重打包、`Contents/Resources/hakimi-build-meta.json` 写入、`ElectronAsarIntegrity` 同步、inode 刷新、`codesign` 签名、可选进程优雅关闭/重启及 CLI 联动）。
+- `build-hakimi.sh`：主构建脚本（默认拉取/复用官方最新签名版并共享单槽位 `clean-base` 缓存、断网回退本机源、可选图标处理、`language_server` 地区解锁、ASAR 重打包、`Contents/Resources/hakimi-build-meta.json` 写入、`ElectronAsarIntegrity` 同步、inode 刷新、`codesign` 签名、默认覆盖与自动重启/打开及 best-effort CLI 解锁；支持 `--stage-only` / `--local` / `--no-restart` / `--no-cli` / `--no-overwrite` 并兼容旧参数）。
 - `set-hakimi-icon.sh`：针对已存在 `/Applications/哈基米.app` 原位替换 `Contents/Resources/icon.icns` 与 `app.asar/icon.png` 并刷新完整性与签名的轻量脚本。
 - `scripts/`：
   - `build-renderer.js`：将 `src/renderer/` 各源文件拼装编译为 `payload/dist/meter-renderer.js`。

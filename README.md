@@ -1,6 +1,6 @@
 # antigravity-hakimi (`哈基米.app`)
 
-> 面向 **macOS Apple Silicon (ARM64)**，基于只读官方 `/Applications/Antigravity.app` 复制并构建独立增强版桌面客户端 **`/Applications/哈基米.app`**。与官方客户端共享 Google 登录态、历史对话与设置，同时严格保持官方 `/Applications/Antigravity.app`（及 `.orig`）只读不改。
+> 面向 **macOS Apple Silicon (ARM64)**，直接从官方更新源拉取并验签最新版 Antigravity（无需预先安装原版，也可离线基于本地只读 `/Applications/Antigravity.app`）构建独立增强版桌面客户端 **`/Applications/哈基米.app`**。与官方客户端共享 Google 登录态、历史对话与设置，同时严格保持官方 `/Applications/Antigravity.app`（及 `.orig`）只读不改。
 
 ---
 
@@ -58,24 +58,18 @@
 ### 1. 构建并安装 `/Applications/哈基米.app`
 
 ```bash
-# 构建并安装 /Applications/哈基米.app（已运行时加 --restart 自动退出并重启）
-bash ./build-hakimi.sh --force --restart
-
-# 直接从官方更新源拉取最新签名版 Antigravity 并构建（无需先手动更新原版）
-bash ./build-hakimi.sh --fetch-latest --force --restart
-
-# 同时对本机 agy CLI 执行地区解锁
-bash ./build-hakimi.sh --force --patch-cli --restart
+# 一键安装或升级（默认拉取/复用官方最新签名版 + 覆盖安装 + 解锁本机 agy CLI + 自动打开/重启）
+bash ./build-hakimi.sh
 
 # 指定一张本地图片作为应用图标（支持 PNG/JPG/WebP/HEIC/ICNS）
-bash ./build-hakimi.sh --force --icon ~/Pictures/hakimi.jpg
+bash ./build-hakimi.sh --icon ~/Pictures/hakimi.jpg
+
+# 纯离线使用本机 /Applications/Antigravity.app 构建（不联网）
+bash ./build-hakimi.sh --local
 
 # 单独解锁本机 agy CLI 或运行只读健康诊断
 npm run unlock:cli
 npm run doctor
-
-# 启动
-open "/Applications/哈基米.app"
 ```
 
 ### 2. 在 Linux 开发机解锁 `agy` CLI（支持 `x86-64` / `arm64`）
@@ -83,14 +77,14 @@ open "/Applications/哈基米.app"
 Linux 环境无需 macOS `codesign` 或桌面端应用，自动探测 `~/.local/bin/agy`、`~/.antigravity/antigravity/bin/agy`、`$PATH`（或通过 `--binary` / `AGY_CLI_BIN` 指定）：
 
 ```bash
-# 方式一（推荐，需 Node.js）：自适应地区解锁
+# 方式一（推荐，一键自动识别 Linux 并解锁 agy CLI）：
+bash ./build-hakimi.sh
+
+# 方式二（Node.js CLI 命令）：
 npm run unlock:cli
 # 仅检测状态或显式指定二进制路径：
 node scripts/cli-unlock.js --analyze
 node scripts/cli-unlock.js --apply --binary ~/.local/bin/agy
-
-# 方式二：通过构建脚本仅执行 CLI 地区解锁（Linux 传 --patch-cli 也会自动直跑 CLI 解锁）
-bash ./build-hakimi.sh --cli-only
 
 # 方式三（无 Node.js 环境，纯 Python 3）：
 python3 unlock/agy-cli/agy-patch.py --in-place
@@ -113,21 +107,26 @@ bash ./set-hakimi-icon.sh --restore --restart
 
 ### 4. 构建参数说明
 
+直接运行 `./build-hakimi.sh` 即可一步完成：**拉取/复用官方最新签名版**（断网时自动回退本机官方源）→ **覆盖安装** → **联动解锁本机 `agy` CLI** → **自动重启或首次打开 `哈基米.app`**（Linux 上则自动仅解锁 `agy` CLI）。
+
 ```text
 ./build-hakimi.sh [选项]
-  --force                         允许覆盖已存在的输出 .app 副本
-  --stage-only                    仅在 /tmp 临时目录构建并签名，不写入 /Applications，也不改用户配置目录
-  --fetch-latest                  直接从官方更新源拉取最新 Antigravity（校验 SHA-512 与 Google 代码签名）作为构建源，无需手动更新原版
-  --from <path>                   指定只读官方源 Antigravity.app (默认优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
-  --app <path>                    指定输出 .app 路径 (默认: /Applications/哈基米.app；严禁指向官方应用)
+  --stage-only                    仅在 /tmp 临时目录试构建并验签，不写入 /Applications、不改用户配置目录、不打开应用
+  --local                         强制纯离线使用本机只读官方源 (优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
+  --from <path>                   显式指定只读官方 Antigravity.app 本地源路径
+  --fetch-latest                  强制从官方更新源拉取/复用最新 Antigravity（默认已开启；显式指定时断网不回退本机旧版）
+  --app <path>                    指定输出 .app 路径 (默认: /Applications/哈基米.app；严禁指向官方 Antigravity.app)
   -i, --icon <path>               指定本地图片作为应用图标 (不传时若旧副本已有自定义图标会自动保留)
   --raw-icon                      配合 --icon 使用，不自动添加 macOS 圆角矩形留白遮罩
-  --default-icon                  覆盖旧副本时强制恢复为官方默认图标
-  -r, --restart                   若目标应用正在运行，构建完成后自动优雅退出旧进程并重启新版
-  --patch-cli                     构建完成后联动对本机 agy CLI 执行地区解锁（Linux 下自动仅执行 CLI 解锁）
+  --default-icon                  覆盖旧副本时强制恢复为默认官方图标
+  --no-restart, --no-open         构建完成后不自动退出/重启或自动打开目标应用
+  --no-cli                        跳过本机 agy CLI 地区解锁联动
+  --no-overwrite                  若输出 .app 路径已存在则报错退出而不覆盖
   --cli-only                      仅对本机 agy CLI 执行地区解锁，跳过 macOS 桌面应用构建（支持 Linux 与 macOS）
-  --cli-bin <path>                配合 --patch-cli / --cli-only 指定 agy 二进制路径
+  --cli-bin <path>                指定 agy 二进制路径并严格校验解锁
   --client-lang <zh-CN|en>        初始化桌面端界面语言 (首次默认为 zh-CN)
+  --force, -r, --restart, --patch-cli
+                                  向下兼容参数（现均已默认开启；显式传 --patch-cli 时 CLI 解锁失败会返回非 0）
 ```
 
 ---
@@ -144,13 +143,14 @@ npm test
 # 只读健康诊断（支持 --json / --allow-missing）
 npm run doctor
 
-# 安全沙盒构建验证（仅在 /tmp 目录构建与验签，不动 /Applications）
+# 安全沙盒构建验证（仅在 /tmp 目录构建与验签，不动 /Applications 与用户目录；离线可加 --local）
 bash ./build-hakimi.sh --stage-only
+bash ./build-hakimi.sh --stage-only --local
 ```
 
 ## 目录结构
 
-- `build-hakimi.sh`：一键复制官方源（或 `--fetch-latest` 拉取最新官方签名版）、自定义图标处理、自适应地区解锁、ASAR 重打包、`hakimi-build-meta.json` 写入、`ElectronAsarIntegrity` 同步与 `codesign` 签名脚本
+- `build-hakimi.sh`：一键拉取/复用官方最新签名版（断网自动回退本地源，也支持 `--local` / `--from`）、自定义图标处理、自适应地区解锁、ASAR 重打包、`hakimi-build-meta.json` 写入、`ElectronAsarIntegrity` 同步、`codesign` 签名、默认覆盖与自动打开/重启及 CLI 解锁脚本
 - `set-hakimi-icon.sh`：针对已构建 `哈基米.app` 原位秒级替换/还原图标的轻量脚本
 - `scripts/`：
   - `build-renderer.js`：将 `src/renderer/*` 编译拼装为 `payload/dist/meter-renderer.js`

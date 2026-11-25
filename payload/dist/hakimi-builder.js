@@ -1294,6 +1294,7 @@ async function runCli(argv = process.argv.slice(2)) {
     if (!outAppDir) throw new Error('Missing --out-app-dir');
     const appBundle = getArg('--app-bundle');
     const keepZipOut = getArg('--keep-zip-out');
+    const stateDir = getArg('--state-dir');
     const jsonOut = argv.includes('--json');
 
     const manifest = await fetchOfficialLatestManifest({ appBundlePath: appBundle });
@@ -1302,20 +1303,46 @@ async function runCli(argv = process.argv.slice(2)) {
       : path.join(path.resolve(outAppDir), `Antigravity-${manifest.version}.zip`);
     const acquired = await acquireOfficialVerifiedZip(manifest, tmpZip, {
       consumeNativePending: false,
+      ...(stateDir ? { stateDir } : {}),
     });
     const appPath = extractOfficialZipAndVerify(acquired.zipPath, path.resolve(outAppDir));
     if (!keepZipOut && acquired.zipPath === tmpZip) {
       upgradeHelper.unlinkIfExists(tmpZip);
     }
+    const keptZipPath = keepZipOut && acquired.zipPath === tmpZip ? tmpZip : '';
     const summary = {
       ok: true,
       version: manifest.version,
       sha512: manifest.sha512,
       appPath,
       source: acquired.source,
+      zipPath: keptZipPath,
+      needsPromotion: Boolean(keptZipPath && acquired.source !== 'clean-base-cache'),
     };
     if (jsonOut) process.stdout.write(JSON.stringify(summary) + '\n');
     else process.stdout.write(`${appPath}\n`);
+    return;
+  }
+
+  if (cmd === 'promote-clean-base') {
+    const zipPath = getArg('--zip');
+    const version = getArg('--version');
+    const sha512 = getArg('--sha512') || '';
+    const stateDir = getArg('--state-dir');
+    if (!zipPath || !version) throw new Error('Missing --zip or --version');
+    const paths = getUpdaterPaths(stateDir ? { stateDir } : {});
+    const res = upgradeHelper.promoteSingleSlotCleanBase({
+      stagedZipPath: zipPath,
+      cleanBaseDir: paths.cleanBaseDir,
+      version,
+      sha512,
+    });
+    if (res.promoted && !stateDir) {
+      try {
+        cleanupOrphanUpdaterArtifacts({ installedVersion: version });
+      } catch {}
+    }
+    process.stdout.write(JSON.stringify(res) + '\n');
     return;
   }
 

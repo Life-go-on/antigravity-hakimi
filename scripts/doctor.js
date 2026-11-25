@@ -132,7 +132,7 @@ function runDoctor(options = {}) {
       'hakimi_bundle',
       options.allowMissing ? 'WARN' : 'FAIL',
       '哈基米.app 安装状态',
-      `未找到目标副本: ${hakimiApp}（可运行 bash ./build-hakimi.sh --force 构建）`
+      `未找到目标副本: ${hakimiApp}（可运行 bash ./build-hakimi.sh 构建）`
     );
   } else {
     const vs = modulesConfig.checkAppVersionSync({ officialPlist, hakimiPlist });
@@ -141,7 +141,7 @@ function runDoctor(options = {}) {
         'hakimi_version_sync',
         'WARN',
         '版本同步检查',
-        `官方 v${vs.officialVersion} 领先于 哈基米.app v${vs.hakimiVersion}，建议运行: bash ./build-hakimi.sh --force --restart`,
+        `官方 v${vs.officialVersion} 领先于 哈基米.app v${vs.hakimiVersion}，建议运行: bash ./build-hakimi.sh`,
         vs
       );
     } else if (vs.hakimiAhead) {
@@ -215,7 +215,7 @@ function runDoctor(options = {}) {
             'hakimi_asar_payload',
             'WARN',
             '内置扩展载荷',
-            `当前已安装的 app.asar 尚未包含 ${missingNew.join(', ')}（构建于此次更新前），建议运行 bash ./build-hakimi.sh --force --restart 更新`
+            `当前已安装的 app.asar 尚未包含 ${missingNew.join(', ')}（构建于此次更新前），建议运行 bash ./build-hakimi.sh 更新`
           );
         }
       } catch (e) {
@@ -230,7 +230,7 @@ function runDoctor(options = {}) {
             'hakimi_ssh_hooks',
             'WARN',
             'Remote SSH 远端钩子',
-            '检测到客户端支持 Remote SSH，但当前副本未注入远端自动解锁钩子，建议运行 bash ./build-hakimi.sh --force --restart 更新'
+            '检测到客户端支持 Remote SSH，但当前副本未注入远端自动解锁钩子，建议运行 bash ./build-hakimi.sh 更新'
           );
         }
       } else {
@@ -245,7 +245,7 @@ function runDoctor(options = {}) {
             'hakimi_updater',
             'WARN',
             '双源自更新接管',
-            '当前副本尚未接管 dist/updater.js，建议运行 bash ./build-hakimi.sh --force --restart 更新'
+            '当前副本尚未接管 dist/updater.js，建议运行 bash ./build-hakimi.sh 更新'
           );
         }
       }

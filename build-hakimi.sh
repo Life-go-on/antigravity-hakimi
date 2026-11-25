@@ -1,19 +1,22 @@
 #!/bin/bash
-# 哈基米.app 独立构建脚本（专注 macOS Apple Silicon ARM64）
+# 哈基米.app 独立构建脚本（专注 macOS Apple Silicon ARM64；Linux 下自动直跑 agy CLI 解锁）
 #
 # 功能说明：
-#   1. 基于只读源 /Applications/Antigravity.app（或 --from 指定副本）复制并生成独立应用 /Applications/哈基米.app
+#   1. 默认直接从官方更新源拉取/复用单槽位缓存最新 Antigravity（校验 SHA-512 与 Google 签名）构建 /Applications/哈基米.app，
+#      无需预先安装或手动更新原版 /Applications/Antigravity.app（断网时若本机存在官方包则自动回退）
 #   2. 严格保护官方 /Applications/Antigravity.app 及 .orig 绝不被修改
-#   3. 内核级与客户端能力整合：
+#   3. 默认允许覆盖旧副本、联动解锁本机 agy CLI，并在完成后自动重启或首次打开 /Applications/哈基米.app
+#   4. 内核级与客户端能力整合：
 #      - 账号地区 / Free-tier 检测解锁 (ValidateAndOnboardAccount)
+#      - 双源静默自动升级与原子冷替换（官方更新源 + 哈基米 main）
 #      - 桌面端简体中文界面（纯本地 DOM 翻译，不影响请求与提示词）
-#      - 实时上下文占用监控、速率监测、8 类错误诊断与 Token 消费历史看板
+#      - 实时上下文占用监控、速率监测、8 类错误诊断与纯 Token 消费历史看板
 #
 # 用法:
-#   ./build-hakimi.sh [选项]
-#   ./build-hakimi.sh --force
-#   ./build-hakimi.sh --force --icon ~/Pictures/hakimi.jpg
-#   ./build-hakimi.sh --stage-only
+#   ./build-hakimi.sh                          # 一步到位：拉最新 + 覆盖安装 + 解锁 CLI + 自动打开/重启
+#   ./build-hakimi.sh --icon ~/Pictures/a.jpg  # 构建并替换自定义应用图标
+#   ./build-hakimi.sh --stage-only             # 仅在 /tmp 沙盒试构建并验签，不动 /Applications 与用户配置
+#   ./build-hakimi.sh --local                  # 纯离线使用本机 /Applications/Antigravity.app 构建
 #
 set -euo pipefail
 
@@ -21,16 +24,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APP="/Applications/哈基米.app"
 SRC=""
-FETCH_LATEST=0
+SOURCE_MODE="auto"
 SOURCE_KIND="official-local"
+FETCH_SOURCE=""
 STAGE_ONLY=0
-FORCE=0
+FORCE=1
 CLIENT_LANG=""
 ICON_PATH=""
 RAW_ICON=0
 FORCE_DEFAULT_ICON=0
-AUTO_RESTART=0
-PATCH_CLI=0
+AUTO_RESTART=1
+PATCH_CLI=1
+CLI_STRICT=0
 CLI_ONLY=0
 CLI_BIN=""
 
@@ -38,20 +43,30 @@ usage() {
   cat <<'EOF'
 用法: ./build-hakimi.sh [选项]
 
+默认行为（直接运行 ./build-hakimi.sh 即可）：
+  - 默认从官方更新源拉取/复用最新 Antigravity（校验 SHA-512 与 Google 签名），无需本机先装原版
+    （断网且本机存在 /Applications/Antigravity.app 时自动回退本机源）
+  - 默认允许覆盖已存在的 /Applications/哈基米.app（严禁覆盖官方 Antigravity.app）
+  - 默认联动检测并解锁本机 agy CLI（未安装或权限不足时柔和提示，不阻断主构建；Linux 下自动直跑 CLI 解锁）
+  - 默认在构建完成后自动重启运行中的 哈基米.app，或首次自动打开 哈基米.app
+
 选项:
-  --force                         允许覆盖已存在的输出 .app 副本
-  --stage-only                    仅在临时目录生成打好补丁的 哈基米.app，不写入 /Applications 且不改用户配置目录
-  --from <path>                   指定只读官方 Antigravity.app 源路径 (默认优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
-  --fetch-latest                  直接从官方 app-update.yml 更新源拉取/复用最新 Antigravity.zip 并验签作为只读源（无需手动打开原版反重力更新）
+  --stage-only                    仅在 /tmp 临时目录试构建并验签，不写入 /Applications、不改用户配置目录、不打开应用
+  --local                         强制纯离线使用本机只读官方源 (优先 /Applications/Antigravity.app.orig，其次 /Applications/Antigravity.app)
+  --from <path>                   显式指定只读官方 Antigravity.app 本地源路径
+  --fetch-latest                  强制从官方更新源拉取/复用最新 Antigravity（默认行为；显式指定时断网不回退本机旧版）
   --app <path>                    指定输出 .app 路径 (默认: /Applications/哈基米.app；严禁指向官方 Antigravity.app)
   -i, --icon <path>               可选：指定本地图片 (PNG/JPG/WebP/HEIC/ICNS 等) 作为应用图标 (不传时若旧副本已有自定义图标会自动保留)
   --raw-icon                      可选：配合 --icon 使用，不自动添加 macOS 圆角矩形留白遮罩
   --default-icon                  可选：覆盖旧副本时强制恢复为默认官方图标
-  -r, --restart                   若目标应用当前正在运行，构建完成后自动优雅退出旧进程并重启新版
-  --patch-cli                     构建完成后联动对本机 agy CLI 执行地区解锁（Linux 下自动仅执行 CLI 解锁）
+  --no-restart, --no-open         构建完成后不自动退出/重启或自动打开目标应用
+  --no-cli                        跳过本机 agy CLI 地区解锁联动
+  --no-overwrite                  若输出 .app 路径已存在则报错退出而不覆盖
   --cli-only                      仅对本机 agy CLI 执行地区解锁，跳过 macOS 桌面应用构建（支持 Linux x86-64/arm64 与 macOS arm64）
-  --cli-bin <path>                可选：配合 --patch-cli / --cli-only 指定 agy 二进制路径
+  --cli-bin <path>                指定 agy 二进制路径并严格校验解锁
   --client-lang <zh-CN|en>        桌面端界面语言 (首次写入配置默认为 zh-CN)
+  --force, -r, --restart, --patch-cli
+                                  向下兼容参数（现均已默认开启；显式传 --patch-cli 时 CLI 解锁失败会返回非 0）
   -h, --help                      显示本帮助信息
 EOF
 }
@@ -61,6 +76,15 @@ require_arg() {
     echo "选项 $1 需要提供参数值" >&2
     exit 2
   fi
+}
+
+set_source_mode() {
+  local next_mode="$1"
+  if [[ "$SOURCE_MODE" != "auto" && "$SOURCE_MODE" != "$next_mode" ]]; then
+    echo "源选项冲突：--fetch-latest、--local 与 --from 不能同时指定" >&2
+    exit 2
+  fi
+  SOURCE_MODE="$next_mode"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -73,13 +97,22 @@ while [[ $# -gt 0 ]]; do
       FORCE=1
       shift
       ;;
+    --no-overwrite)
+      FORCE=0
+      shift
+      ;;
     --from)
       require_arg "$@"
+      set_source_mode "from"
       SRC="$2"
       shift 2
       ;;
+    --local)
+      set_source_mode "local"
+      shift
+      ;;
     --fetch-latest)
-      FETCH_LATEST=1
+      set_source_mode "latest"
       shift
       ;;
     --app)
@@ -89,17 +122,25 @@ while [[ $# -gt 0 ]]; do
       ;;
     --patch-cli)
       PATCH_CLI=1
+      CLI_STRICT=1
+      shift
+      ;;
+    --no-cli)
+      PATCH_CLI=0
+      CLI_STRICT=0
       shift
       ;;
     --cli-only)
       CLI_ONLY=1
       PATCH_CLI=1
+      CLI_STRICT=1
       shift
       ;;
     --cli-bin)
       require_arg "$@"
       CLI_BIN="$2"
       PATCH_CLI=1
+      CLI_STRICT=1
       shift 2
       ;;
     --client-lang)
@@ -122,6 +163,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -r|--restart)
       AUTO_RESTART=1
+      shift
+      ;;
+    --no-restart|--no-open)
+      AUTO_RESTART=0
       shift
       ;;
     -h|--help)
@@ -176,10 +221,9 @@ if [[ "$HOST_OS" != "Darwin" ]]; then
     exit $?
   fi
   echo "当前系统为 ${HOST_OS}：桌面端 哈基米.app 构建仅支持 macOS。" >&2
-  echo "如需在 Linux 开发机解锁 agy CLI，请运行:" >&2
-  echo "  npm run unlock:cli" >&2
-  echo "  或 bash ./build-hakimi.sh --cli-only" >&2
-  echo "  或 node scripts/cli-unlock.js --apply" >&2
+  echo "如需在 Linux 开发机解锁 agy CLI，请直接运行:" >&2
+  echo "  bash ./build-hakimi.sh" >&2
+  echo "  或 npm run unlock:cli" >&2
   echo "  或（无 Node 环境）python3 unlock/agy-cli/agy-patch.py --in-place" >&2
   exit 1
 fi
@@ -196,13 +240,8 @@ const { assertNotOfficialAntigravityApp } = require(path.join(process.argv[1], "
 assertNotOfficialAntigravityApp(process.argv[2], "写入目标应用");
 ' "$SCRIPT_DIR" "$APP"
 
-if [[ $FETCH_LATEST -eq 1 && -n "$SRC" ]]; then
-  echo "--fetch-latest 与 --from 不能同时指定" >&2
-  exit 2
-fi
-
 if [[ $STAGE_ONLY -eq 0 && ( -e "$APP" || -L "$APP" ) && $FORCE -eq 0 ]]; then
-  echo "输出路径已存在: $APP （如需覆盖请传入 --force，或用 --app 指定新路径）" >&2
+  echo "输出路径已存在: $APP （已指定 --no-overwrite；如需覆盖请去掉 --no-overwrite，或用 --app 指定新路径）" >&2
   exit 1
 fi
 
@@ -226,7 +265,7 @@ if [[ $STAGE_ONLY -eq 0 && -d "$APP" ]]; then
   if [[ -n "$PRE_PIDS" ]]; then
     WAS_RUNNING=1
     if [[ $AUTO_RESTART -eq 0 ]]; then
-      echo "检测到 $APP 正在运行 (PID: $PRE_PIDS)；请先 Cmd+Q 完全退出后再覆盖构建，或追加 --restart 自动退出并重启。" >&2
+      echo "检测到 $APP 正在运行 (PID: $PRE_PIDS)；已指定 --no-restart，请先 Cmd+Q 完全退出后再覆盖构建，或去掉 --no-restart 自动退出并重启。" >&2
       exit 1
     fi
   fi
@@ -237,11 +276,50 @@ if [[ $STAGE_ONLY -eq 0 ]]; then
   trap 'rm -rf "$WORK"' EXIT
 fi
 
-if [[ $FETCH_LATEST -eq 1 ]]; then
-  echo "==> [源获取] 正在从官方更新源拉取/复用最新 Antigravity 并验证 SHA-512 与 Google 签名..."
+PROMOTE_ZIP_PATH=""
+PROMOTE_ZIP_VERSION=""
+PROMOTE_ZIP_SHA512=""
+
+if [[ "$SOURCE_MODE" == "auto" || "$SOURCE_MODE" == "latest" ]]; then
+  echo "==> [源获取] 正在从官方更新源检查并获取最新 Antigravity（优先复用本地单槽位缓存，校验 SHA-512 与 Google 签名）..."
   FETCH_OUT="$WORK/fetched-official"
-  SRC="$(node "$SCRIPT_DIR/payload/dist/hakimi-builder.js" fetch-official --out-app-dir "$FETCH_OUT")"
-  SOURCE_KIND="official-feed"
+  FETCH_CMD=(node "$SCRIPT_DIR/payload/dist/hakimi-builder.js" fetch-official --out-app-dir "$FETCH_OUT" --json)
+  if [[ $STAGE_ONLY -eq 0 ]]; then
+    FETCH_CMD+=(--keep-zip-out "$WORK/official-verified.zip")
+  fi
+  FETCH_ERR="$WORK/fetch-official.err"
+  if FETCH_JSON="$("${FETCH_CMD[@]}" 2>"$FETCH_ERR")"; then
+    FETCH_META_LINES="$(node -e '
+      const data = JSON.parse(process.argv[1]);
+      process.stdout.write([
+        data.appPath || "",
+        data.version || "",
+        data.sha512 || "",
+        data.source || "",
+        data.needsPromotion ? (data.zipPath || "") : "",
+      ].join("\n") + "\n");
+    ' "$FETCH_JSON")"
+    {
+      IFS= read -r SRC || true
+      IFS= read -r PROMOTE_ZIP_VERSION || true
+      IFS= read -r PROMOTE_ZIP_SHA512 || true
+      IFS= read -r FETCH_SOURCE || true
+      IFS= read -r PROMOTE_ZIP_PATH || true
+    } <<< "$FETCH_META_LINES"
+    SOURCE_KIND="official-feed"
+    echo "  官方源已就绪: v${PROMOTE_ZIP_VERSION} (${FETCH_SOURCE})"
+  else
+    FETCH_ERR_MSG="$(tr '\n' ' ' < "$FETCH_ERR" 2>/dev/null | sed 's/[[:space:]]*$//')"
+    if [[ "$SOURCE_MODE" == "auto" && ( -d "/Applications/Antigravity.app.orig" || -d "/Applications/Antigravity.app" ) ]]; then
+      echo "⚠️  无法从官方更新源获取最新版（${FETCH_ERR_MSG:-网络或校验异常}），自动回退至本机只读官方源" >&2
+      SRC=""
+      SOURCE_KIND="official-local"
+    else
+      echo "从官方更新源拉取最新 Antigravity 失败: ${FETCH_ERR_MSG:-未知错误}" >&2
+      echo "提示: 请检查网络连接，或使用 --local / --from <path> 指定本机 Antigravity.app。" >&2
+      exit 1
+    fi
+  fi
 fi
 
 if [[ -z "$SRC" ]]; then
@@ -445,18 +523,42 @@ if [[ -x "$LSREGISTER" ]]; then
   "$LSREGISTER" -f "$APP" 2>/dev/null || true
 fi
 
-if [[ $PATCH_CLI -eq 1 ]]; then
-  echo "==> [CLI] 联动修补本机 agy CLI 并同步配置"
-  run_cli_unlock
+if [[ -n "$PROMOTE_ZIP_PATH" && -f "$PROMOTE_ZIP_PATH" && -n "$PROMOTE_ZIP_VERSION" ]]; then
+  node "$SCRIPT_DIR/payload/dist/hakimi-builder.js" promote-clean-base \
+    --zip "$PROMOTE_ZIP_PATH" \
+    --version "$PROMOTE_ZIP_VERSION" \
+    --sha512 "$PROMOTE_ZIP_SHA512" >/dev/null 2>&1 || true
 fi
 
-if [[ $AUTO_RESTART -eq 1 && $WAS_RUNNING -eq 1 ]]; then
-  echo "==> 重新打开 $APP"
-  sleep 0.5
+if [[ $PATCH_CLI -eq 1 ]]; then
+  echo "==> [CLI] 检测并解锁本机 agy CLI"
+  if [[ $CLI_STRICT -eq 1 ]]; then
+    run_cli_unlock
+  else
+    if ! run_cli_unlock; then
+      echo "⚠️  agy CLI 自动解锁未完成（不影响 哈基米.app 正常使用；如目录需管理员权限可运行: sudo npm run unlock:cli）" >&2
+    fi
+  fi
+fi
+
+if [[ $AUTO_RESTART -eq 1 ]]; then
+  if [[ $WAS_RUNNING -eq 1 ]]; then
+    echo "==> 重新打开 $APP"
+    sleep 0.5
+  else
+    echo "==> 正在打开 $APP"
+    sleep 0.3
+  fi
   env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ASAR -u NODE_OPTIONS -u ELECTRON_OZONE_PLATFORM_HINT -u DEV_URL open -n "$APP"
 fi
 
 echo "==> 构建完成！"
 echo "  独立应用: $APP"
-echo "  原版官方: $SRC (未做任何修改)"
-echo "  首次启动命令: open \"$APP\""
+if [[ "$SOURCE_KIND" == "official-feed" ]]; then
+  echo "  官方底座: 官方更新源 v$SRC_VERSION (${FETCH_SOURCE:-verified}，已校验 SHA-512 与 Google 签名)"
+else
+  echo "  原版官方: $SRC (只读源，未做任何修改)"
+fi
+if [[ $AUTO_RESTART -eq 0 ]]; then
+  echo "  启动命令: open \"$APP\""
+fi

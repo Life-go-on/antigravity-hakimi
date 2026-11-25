@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const vm = require('vm');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const asarEngine = require(path.join(ROOT, 'payload', 'dist', 'asar-engine.js'));
@@ -676,12 +676,67 @@ test('packHakimiAsar wraps dist/updater.js at module boundary, preserves updater
   }
 });
 
-test('build-hakimi.sh exposes --fetch-latest and build-meta receipt, and topbar-layout observes rightGroup ResizeObserver', () => {
+test('build-hakimi.sh defaults to one-shot latest/overwrite/launch/cli-unlock with opt-out flags, conflict guards, and promote-clean-base CLI', () => {
   const buildSh = fs.readFileSync(path.join(ROOT, 'build-hakimi.sh'), 'utf8');
   execFileSync('bash', ['-n', path.join(ROOT, 'build-hakimi.sh')]);
-  assert.ok(buildSh.includes('--fetch-latest'));
+  assert.ok(buildSh.includes('SOURCE_MODE="auto"'));
+  assert.ok(buildSh.includes('FORCE=1'));
+  assert.ok(buildSh.includes('AUTO_RESTART=1'));
+  assert.ok(buildSh.includes('PATCH_CLI=1'));
+  for (const flag of ['--fetch-latest', '--local', '--no-restart', '--no-open', '--no-cli', '--no-overwrite']) {
+    assert.ok(buildSh.includes(flag), `build-hakimi.sh missing ${flag}`);
+  }
   assert.ok(buildSh.includes('hakimi-builder.js'));
   assert.ok(buildSh.includes('write-meta'));
+  assert.ok(buildSh.includes('promote-clean-base'));
+
+  // Verify conflicting source flags exit cleanly with code 2
+  const conflict1 = spawnSync('bash', [path.join(ROOT, 'build-hakimi.sh'), '--local', '--fetch-latest'], {
+    encoding: 'utf8',
+  });
+  assert.equal(conflict1.status, 2);
+  const conflict2 = spawnSync('bash', [path.join(ROOT, 'build-hakimi.sh'), '--local', '--from', '/tmp/a.app'], {
+    encoding: 'utf8',
+  });
+  assert.equal(conflict2.status, 2);
+
+  // Verify promote-clean-base CLI maintains single-slot cache in isolated stateDir
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hakimi-promote-cli-'));
+  try {
+    const stateDir = path.join(tmp, 'state');
+    const cleanBaseDir = path.join(stateDir, 'updater', 'clean-base');
+    fs.mkdirSync(cleanBaseDir, { recursive: true });
+    fs.writeFileSync(path.join(cleanBaseDir, 'Antigravity-2.34.0.zip'), 'old-zip');
+    const incomingZip = path.join(tmp, 'official-verified.zip');
+    fs.writeFileSync(incomingZip, 'new-zip-v2.35.1');
+
+    const promoteOut = execFileSync(
+      process.execPath,
+      [
+        path.join(ROOT, 'payload', 'dist', 'hakimi-builder.js'),
+        'promote-clean-base',
+        '--zip',
+        incomingZip,
+        '--version',
+        '2.35.1',
+        '--sha512',
+        'mock-sha512',
+        '--state-dir',
+        stateDir,
+      ],
+      { encoding: 'utf8' }
+    );
+    const parsed = JSON.parse(promoteOut.trim());
+    assert.equal(parsed.promoted, true);
+    assert.equal(fs.existsSync(path.join(cleanBaseDir, 'Antigravity-2.35.1.zip')), true);
+    assert.equal(fs.existsSync(path.join(cleanBaseDir, 'Antigravity-2.34.0.zip')), false);
+    assert.equal(fs.existsSync(incomingZip), false);
+    const meta = builder.readCleanBaseMeta(cleanBaseDir);
+    assert.equal(meta?.version, '2.35.1');
+    assert.equal(meta?.sha512, 'mock-sha512');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 
   const topbarJs = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'topbar-layout.js'), 'utf8');
   assert.ok(topbarJs.includes('observedRightGroup'), 'topbar-layout.js must track observedRightGroup');

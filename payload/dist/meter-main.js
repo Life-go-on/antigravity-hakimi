@@ -238,7 +238,7 @@ async function handleToggleModule(event, moduleName, enable, extraOpts = {}) {
       status: 'install_failed',
       data: cfg,
       disk,
-      error: '主程序钩子缺失，请重新运行 bash ./build-hakimi.sh --force 重建 哈基米.app',
+      error: '主程序钩子缺失，请重新运行 bash ./build-hakimi.sh 重建 哈基米.app',
       restartRequired: false
     };
   } catch (e) {
