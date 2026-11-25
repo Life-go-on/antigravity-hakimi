@@ -514,25 +514,14 @@ test('Stage 2 SSH session registry, session-routed requester, and remote collect
 
   const requester = sshMod.createRemoteSessionRequester(fakeSender, rec, 'https://127.0.0.1:22401');
   const convId = '11111111-2222-3333-4444-555555555555';
-  const scanRes = await collector.collect('https://127.0.0.1:22401', convId, {
-    force: true,
-    isRemote: true,
-    remoteHostId: 'ssh:devbox-sg',
-    remoteLabel: 'devbox-sg',
-    requestFn: requester.call,
+  const genMeta = await requester.call('GetCascadeTrajectoryGeneratorMetadata', {
+    cascadeId: convId,
+    generatorMetadataOffset: 0,
+    includeMessages: false,
   });
-
-  assert.equal(scanRes.isRemote, true);
-  assert.equal(scanRes.remoteLabel, 'devbox-sg');
-  assert.equal(scanRes.workspacePath, '/home/dev/project');
-  assert.ok(scanRes.latest);
-  assert.equal(scanRes.latest.actual, 20500);
-  assert.equal(scanRes.latest.cache.cachedTokens, 8000);
-  assert.equal(scanRes.latest.cache.hitRate, 40);
-  assert.equal(scanRes.session.attachments.length, 1);
-  assert.equal(scanRes.session.attachments[0].status, 'unknown');
-  assert.ok(scanRes.session.attachments[0].unknownParts[0].includes('SSH'));
-  assert.ok(fetchCalls.every((c) => c.headers['x-codeium-csrf-token'] === 'tok-remote-123'));
+  assert.equal(Array.isArray(genMeta.generatorMetadata), true);
+  assert.equal(genMeta.generatorMetadata[0].chatModel.usage.cacheReadTokens, 8000);
+  assert.equal(collector.collect, undefined, 'heavy full-trajectory collect() should be removed');
 
   const tmpAg = fs.mkdtempSync(path.join(os.tmpdir(), 'hakimi-ssh-hist-'));
   try {
@@ -545,10 +534,14 @@ test('Stage 2 SSH session registry, session-routed requester, and remote collect
       },
     });
     assert.equal(hist.rawPlanStatus.email, 'remote-cn@example.com');
+    assert.equal(hist.cascadeModelConfigs.length, 1);
+    assert.equal(hist.cascadeModelConfigs[0].maxTokens, 1048576);
   } finally {
     fs.rmSync(tmpAg, { recursive: true, force: true });
   }
 
+  assert.ok(fetchCalls.length >= 3);
+  assert.ok(fetchCalls.every((c) => c.headers['x-codeium-csrf-token'] === 'tok-remote-123'));
   assert.equal(sshMod.forgetRemoteSession('ssh:devbox-sg'), true);
   assert.equal(sshMod.getRemoteSession('ssh:devbox-sg'), null);
 });

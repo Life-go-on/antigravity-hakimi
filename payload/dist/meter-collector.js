@@ -2,31 +2,18 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const https = require('https');
-const http = require('http');
-const { fileURLToPath } = require('url');
-const { spawn, spawnSync } = require('child_process');
 const { safeWriteJsonSync, safeReadJsonSync } = require('./meter-storage');
 const {
-  analyzeSteps,
-  summarize,
-  add,
-  empty,
-  measure,
   resolveEffectivePlanStatus,
   parseUserPlanStatus,
-  parseGeneratorCall,
-  extractModelString,
   normalizeModelId,
   resolveStableModelId,
   isValidSpeedSample,
   MAX_SPEED_SAMPLES_PER_MODEL
 } = require('./meter-core');
 
-const MAX_CONVERSATION_WORKSPACES = 200;
-const MAX_FILES_CACHE = 200;
-const MAX_CONVERSATIONS_CACHE = 60;
 const MAX_REMOTE_HOST_STATUS_CACHE = 32;
+const TOKEN_HISTORY_CACHE_TTL_MS = 60000;
 
 function setBoundedMap(map, key, value, maxSize, shouldSkipEvict = null) {
   if (map.has(key)) map.delete(key);
@@ -38,91 +25,6 @@ function setBoundedMap(map, key, value, maxSize, shouldSkipEvict = null) {
     if (typeof shouldSkipEvict === 'function' && shouldSkipEvict(oldVal)) continue;
     map.delete(oldKey);
   }
-}
-
-const conversationWorkspaces = new Map();
-
-/**
- * 从 URI 字符串安全解析为本地工作区绝对路径（兼容 file:// 格式与中文/空格转义）
- */
-function extractWorkspacePathFromUri(uriStr) {
-  if (!uriStr || typeof uriStr !== 'string') return null;
-  try {
-    const trimmed = uriStr.trim();
-    if (trimmed.startsWith('file://')) {
-      return path.resolve(fileURLToPath(trimmed));
-    }
-    if (path.isAbsolute(trimmed)) {
-      return path.resolve(trimmed);
-    }
-  } catch {
-    try {
-      const decoded = decodeURIComponent(uriStr.replace(/^file:\/\/\/?/i, ''));
-      const normalized = process.platform === 'win32' && /^[a-zA-Z]:/.test(decoded)
-        ? decoded
-        : (process.platform === 'win32' ? decoded.replace(/^\//, '') : '/' + decoded);
-      if (path.isAbsolute(normalized)) return path.resolve(normalized);
-    } catch {}
-  }
-  return null;
-}
-
-/**
- * 从轨迹元数据解析工作区路径
- */
-function extractWorkspaceFromTrajectory(trajectory, options = {}) {
-  try {
-    const meta = trajectory?.metadata || trajectory?.trajectoryMetadata || {};
-    const wsList = Array.isArray(meta.workspaces) ? meta.workspaces : [];
-    for (const ws of wsList) {
-      const cand = extractWorkspacePathFromUri(ws?.workspaceFolderAbsoluteUri || ws?.gitRootAbsoluteUri);
-      if (cand && (options.isRemote === true || fs.existsSync(cand))) return cand;
-    }
-    const uriList = Array.isArray(meta.workspaceUris) ? meta.workspaceUris : [];
-    for (const u of uriList) {
-      const cand = extractWorkspacePathFromUri(u);
-      if (cand && (options.isRemote === true || fs.existsSync(cand))) return cand;
-    }
-  } catch {}
-  return null;
-}
-
-let cachedPython = undefined;
-function resolvePython() {
-  if (cachedPython !== undefined) return cachedPython;
-  const home = os.homedir();
-  const candidates = [];
-  if (process.env.AG_METER_PYTHON) candidates.push(process.env.AG_METER_PYTHON);
-  candidates.push(
-    path.join(home, '.cache', 'codex-runtimes', 'codex-primary-runtime', 'dependencies', 'python', process.platform === 'win32' ? 'python.exe' : 'bin/python3')
-  );
-  if (process.platform === 'win32') {
-    const localPrograms = path.join(process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local'), 'Programs', 'Python');
-    if (fs.existsSync(localPrograms)) {
-      for (const dir of fs.readdirSync(localPrograms).sort().reverse()) {
-        candidates.push(path.join(localPrograms, dir, 'python.exe'));
-      }
-    }
-  }
-  for (const p of candidates) {
-    try {
-      if (p && fs.existsSync(p) && fs.statSync(p).size > 0) {
-        cachedPython = p;
-        return cachedPython;
-      }
-    } catch {}
-  }
-  for (const cmd of process.platform === 'win32' ? ['python', 'python3', 'py'] : ['python3', 'python']) {
-    try {
-      const check = spawnSync(cmd, ['-c', 'import sys; print(sys.executable)'], { encoding: 'utf8', timeout: 3000, windowsHide: true });
-      if (check.status === 0 && check.stdout.trim()) {
-        cachedPython = check.stdout.trim().split(/\r?\n/)[0];
-        return cachedPython;
-      }
-    } catch {}
-  }
-  cachedPython = null;
-  return null;
 }
 
 /**
@@ -205,42 +107,7 @@ function parseAvailableModelsResponse(raw) {
 }
 
 /**
- * 从会话 steps[].metadata.modelInfo 中提取实测上报的模型能力元数据
- * 严格隐私边界：仅提取 ModelInfo 数值与枚举标识，绝不读取/存储任何用户消息文本或令牌
- * @param {Array<object>} steps
- * @returns {Record<string, object>}
- */
-function extractObservedModelInfoFromSteps(steps) {
-  const out = Object.create(null);
-  if (!Array.isArray(steps)) return out;
-  for (const s of steps) {
-    const md = s?.metadata;
-    const mi = md?.modelInfo || md?.model_info;
-    if (!mi || typeof mi !== 'object') continue;
-    const rawId = String(
-      mi.modelId || mi.model_id || md.requestedModel?.model || md.generatorModel?.model || ''
-    ).trim();
-    const normKey = normalizeModelKeyForCap(rawId);
-    const maxTokens = toPositiveIntOrNull(mi.maxTokens ?? mi.max_tokens);
-    const maxOutputTokens = toNonNegativeIntOrNull(mi.maxOutputTokens ?? mi.max_output_tokens);
-    if (!normKey || (!maxTokens && maxOutputTokens === null)) continue;
-    out[normKey] = {
-      modelId: rawId,
-      normalizedId: normKey,
-      displayName: typeof (mi.displayName ?? mi.display_name) === 'string' ? (mi.displayName ?? mi.display_name).trim() : null,
-      maxTokens,
-      maxOutputTokens,
-      thinkingBudget: toNonNegativeIntOrNull(mi.thinkingBudget ?? mi.thinking_budget),
-      minThinkingBudget: toNonNegativeIntOrNull(mi.minThinkingBudget ?? mi.min_thinking_budget),
-      thinkingLevel: typeof (mi.thinkingLevel ?? mi.thinking_level) === 'string' ? (mi.thinkingLevel ?? mi.thinking_level) : null,
-      capabilitySource: 'step_model_info'
-    };
-  }
-  return out;
-}
-
-/**
- * 将 GetAvailableModels 与 Step.metadata.modelInfo 的能力字段安全合并到 cascadeModelConfigs
+ * 将 GetAvailableModels 的能力字段安全合并到 cascadeModelConfigs
  * 不做按模型名称猜上限；缺失能力保持 null
  */
 function mergeModelCapabilitiesIntoConfigs(configs, availableMap = null, stepCapsMap = null) {
@@ -342,305 +209,30 @@ function sanitizeCascadeModelConfig(c) {
   };
 }
 
-const filesCache = new Map();
-const conversations = new Map();
-let pythonQueue = Promise.resolve();
-
-function request(origin, method, body, token) {
-  const url = method ? `${origin}/exa.language_server_pb.LanguageServerService/${method}` : origin + '/';
-  const client = url.startsWith('http://') ? http : https;
-  const reqOpts = { method: method ? 'POST' : 'GET', headers: method ? { 'Content-Type': 'application/json', 'Connect-Protocol-Version': '1', 'x-codeium-csrf-token': token } : {} };
-  if (client === https) reqOpts.rejectUnauthorized = false;
-  return new Promise((resolve, reject) => {
-    const req = client.request(url, reqOpts, response => {
-      let chunks = [], size = 0;
-      response.on('data', chunk => { size += chunk.length; if (size > 96 * 1024 * 1024) { req.destroy(new Error('本地响应过大，扫描不完整')); return; } chunks.push(chunk); });
-      response.on('end', () => { const text = Buffer.concat(chunks).toString(); if (response.statusCode !== 200) reject(new Error(`本机接口 HTTP ${response.statusCode}`)); else { try { resolve(method ? JSON.parse(text) : text); } catch (e) { reject(e); } } });
-    });
-    req.setTimeout(20000, () => req.destroy(new Error('本机接口读取超时'))); req.on('error', reject); req.end(method ? JSON.stringify(body) : undefined);
-  });
-}
-
-function pythonScan(items) {
-  const task = pythonQueue.then(() => runPythonScan(items));
-  pythonQueue = task.catch(() => {});
-  return task;
-}
-
-function runPythonScan(items) {
-  return new Promise((resolve, reject) => {
-    const py = resolvePython();
-    if (!py) return reject(new Error('本地 Python 解析环境不可用'));
-    const source = fs.readFileSync(path.join(__dirname, 'attachment_scan.py'), 'utf8');
-    const child = spawn(py, ['-I', '-c', source, '--json-lines'], { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
-    let output = '', errors = '', timedOut = false;
-    const completed = [];
-    const timer = setTimeout(() => { timedOut = true; child.kill(); }, 120000);
-    child.stdout.on('data', chunk => { output += chunk; let at; while ((at = output.indexOf('\n')) >= 0) { const line = output.slice(0, at).trim(); output = output.slice(at + 1); if (line) { try { completed.push(JSON.parse(line)); } catch {} } } }); child.stderr.on('data', chunk => { if (errors.length < 1000) errors += chunk; });
-    child.on('error', e => { clearTimeout(timer); reject(e); });
-    child.on('close', code => { clearTimeout(timer); const reason = timedOut ? '扫描超时，未完成部分不计为零' : code !== 0 ? '解析进程失败：' + errors.slice(0, 160) : '附件没有返回解析结果'; const done = new Set(completed.map(v => v.key)); for (const item of items) if (!done.has(item.key)) completed.push({ key: item.key, ...empty(), status: 'unknown', unknownParts: [reason] }); resolve(completed); });
-    child.stdin.on('error', () => {}); child.stdin.end(JSON.stringify(items));
-  });
-}
-
-function getImageDimensions(buf) {
-  try {
-    if (buf.length >= 24 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) {
-      return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
-    }
-    if (buf.length >= 10 && (buf.toString('ascii', 0, 6) === 'GIF87a' || buf.toString('ascii', 0, 6) === 'GIF89a')) {
-      return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
-    }
-    if (buf.length >= 26 && buf[0] === 0x42 && buf[1] === 0x4D) {
-      return { width: Math.abs(buf.readInt32LE(18)), height: Math.abs(buf.readInt32LE(22)) };
-    }
-    if (buf.length >= 4 && buf[0] === 0xFF && buf[1] === 0xD8) {
-      let offset = 2;
-      while (offset < buf.length - 8) {
-        if (buf[offset] === 0xFF && [0xC0, 0xC1, 0xC2, 0xC3].includes(buf[offset + 1])) {
-          return { height: buf.readUInt16BE(offset + 5), width: buf.readUInt16BE(offset + 7) };
-        } else if (buf[offset] === 0xFF) {
-          const len = buf.readUInt16BE(offset + 2);
-          offset += 2 + len;
-        } else {
-          offset++;
-        }
-      }
-    }
-  } catch {}
-  return { width: null, height: null };
-}
-
-function calcImageTokens(w, h) {
-  if (!w || !h) return [258, 1120];
-  if (w <= 384 && h <= 384) return [258, 258];
-  const tiles = Math.ceil(w / 768) * Math.ceil(h / 768);
-  const tok = tiles * 258;
-  return [tok, Math.max(tok, (w > 384 || h > 384) ? 1120 : 258)];
-}
-
-async function scanFiles(media, options = {}) {
-  const isRemote = options && options.isRemote === true;
-  const results = new Map(), work = [];
-  for (const item of media) {
-    try {
-      if (item.inlineData) {
-        const mime = String(item.mime || '').toLowerCase();
-        const buf = Buffer.from(item.inlineData, 'base64');
-        if (mime.startsWith('image/')) {
-          const dims = getImageDimensions(buf);
-          const [low, high] = calcImageTokens(dims.width, dims.height);
-          results.set(item.uri, {
-            status: 'parsed',
-            width: dims.width,
-            height: dims.height,
-            chars: 0,
-            dimensions: dims.width ? `${dims.width}×${dims.height}` : null,
-            bytes: buf.length,
-            low,
-            high,
-            unknownParts: []
-          });
-          continue;
-        } else if (mime.startsWith('text/') || mime === 'application/json' || mime === 'text/csv') {
-          const text = buf.toString('utf8');
-          const m = measure(text);
-          results.set(item.uri, {
-            status: 'parsed',
-            chars: text.length,
-            bytes: buf.length,
-            low: m.low,
-            high: m.high,
-            unknownParts: []
-          });
-          continue;
-        } else {
-          const est = Math.ceil(buf.length / 4);
-          results.set(item.uri, {
-            status: 'parsed',
-            chars: buf.length,
-            bytes: buf.length,
-            low: Math.ceil(est * 0.7),
-            high: Math.ceil(est * 1.4),
-            unknownParts: []
-          });
-          continue;
-        }
-      }
-      if (isRemote) {
-        results.set(item.uri, {
-          ...empty(),
-          status: 'unknown',
-          unknownParts: ['SSH 远端文件暂不支持本机磁盘扫描']
-        });
-        continue;
-      }
-      if (!item.uri || /^https?:/i.test(item.uri)) throw new Error('无可用本地附件，内容未知');
-      const targetPath = item.uri.startsWith('file:') ? fileURLToPath(item.uri) : item.uri;
-      if (!fs.existsSync(targetPath)) throw new Error('附件文件不存在或已移动');
-      const target = fs.realpathSync(targetPath);
-      const stat = fs.statSync(target);
-      if (!stat.isFile()) throw new Error('附件不是普通文件');
-      const key = `${target.toLowerCase()}|${stat.size}|${stat.mtimeMs}`;
-      if (filesCache.has(key)) results.set(item.uri, filesCache.get(key));
-      else work.push({ key: item.uri, path: target, cacheKey: key });
-    } catch (e) { results.set(item.uri, { ...empty(), status: 'unknown', unknownParts: [item.reason || e.message] }); }
-  }
-  if (work.length) {
-    try {
-      const parsed = await pythonScan(work.map(({ key, path }) => ({ key, path })));
-      for (const result of parsed) { const job = work.find(w => w.key === result.key); if (job) { setBoundedMap(filesCache, job.cacheKey, result, MAX_FILES_CACHE); results.set(job.key, result); } }
-    } catch (e) { for (const job of work) results.set(job.key, { ...empty(), status: 'unknown', unknownParts: [e.message] }); }
-  }
-  return media.map(item => ({ ...item, ...(results.get(item.uri) || { ...empty(), status: 'unknown', unknownParts: ['未返回附件统计'] }), uri: undefined, key: undefined }));
-}
-
-async function collect(origin, id, options = {}) {
-  if (!/^https?:\/\/(?:127\.0\.0\.1|localhost):\d+$/.test(origin) || !/^[a-f\d-]{36}$/i.test(id)) throw new Error('无效本机会话');
-  const isRemote = options.isRemote === true || Boolean(options.remoteHostId);
-  const remoteHostId = options.remoteHostId ? String(options.remoteHostId) : null;
-  const key = isRemote ? `ssh:${remoteHostId || 'remote'}:${origin}/${id}` : `${origin}/${id}`;
-  const previous = conversations.get(key);
-  if (previous?.pending) return previous.pending;
-  if (options.force && !isRemote) filesCache.clear();
-  if (!options.force && previous?.result && Date.now() - previous.at < 12000) return previous.result;
-  const task = (async () => {
-    let call;
-    if (typeof options.requestFn === 'function') {
-      call = (method, body) => options.requestFn(method, body);
-    } else {
-      const { resolveCsrfToken } = require('./local-api');
-      const token = await resolveCsrfToken(origin);
-      call = (method, body) => request(origin, method, body, token);
-    }
-    const full = await call('GetCascadeTrajectory', { cascadeId: id, trajectoryVerbosity: 3 });
-    const trajectory = full.trajectory;
-    if (!trajectory) throw new Error('未取得会话历史，无法完整统计');
-    const wsPath = extractWorkspaceFromTrajectory(trajectory, { isRemote });
-    if (wsPath && !isRemote) setBoundedMap(conversationWorkspaces, id.toLowerCase(), wsPath, MAX_CONVERSATION_WORKSPACES);
-    const steps = trajectory.steps || [];
-    const expected = Number(full.numTotalSteps ?? steps.length);
-    while (steps.length < expected) {
-      const page = await call('GetCascadeTrajectorySteps', { cascadeId: id, stepOffset: steps.length, trajectoryVerbosity: 3 });
-      if (!page.steps?.length) throw new Error(`历史仅取得 ${steps.length}/${expected} 步，扫描未完成`);
-      steps.push(...page.steps);
-    }
-    const session = analyzeSteps(steps);
-    const stepCapabilities = extractObservedModelInfoFromSteps(steps);
-    const attachments = await scanFiles(session.media, { isRemote });
-    const attachmentTotal = empty();
-    for (const a of attachments) { const n = a.references || 1; add(attachmentTotal, Object.fromEntries(['chars', 'bytes', 'low', 'high'].map(k => [k, (a[k] || 0) * n]))); }
-    const total = add({ ...session.total }, attachmentTotal);
-    let latest = null;
-    const count = Number(full.numTotalGeneratorMetadata ?? trajectory.generatorMetadata?.length ?? 0);
-    const tail = await call('GetCascadeTrajectoryGeneratorMetadata', { cascadeId: id, generatorMetadataOffset: Math.max(0, count - 3), includeMessages: false });
-    let activeHostStatus = isRemote
-      ? (remoteHostUserStatusCache.get(remoteHostId || origin)?.data || null)
-      : cachedHostUserStatus;
-    let knownCascadeConfigs = Array.isArray(activeHostStatus?.cascadeModelConfigs) ? activeHostStatus.cascadeModelConfigs : [];
-    const hasAnyCap = knownCascadeConfigs.some(c => Number.isFinite(c?.maxTokens) && c.maxTokens > 0);
-    if (!knownCascadeConfigs.length || !hasAnyCap) {
-      try {
-        const freshStatus = await fetchUserStatusFromHost(
-          isRemote && typeof options.requestFn === 'function'
-            ? { requestFn: options.requestFn, remoteHostId: remoteHostId || origin, force: options.force === true }
-            : {}
-        );
-        if (freshStatus) activeHostStatus = freshStatus;
-        if (Array.isArray(freshStatus?.cascadeModelConfigs) && freshStatus.cascadeModelConfigs.length) {
-          knownCascadeConfigs = freshStatus.cascadeModelConfigs;
-        }
-      } catch {}
-    }
-    const mergedCascadeConfigs = mergeModelCapabilitiesIntoConfigs(
-      knownCascadeConfigs,
-      activeHostStatus?.availableModelDetails || null,
-      stepCapabilities
-    );
-    let latestModel = null;
-    let latestCallId = null;
-    const tailRows = tail.generatorMetadata || [];
-    const tailOffset = Math.max(0, count - 3);
-    for (let idx = tailRows.length - 1; idx >= 0; idx--) {
-      const m = tailRows[idx];
-      latest = summarize(m, {
-        cascadeModelConfigs: mergedCascadeConfigs,
-        turnCount: tailOffset + idx + 1
-      });
-      if (latest) {
-        latestModel = m.chatModel;
-        const callMeta = parseGeneratorCall(m, id, 'desktop', { cascadeModelConfigs: mergedCascadeConfigs });
-        latestCallId = callMeta?.callId || null;
-        break;
-      }
-    }
-    const system = latestModel ? measure((latestModel.promptSections || []).map(p => p.content || '').join('\n') || latestModel.systemPrompt || '') : empty();
-    const definitions = latestModel ? measure(JSON.stringify(latestModel.tools || [])) : empty();
-    session.groups.system = system; session.groups.definitions = definitions;
-    add(total, system); add(total, definitions);
-    if (session.currentError) {
-      const fromStep = summarize({ chatModel: { retryInfos: [{ error: session.currentError.text }] } }, {
-        currentModel: latest?.model || latestModel?.modelDisplayName || latestModel?.model || '',
-        cascadeModelConfigs: mergedCascadeConfigs,
-        previousValidContext: latest
-      });
-      if (fromStep?.error) {
-        latest = {
-          ...(latest || {}),
-          error: fromStep.error,
-          errorClassification: fromStep.errorClassification,
-          exceeded: fromStep.exceeded,
-          network: fromStep.network,
-          serviceLimit: fromStep.serviceLimit || latest?.serviceLimit || null,
-          status: fromStep.status,
-          actual: fromStep.exceeded ? null : (latest?.actual ?? null),
-          percent: fromStep.exceeded ? null : (latest?.percent ?? null),
-          estimated: latest?.actual == null
-        };
-      }
-    }
-    const unknownFiles = attachments.filter(a => a.status !== 'parsed').length;
-    const compactCascadeConfigs = mergedCascadeConfigs.map(sanitizeCascadeModelConfig).filter(Boolean);
-    const modelCapabilitiesById = {
-      ...(activeHostStatus?.availableModelDetails || {}),
-      ...stepCapabilities
-    };
-    const result = {
-      version: '0.8.3',
-      conversation: id,
-      workspacePath: wsPath || null,
-      isRemote,
-      remoteHostId,
-      remoteLabel: options.remoteLabel || null,
-      latest,
-      latestCallId,
-      generatorCount: count,
-      cascadeModelConfigs: compactCascadeConfigs,
-      modelCapabilitiesById,
-      session: {
-        ...session,
-        media: undefined,
-        attachmentTotal,
-        total,
-        attachments,
-        unknownFiles,
-        complete: unknownFiles === 0,
-        scope: isRemote
-          ? 'SSH 远端全量可读取历史 + 内联媒体 + 当前系统提示与工具定义（远端磁盘附件不走本机扫描）'
-          : '全量可读取历史 + 上传附件 + 当前系统提示与工具定义；不将每轮重复输入累加；非服务端分词结果'
-      },
-      scannedAt: Date.now(),
-      errors: []
-    };
-    setBoundedMap(conversations, key, { result, at: Date.now() }, MAX_CONVERSATIONS_CACHE, (v) => Boolean(v && v.pending));
-    return result;
-  })();
-  setBoundedMap(conversations, key, { ...previous, pending: task }, MAX_CONVERSATIONS_CACHE, (v) => Boolean(v && v.pending));
-  try { return await task; } catch (e) { conversations.delete(key); throw e; }
-}
-
 let cachedTokenHistory = null;
 let cachedTokenHistoryAt = 0;
+const archiveFileCache = new Map();
+
+function readArchiveJsonCached(filePath, backupPath) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      archiveFileCache.delete(filePath);
+      return { exists: false, ok: false, data: null };
+    }
+    const st = fs.statSync(filePath);
+    const cached = archiveFileCache.get(filePath);
+    if (cached && cached.size === st.size && cached.mtimeMs === st.mtimeMs) {
+      return { exists: true, ok: true, data: cached.data };
+    }
+    const res = safeReadJsonSync(filePath, null, { backupPath });
+    if (res.exists && res.ok && res.data && typeof res.data === 'object') {
+      setBoundedMap(archiveFileCache, filePath, { size: st.size, mtimeMs: st.mtimeMs, data: res.data }, 16);
+    }
+    return res;
+  } catch {
+    return safeReadJsonSync(filePath, null, { backupPath });
+  }
+}
 
 function formatLocalDateKey(dateObj) {
   const y = dateObj.getFullYear();
@@ -1545,7 +1137,7 @@ async function collectTokenHistoryAsync(options = {}) {
     return base;
   }
   const hasPendingLocalQuotaRefresh = !options.agDir && pendingQuotaForceRefreshHosts.has('local');
-  if (!options.force && !hasPendingLocalQuotaRefresh && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < 15000) {
+  if (!options.force && !hasPendingLocalQuotaRefresh && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < TOKEN_HISTORY_CACHE_TTL_MS) {
     return cachedTokenHistory;
   }
   if (!options.agDir && activeScanPromise) {
@@ -1563,9 +1155,9 @@ async function collectTokenHistoryAsync(options = {}) {
   const archivePathV1 = path.join(agDir, 'token_usage_archive_v1.json');
   const archivePathV2 = path.join(agDir, 'token_usage_archive_v2.json');
 
-  // 1. 读取旧 v1 归档（并在首次迁移时自动生成 .bak 备份）
+  // 1. 读取旧 v1 归档（基于 size+mtime 缓存，避免重复同步解析；首次迁移自动生成 .bak 备份）
   const bakPathV1 = path.join(agDir, 'token_usage_archive_v1.bak.json');
-  const readV1 = safeReadJsonSync(archivePathV1, null, { backupPath: bakPathV1 });
+  const readV1 = readArchiveJsonCached(archivePathV1, bakPathV1);
   let legacyV1Archive = { firstUseDate: null, dailyMap: {}, maxConversations: 0 };
   if (readV1.exists) {
     if (readV1.ok && readV1.data && typeof readV1.data === 'object') {
@@ -1578,7 +1170,7 @@ async function collectTokenHistoryAsync(options = {}) {
 
   // 2. 读取已有的 v2 归档
   const bakPathV2 = path.join(agDir, 'token_usage_archive_v2.bak.json');
-  const readV2 = safeReadJsonSync(archivePathV2, null, { backupPath: bakPathV2 });
+  const readV2 = readArchiveJsonCached(archivePathV2, bakPathV2);
   let archiveV2 = {
     version: '2.0.0',
     firstUseDate: legacyV1Archive.firstUseDate || null,
@@ -2052,7 +1644,7 @@ async function collectTokenHistoryAsync(options = {}) {
 function collectTokenHistory(options = {}) {
   // 同步封装：如果缓存可用直接返回，否则启动异步刷新并返回缓存或空壳
   const hasPendingLocalQuotaRefresh = !options.agDir && pendingQuotaForceRefreshHosts.has('local');
-  if (!options.force && !hasPendingLocalQuotaRefresh && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < 15000) {
+  if (!options.force && !hasPendingLocalQuotaRefresh && !options.agDir && cachedTokenHistory && Date.now() - cachedTokenHistoryAt < TOKEN_HISTORY_CACHE_TTL_MS) {
     return cachedTokenHistory;
   }
   // 触发异步更新
@@ -2073,15 +1665,11 @@ function collectTokenHistory(options = {}) {
 module.exports = {
   sanitizeCascadeModelConfig,
   parseAvailableModelsResponse,
-  extractObservedModelInfoFromSteps,
   mergeModelCapabilitiesIntoConfigs,
   fetchUserStatusFromHost,
-  collect,
   collectTokenHistory,
   collectTokenHistoryAsync,
-  scanFiles,
-  pythonScan,
-  resolvePython,
+  TOKEN_HISTORY_CACHE_TTL_MS,
   isCompanionOrTempFile,
   formatLocalDateKey,
   recordModelCalls,

@@ -28,7 +28,7 @@
    - 卡片内置当前模型 **Effort 思考档位**速切步进按钮，并配备二级快捷键浮层，支持录制全局组合键以直达指定模型/档位、上下切换模型或调整 Effort。
 
 5. **实时上下文监控、缓存命中率告警与纯 Token 历史看板**
-   - 顶栏悬浮胶囊（Context Meter）实时展示当前会话上下文 Token 占用进度、输入/输出速率（`tok/s`）、上下文缓存命中率、附件扫描预算估算（[`attachment_scan.py`](payload/dist/attachment_scan.py)），以及 8 类失败原因自动分类诊断。
+   - 顶栏悬浮胶囊（Context Meter）实时展示当前会话上下文 Token 占用进度、输入/输出速率（`tok/s`）、上下文缓存命中率，以及 8 类失败原因自动分类诊断。
    - 顶栏内置纯图标 `/compact` 快捷压缩按钮；缓存命中率智能区分新会话首轮冷启动与多轮缓存失效（琥珀色/红色告警与悬停构成气泡），并在会话详情提供四维缓存速览卡片。
    - 历史看板统计桌面端与 CLI 的纯 Token 消耗（输入 / 输出 / 缓存读取），提供日/周/月/年/累计热力图、按模型与档位分组的输出速率中位数对比，以及订阅套餐与 Prompt / Flow 额度池详情。
 
@@ -164,7 +164,7 @@ bash ./build-hakimi.sh --stage-only --local
   - `hakimi-builder.js` / `hakimi-updater.js` / `hakimi-upgrade-helper.js` / `hakimi-icon-manager.js`：官方源拉取与 Google 验签、GitHub `main` 提交对比与沙盒试构建、双源静默升级状态机与 `dist/updater.js` 接管桥接、应用内图标实时预览与沙盒替换/还原、零依赖脱离式 APFS 原子冷替换与 Orphan GC
   - `meter-region-unlock.js` / `meter-cli-unlock.js` / `meter-ssh.js` / `meter-enhance.js`：桌面端与 `agy` CLI 地区解锁、Remote SSH 远端 ELF64 自动解锁与会话通道、后台语言服务检测与重启
   - `meter-account-cold-helper.js` / `meter-account-switcher.js`：macOS 钥匙串多账号冷切换独立工作进程与编排引擎
-  - `meter-main.js` / `local-api.js` / `meter-collector.js` / `meter-core.js` / `meter-storage.js` / `attachment_scan.py`：主进程 IPC、本地 API、对话轨迹采集、纯 Token 统计分析与附件预算扫描
+  - `meter-main.js` / `local-api.js` / `meter-collector.js` / `meter-core.js` / `meter-storage.js`：主进程 IPC、本地 API、Token 历史与额度采集及纯 Token 统计分析
   - `i18n/i18n-runtime.js` & `i18n/zh-CN.json`：桌面端简体中文 DOM 翻译运行时与词库
 - `src/renderer/`：Context Meter 悬浮胶囊、顶栏升级提示与设置更新卡片、左下角模型额度与 Effort 速切卡片、自定义快捷键浮层、多账号冷切换浮层、速率对比与纯 Token 热力图源码
 - `unlock/agy-cli/agy-patch.py`：独立 Python 版 `agy` CLI 自适应地区解锁工具

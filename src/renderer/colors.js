@@ -421,8 +421,12 @@
     if (typeof syncModelQuotaTheme === 'function') syncModelQuotaTheme();
     applyHeatmapPalette();
     syncSwatchAndResetButtons();
-    if (activeHeatView === 'weekly') renderHeatmapWeekly();
-    else if (activeHeatView === 'cum') renderHeatmapCum();
+    if (isTokensPanelVisible()) {
+      if (activeHeatView === 'weekly') renderHeatmapWeekly();
+      else if (activeHeatView === 'cum') renderHeatmapCum();
+    } else if (activeHeatView === 'weekly' || activeHeatView === 'cum') {
+      heatViewDirty = true;
+    }
   }
 
   function setCustomColor(key, value) {
@@ -486,8 +490,12 @@
     });
     applyHeatmapPalette();
     syncSwatchAndResetButtons();
-    if (activeHeatView === 'weekly') renderHeatmapWeekly();
-    else if (activeHeatView === 'cum') renderHeatmapCum();
+    if (isTokensPanelVisible()) {
+      if (activeHeatView === 'weekly') renderHeatmapWeekly();
+      else if (activeHeatView === 'cum') renderHeatmapCum();
+    } else if (activeHeatView === 'weekly' || activeHeatView === 'cum') {
+      heatViewDirty = true;
+    }
     syncNativeOverlayTheme();
   }
 

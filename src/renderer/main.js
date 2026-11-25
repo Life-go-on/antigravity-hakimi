@@ -78,21 +78,28 @@
     }
     return String(Math.round(v));
   };
-  const range = value => value ? `≈ ${short(value.low)}–${short(value.high)}` : '—';
-  const token = value => value == null ? t('common.notProvided') : `${fmt(value)} tokens`;
+  const HISTORY_IDLE_SYNC_INTERVAL_MS = 120000;
+  const HISTORY_RESUME_STALE_MS = 60000;
+  const HISTORY_PANEL_FORCE_STALE_MS = 15000;
+  const REQUEST_POLL_VISIBLE_MS = 3000;
+  const REQUEST_POLL_HIDDEN_MS = 30000;
   const state = {
     route: null, count: 0, latest: null, requestAt: 0, requestError: '',
-    requestBusy: false, requestNext: 0, scanBusy: false, scanNext: 0,
-    scanError: '', scan: null, generation: 0, controllers: new Set(),
+    requestBusy: false, requestNext: 0, generation: 0, controllers: new Set(),
     modelQuotaConfigs: [], modelQuotaGroups: [], quotaSynced: false,
     disposed: false, layoutMode: 'wide', tooltipOpen: false,
     reportedFinalCallIds: new Set(), reportedFinalCallOutputs: new Map()
   };
   const route = () => location.pathname.match(/^\/c\/([a-f\d-]{36})(?:\/|$)/i)?.[1] || null;
   let activeHeatView = 'daily';
+  let heatViewDirty = true;
   let heatPageOffset = 0;
   let heatMonthOffset = 0;
   let heatYearOffset = 0;
+  function isTokensPanelVisible() {
+    const p = el('panel-tokens');
+    return Boolean(p && !p.hidden);
+  }
 
   /* @INSERT_COLORS_MODULE */
   /* @INSERT_TOPBAR_LAYOUT_MODULE */
@@ -100,34 +107,6 @@
   // =========================================================================
   // 模块 3: 面板、气泡与溢出菜单交互
   // =========================================================================
-  function withStepError(value, metadata) {
-    const error = state.scan?.session?.currentError;
-    if (!error || value?.error) return value;
-    const lastStep = Math.max(-1, ...(metadata?.stepIndices || []), metadata?.chatModel?.chatStartMetadata?.startStepIndex ?? -1);
-    if (lastStep > error.index) return value;
-    const failure = summarize({ chatModel: { retryInfos: [{ error: error.text }] } }, {
-      currentModel: value?.model || state.latest?.model || '',
-      cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [],
-      previousValidContext: value
-    });
-    return {
-      ...(value || {}),
-      error: failure.error,
-      errorClassification: failure.errorClassification,
-      exceeded: failure.exceeded,
-      network: failure.network,
-      serviceLimit: failure.serviceLimit || value?.serviceLimit || null,
-      status: failure.status,
-      // 解耦：保留已有有效上下文数据，不归零、不清空
-      used: value?.used ?? failure?.used ?? null,
-      actual: failure.exceeded ? null : (value?.actual ?? null),
-      estimate: value?.estimate ?? failure?.estimate ?? null,
-      budget: value?.budget ?? failure?.budget ?? null,
-      percent: failure.exceeded ? 100 : (value?.percent ?? null),
-      estimated: value?.actual == null
-    };
-  }
-
   function isAnyPanelOpen() {
     return !el('panel').hidden || !el('panel-tokens').hidden;
   }
@@ -157,8 +136,13 @@
       bTokens.setAttribute('aria-expanded', 'true');
       syncHostStackingElevation(true);
       positionFloatingPanels();
-      void syncTokenHistoryFromHost(false);
-      renderActiveHeatView(true);
+      if (heatViewDirty) {
+        renderActiveHeatView(true);
+      } else {
+        updateHeatTabThumb();
+      }
+      const shouldForceTokenRefresh = lastHistorySync === 0 || (Date.now() - lastHistorySync >= HISTORY_PANEL_FORCE_STALE_MS);
+      void syncTokenHistoryFromHost(shouldForceTokenRefresh);
     } else if (target === 'context') {
       hideContextTooltip();
       hideTopbarActionTooltip(true);
@@ -495,7 +479,7 @@
   function resolveStableModelKeyClient(rawOrLatest) {
     if (!rawOrLatest) return null;
     if (typeof resolveStableModelId === 'function') {
-      const resolved = resolveStableModelId(rawOrLatest, state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || []);
+      const resolved = resolveStableModelId(rawOrLatest, state.cascadeModelConfigs || []);
       if (resolved) return resolved;
     }
     if (typeof rawOrLatest === 'string') {
@@ -546,7 +530,7 @@
       if (mEffort) effort = mEffort[1];
     }
 
-    const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+    const configs = state.cascadeModelConfigs || [];
     const stableId = resolveStableModelKeyClient(rawText) || (typeof resolveStableModelId === 'function' ? resolveStableModelId(rawText, configs) : null);
     const g = groupProductSafe({
       modelId: stableId || rawText,
@@ -567,7 +551,7 @@
   /** 将已知模型目录、当前会话和历史调用按产品维度分组（只读） */
   function getKnownModelProducts() {
     const productMap = new Map();
-    const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+    const configs = state.cascadeModelConfigs || [];
     const slugToKey = new Map();
     const ensureProduct = (meta, fromAccountCatalog = false) => {
       const g = groupProductSafe(meta);
@@ -915,27 +899,6 @@
   // =========================================================================
   // 模块 4: 数据渲染、完整本地 Token 历史读取与首次使用日起算时间轴
   // =========================================================================
-  function renderFiles(session) {
-    const parent = el('files'); parent.replaceChildren();
-    if (!session) { const item = document.createElement('p'); item.textContent = t('files.reading'); parent.appendChild(item); return; }
-    if (!Array.isArray(session.attachments) || !session.attachments.length) { const item = document.createElement('p'); item.textContent = t('files.empty'); parent.appendChild(item); return; }
-    for (const file of session.attachments) {
-      const item = document.createElement('div'); item.className = 'file';
-      const name = document.createElement('div'); name.className = 'file-name'; name.textContent = `${file.name} ${file.references > 1 ? t('files.refs', { n: file.references }) : ''}`;
-      const detail = document.createElement('div'); detail.className = 'file-detail';
-      const sizeInfo = file.width && file.height
-        ? t('files.px', { w: file.width, h: file.height })
-        : (typeof file.chars === 'number' && file.chars > 0 ? t('files.chars', { n: fmt(file.chars) }) : '');
-      const tokenInfo = range(file) ? `${range(file)} token` : t('files.tokUnknown');
-      const sheetsPart = file.sheets != null ? t('files.sheets', { sheets: file.sheets, cells: fmt(file.cells) }) : '';
-      const hiddenPart = file.hiddenSheets ? t('files.hiddenSheets', { n: file.hiddenSheets }) : '';
-      detail.textContent = `${file.source === 'assistant' ? t('files.assistantPrefix') : ''}${tokenInfo}${sizeInfo ? ` · ${sizeInfo}` : ''}${sheetsPart}${hiddenPart}`;
-      item.appendChild(name); item.appendChild(detail);
-      if (file.unknownParts?.length) { const unknown = document.createElement('div'); unknown.className = 'file-unknown'; unknown.textContent = t('files.unknownPrefix', { parts: file.unknownParts.join('；') }); item.appendChild(unknown); }
-      parent.appendChild(item);
-    }
-  }
-
   function setHoverExtra(text) {
     const extra = el('hover-extra');
     if (extra && extra.textContent !== text) {
@@ -1078,7 +1041,7 @@
     return { firstStr, firstDate, today, winStart, winEnd, totalDays, canPrev, canNext };
   }
 
-  function applyTokenHistoryPayload(payload) {
+  function applyTokenHistoryPayload(payload, opts = {}) {
     if (!payload || typeof payload !== 'object') return false;
     if (payload.loading) {
       if (Number(ANTIGRAVITY_TOKEN_DATA.summary?.grandTotalTokens) > 0) return false;
@@ -1086,7 +1049,7 @@
 
     if (Array.isArray(payload.speedRecords)) {
       ANTIGRAVITY_TOKEN_DATA.speedRecords = payload.speedRecords;
-      if (!isContextSettingsView && activeContextTab === 'speed') {
+      if (!el('panel')?.hidden && !isContextSettingsView && activeContextTab === 'speed') {
         renderSpeedComparisonTab();
       }
     }
@@ -1248,8 +1211,11 @@
     if (tYearVal) tYearVal.textContent = fmtCardM(yearTokens);
     if (tYearSub) tYearSub.textContent = t('tokens.card.yearSub', { n: totalDays });
 
-    computeTimelineWindow();
-    renderActiveHeatView(true);
+    if (opts.forceRenderHeatmap || isTokensPanelVisible()) {
+      renderActiveHeatView(true);
+    } else {
+      heatViewDirty = true;
+    }
     return true;
   }
 
@@ -1369,8 +1335,8 @@
       return;
     }
     historySyncBusy = true;
+    lastHistorySync = Date.now();
     try {
-      await restoreSettingsFromHost();
       if (typeof window !== 'undefined' && window.__AGContextMeterHistory) {
         if (!ANTIGRAVITY_TOKEN_DATA.updatedAt && !ANTIGRAVITY_TOKEN_DATA.summary?.grandTotalTokens) {
           applyTokenHistoryPayload(window.__AGContextMeterHistory);
@@ -1428,7 +1394,7 @@
   el('btn-github-repo-ctx')?.addEventListener('click', () => openGithubRepo());
 
   /* @INSERT_HEATMAP_MODULE */
-  function updateRingAndBubble(d, session, pct, danger, stale, incomplete) {
+  function updateRingAndBubble(d, pct, danger, stale) {
     const ringFill = el('ring-fill');
     const tipTitle = el('ctx-tip-title');
     const tipPct = el('ctx-tip-pct');
@@ -1470,7 +1436,7 @@
     // 2. 悬停信息气泡三层文案（标题 — 使用比例 — 用量与容量）
     if (!tipTitle || !tipPct || !tipDetail) return;
 
-    const disp = resolveDisplayStatus(d, session);
+    const disp = resolveDisplayStatus(d);
     if (disp.isError || disp.kind === 'canceled') {
       tipTitle.textContent = disp.tipTitle;
       tipPct.textContent = disp.tipPct;
@@ -1484,9 +1450,7 @@
     } else if (stale) {
       tipTitle.textContent = t('tip.title.stale');
       tipPct.textContent = t('tip.pct.staleUnknown');
-      tipDetail.textContent = session?.total
-        ? t('tip.detail.sessionEst', { low: fmtBubbleToken(session.total.low), high: fmtBubbleToken(session.total.high) })
-        : t('tip.detail.waitBg');
+      tipDetail.textContent = t('tip.detail.waitBg');
     } else if (d?.actual != null && d?.budget) {
       const rawPct = pct != null ? pct : (d.actual / d.budget) * 100;
       const usedRound = rawPct > 0 && rawPct < 1 ? 1 : Math.min(100, Math.max(0, Math.round(rawPct)));
@@ -1504,7 +1468,7 @@
       tipDetail.textContent = t('tip.detail.usedOfBudget', {
         used: fmtBubbleToken(d.actual),
         budget: fmtBubbleToken(d.budget),
-        inc: incomplete ? t('tip.detail.incSuffix') : ''
+        inc: ''
       });
     } else if (d?.actual != null && !d?.budget) {
       tipTitle.textContent = t('tip.title.normal');
@@ -1515,10 +1479,6 @@
       tipPct.textContent = t('tip.pct.estOnly');
       const budgetPart = d.budget ? t('tip.detail.estBudgetPart', { budget: fmtBubbleToken(d.budget) }) : t('tip.detail.estNoBudgetPart');
       tipDetail.textContent = t('tip.detail.estUsed', { used: fmtBubbleToken(d.estimate), budget: budgetPart });
-    } else if (session?.total) {
-      tipTitle.textContent = t('tip.title.est');
-      tipPct.textContent = t('tip.pct.waitStats');
-      tipDetail.textContent = t('tip.detail.sessionCum', { low: fmtBubbleToken(session.total.low), high: fmtBubbleToken(session.total.high) });
     } else {
       tipTitle.textContent = t('tip.title.normal');
       tipPct.textContent = t('tip.pct.notReady');
@@ -1635,12 +1595,6 @@
         if (cSess) cSess.textContent = '—';
         if (cTakeaway) cTakeaway.textContent = t('cache.takeaway.idle');
       }
-    }
-    const cacheTechEl = el('cache-tech-detail');
-    if (cacheTechEl) {
-      cacheTechEl.textContent = cm
-        ? t('tech.cacheDetail.val', { pct: cm.hitRate.toFixed(1), cached: fmt(cm.cachedTokens), uncached: fmt(cm.uncachedTokens) })
-        : '—';
     }
   }
 
@@ -1778,7 +1732,6 @@
       const doneMsg = t('session.quick.compactDone');
       if (source === 'topbar') showTopbarTransientFeedback(true, doneMsg, el('btn-topbar-compact'));
       void requestPoll(state.generation, cascadeId);
-      void scan(state.generation, cascadeId, true);
       return { ok: true };
     } catch (err) {
       const msg = t('session.quick.compactFail', { err: translateBackendText(err?.message) || err?.message || t('msg.unknownErr') });
@@ -1812,10 +1765,9 @@
       return;
     }
 
-    const d = state.latest, session = state.scan?.session;
-    const disp = resolveDisplayStatus(d, session);
-    const stale = state.requestError || state.requestAt && Date.now() - state.requestAt > 20000;
-    const incomplete = session?.unknownFiles > 0;
+    const d = state.latest;
+    const disp = resolveDisplayStatus(d);
+    const stale = state.requestError || state.requestAt && Date.now() - state.requestAt > 45000;
     const danger = disp.isError || d?.exceeded;
 
     let pct = null;
@@ -1827,28 +1779,15 @@
       pct = Math.min(100, Math.max(0, (d.actual / d.budget) * 100));
     }
 
-    const barColor = danger ? '#ff4d4f' : pct != null && pct >= 90 ? '#ff4d4f' : pct != null && pct >= 75 || stale || incomplete ? '#faad14' : '#69c0ff';
-    const tone = danger ? '#ff9292' : stale || incomplete || d?.estimated ? '#f2c46d' : '#b7c1ff';
+    const barColor = danger ? '#ff4d4f' : pct != null && pct >= 90 ? '#ff4d4f' : pct != null && pct >= 75 || stale ? '#faad14' : '#69c0ff';
+    const tone = danger ? '#ff9292' : stale || d?.estimated ? '#f2c46d' : '#b7c1ff';
     host.style.setProperty('--tone', tone);
     host.style.setProperty('--bar-color', barColor);
 
     const barFill = el('bar-fill');
     if (barFill) barFill.style.width = pct != null ? `${pct}%` : (d?.exceeded ? '100%' : '0%');
 
-    updateRingAndBubble(d, session, pct, danger, stale, incomplete);
-
-    const status = disp.isError
-      ? disp.statusText
-      : stale ? t('badge.status.stale')
-      : state.scanError ? t('badge.status.scanErr', { err: translateBackendText(state.scanError) })
-      : incomplete ? t('badge.status.incomplete', { count: session.unknownFiles })
-      : d?.estimated ? t('badge.status.estimated')
-      : t('badge.status.normal');
-    el('status').textContent = status;
-
-    const corpus = session?.total
-      ? t('badge.corpus.range', { range: range(session.total), inc: incomplete ? t('badge.corpus.incPlus') : '' })
-      : state.scanBusy ? t('badge.corpus.scanning') : t('badge.corpus.pending');
+    updateRingAndBubble(d, pct, danger, stale);
 
     const badgePctVal = el('badge-pct-val');
     if (disp.isError || disp.kind === 'canceled') {
@@ -1858,17 +1797,17 @@
     } else if (stale) {
       el('amount').textContent = t('badge.delayed');
       if (badgePctVal) badgePctVal.textContent = pct != null ? `${pct.toFixed(0)}%` : '--%';
-      setHoverExtra(` · ${corpus}`);
+      setHoverExtra('');
     } else if (d?.actual != null) {
       const pctStr = pct != null ? ` (${pct.toFixed(0)}%)` : '';
       el('amount').textContent = `${short(d.actual)}${pctStr}`;
       if (badgePctVal) badgePctVal.textContent = pct != null ? `${pct.toFixed(0)}%` : '--%';
       const budgetStr = d?.budget ? ` / ${short(d.budget)}` : '';
-      setHoverExtra(`${budgetStr} · ${corpus}`);
+      setHoverExtra(budgetStr);
     } else {
       el('amount').textContent = t('badge.actualUnknown');
       if (badgePctVal) badgePctVal.textContent = '--%';
-      setHoverExtra(` · ${corpus}`);
+      setHoverExtra('');
     }
 
     el('badge-tokens').title = t('badge.tokensTitle');
@@ -1917,7 +1856,7 @@
           keyBadge.className = disp.pillClass;
         }
 
-        const usedTokenCount = d?.actual != null ? d.actual : (d?.used != null ? d.used : (d?.estimate != null ? d.estimate : (session?.total?.low ?? null)));
+        const usedTokenCount = d?.actual != null ? d.actual : (d?.used != null ? d.used : (d?.estimate != null ? d.estimate : null));
         const budgetTokenCount = d?.budget || (d?.serviceLimit ? d.serviceLimit : 983040);
 
         if (disp.isOverflow) {
@@ -1965,7 +1904,7 @@
         }
       } else {
         if (keyBadge) { keyBadge.textContent = d?.estimated ? t('key.pill.est') : t('key.pill.reading'); keyBadge.className = 'key-pill pill-muted'; }
-        if (keyUsed) keyUsed.textContent = d?.estimate ? t('key.estPrefix', { val: short(d.estimate) }) : (session?.total ? short(session.total.low) : '—');
+        if (keyUsed) keyUsed.textContent = d?.estimate ? t('key.estPrefix', { val: short(d.estimate) }) : '—';
         formatKeyLimitDisplay(keyLimit, d?.budget);
         if (keyRemaining) keyRemaining.textContent = t('key.pending');
         if (keyTakeaway) keyTakeaway.textContent = t('key.takeaway.est');
@@ -2016,37 +1955,6 @@
     }
 
     renderCacheSummarySection(d);
-
-    el('model').textContent = d?.model?.startsWith('MODEL_PLACEHOLDER') ? t('tech.modelPlaceholder', { id: d.model }) : d?.model || t('tech.modelMissing');
-    el('request-status').textContent = d?.exceeded ? t('tech.req.exceeded') : d?.network ? t('tech.req.network') : d?.error ? t('tech.req.failed') : d?.status === 'reported' ? t('tech.req.reported') : d?.status === 'estimated' ? t('tech.req.estimated') : t('tech.req.waiting');
-    el('actual').textContent = d?.actual != null ? token(d.actual) : d?.exceeded ? t('tech.actual.exceeded', { val: fmt(d.serviceLimit || 0) }) : t('tech.actual.unknown');
-    if (d?.exceeded && !d.serviceLimit) el('actual').textContent = t('tech.actual.exceededNoLim');
-    el('estimate').textContent = d?.estimate ? t('tech.est.val', { val: fmt(d.estimate), note: d.exceeded ? t('tech.est.under') : t('tech.est.ref') }) : t('tech.est.none');
-    el('budget').textContent = token(d?.budget);
-    el('service-limit').textContent = d?.serviceLimit ? t('tech.svcLim.val', { val: fmt(d.serviceLimit) }) : t('tech.svcLim.none');
-    el('percent').textContent = d?.percent != null && !danger && !stale ? t('tech.pct.val', { pct: d.percent.toFixed(1) }) : t('tech.pct.none');
-    el('session-total').textContent = session?.total ? range(session.total) + (incomplete ? t('tech.plusUnknown') : '') : state.scanError ? t('tech.scanIncomplete') : t('tech.scanning');
-    el('characters').textContent = session?.total ? fmt(session.total.chars) : '—';
-    for (const name of ['user', 'assistant', 'thinking', 'tools', 'summaries']) el(name).textContent = session?.groups ? range(session.groups[name]) : '—';
-    el('system').textContent = session?.groups ? range({ low: (session.groups.system?.low || 0) + (session.groups.definitions?.low || 0), high: (session.groups.system?.high || 0) + (session.groups.definitions?.high || 0) }) : '—';
-    el('attachment-total').textContent = session?.attachmentTotal ? range(session.attachmentTotal) + (incomplete ? t('tech.plusUnknownShort') : '') : '—';
-    el('steps').textContent = session?.steps != null ? t('tech.stepsVal', { steps: fmt(session.steps), user: session.userMessages, assistant: session.assistantMessages }) : t('tech.stepsNone');
-    el('coverage').textContent = Array.isArray(session?.attachments)
-      ? t('tech.coverageVal', {
-          total: session.attachments.length,
-          user: session.attachments.filter(f => f.source === 'user').length,
-          assistant: session.attachments.filter(f => f.source === 'assistant').length,
-          read: session.attachments.filter(f => f.chars > 0).length,
-          unknown: session.unknownFiles,
-          rescan: state.scanBusy ? t('tech.coverageRescan') : '',
-          err: state.scanError ? t('tech.coverageErr', { err: translateBackendText(state.scanError) }) : ''
-        })
-      : (state.scanError ? translateBackendText(state.scanError) : t('tech.coverageScanning'));
-    el('updated').textContent = t('tech.updatedVal', {
-      req: state.requestAt ? new Date(state.requestAt).toLocaleTimeString() : t('tech.unread'),
-      scan: state.scan ? new Date(state.scan.scannedAt).toLocaleTimeString() : t('tech.unfinished')
-    });
-    el('refresh').disabled = state.scanBusy;
   }
 
   async function requestPoll(generation, id) {
@@ -2063,7 +1971,7 @@
       state.count = rows.length ? offset + rows.length : 0;
       if (!state.sessionCallsMap) state.sessionCallsMap = new Map();
       const parsedCalls = [];
-      const modelConfigsList = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+      const modelConfigsList = state.cascadeModelConfigs || [];
       for (let i = 0; i < rows.length; i++) {
         const call = parseGeneratorCall ? parseGeneratorCall(rows[i], id, 'desktop', { cascadeModelConfigs: modelConfigsList }) : null;
         if (call && call.callId) {
@@ -2095,44 +2003,17 @@
       }
       for (let i = rows.length - 1; i >= 0; i--) {
         const value = summarize(rows[i], {
-          cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [],
+          cascadeModelConfigs: state.cascadeModelConfigs || [],
           turnCount: offset + i + 1
         });
         if (value) {
-          state.latest = withStepError(value, rows[i]);
+          state.latest = value;
           break;
         }
       }
       state.requestAt = Date.now(); state.requestError = '';
     } catch (e) { if (generation === state.generation && !state.disposed) state.requestError = e.name === 'AbortError' ? '读取超时' : e.message; }
-    finally { clearTimeout(timeout); state.controllers.delete(controller); if (generation === state.generation && !state.disposed) { state.requestBusy = false; state.requestNext = Date.now() + (document.hidden ? 15000 : 3000); render(); } }
-  }
-
-  async function scan(generation, id, force = false) {
-    state.scanBusy = true; render();
-    try {
-      let result;
-      if (window.contextMeterAPI?.scan) result = await window.contextMeterAPI.scan(id, force);
-      else if (window.__AGContextMeterLive) {
-        const live = window.__AGContextMeterLive, controller = new AbortController(); state.controllers.add(controller);
-        const timeout = setTimeout(() => controller.abort(), 180000);
-        try { const response = await fetch(`http://127.0.0.1:${live.port}/scan`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token }, body: JSON.stringify({ id, force }), signal: controller.signal }); if (!response.ok) throw new Error(`HTTP ${response.status}`); result = await response.json(); }
-        finally { clearTimeout(timeout); state.controllers.delete(controller); }
-      } else throw new Error('完整重启 Antigravity 后启用附件扫描');
-      if (generation !== state.generation || state.disposed) return;
-      if (!result?.ok) throw new Error(result?.error || '扫描未返回有效结果');
-      state.scan = result.data; state.scanError = '';
-      if (Array.isArray(result.data.cascadeModelConfigs) && result.data.cascadeModelConfigs.length) {
-        state.cascadeModelConfigs = result.data.cascadeModelConfigs;
-      }
-      if (result.data.scannedAt >= state.requestAt && result.data.latest) {
-        state.latest = result.data.latest;
-        state.requestAt = result.data.scannedAt;
-      }
-      state.latest = withStepError(state.latest);
-      renderFiles(result.data.session);
-    } catch (e) { if (generation === state.generation && !state.disposed) state.scanError = e.message; }
-    finally { if (generation === state.generation && !state.disposed) { state.scanBusy = false; state.scanNext = Date.now() + (document.hidden ? 60000 : 20000); render(); } }
+    finally { clearTimeout(timeout); state.controllers.delete(controller); if (generation === state.generation && !state.disposed) { state.requestBusy = false; state.requestNext = Date.now() + (document.hidden ? REQUEST_POLL_HIDDEN_MS : REQUEST_POLL_VISIBLE_MS); render(); } }
   }
 
   let lastHistorySync = 0;
@@ -2141,7 +2022,8 @@
     if (!state.disposed && !host.isConnected) {
       ensureHostDocked();
     }
-    if (typeof document === 'undefined' || !document.hidden) {
+    const isHidden = typeof document !== 'undefined' && Boolean(document.hidden);
+    if (!isHidden) {
       renderModelQuota();
     }
     const id = route();
@@ -2153,20 +2035,30 @@
       Object.assign(state, {
         route: id, count: 0, latest: null, sessionCalls: [],
         requestAt: 0, requestError: '', requestBusy: false, requestNext: 0,
-        scanBusy: false, scanNext: 0, scanError: '', scan: null,
         reportedFinalCallIds: state.reportedFinalCallIds || new Set(),
         reportedFinalCallOutputs: state.reportedFinalCallOutputs || new Map()
       });
-      toggle(false); hideContextTooltip(); hideTopbarActionTooltip(true); renderFiles(null); render();
-      void syncTokenHistoryFromHost(false);
+      toggle(false); hideContextTooltip(); hideTopbarActionTooltip(true); render();
+      if (!state.quotaSynced || Date.now() - lastHistorySync >= HISTORY_RESUME_STALE_MS) {
+        void syncTokenHistoryFromHost(false);
+      }
     }
     if (id && !state.requestBusy && Date.now() >= state.requestNext) void requestPoll(state.generation, id);
-    if (id && !state.scanBusy && Date.now() >= state.scanNext) void scan(state.generation, id);
-    if (Date.now() - lastHistorySync > 15000) {
+    if (lastHistorySync === 0 || (!isHidden && Date.now() - lastHistorySync >= HISTORY_IDLE_SYNC_INTERVAL_MS)) {
       lastHistorySync = Date.now();
       void syncTokenHistoryFromHost(false);
     }
   }
+
+  const onVisibilityChange = () => {
+    if (state.disposed || typeof document === 'undefined' || document.hidden) return;
+    state.requestNext = 0;
+    if (!state.quotaSynced || Date.now() - lastHistorySync >= HISTORY_RESUME_STALE_MS) {
+      void syncTokenHistoryFromHost(false);
+    }
+    renderModelQuota();
+  };
+  try { document.addEventListener?.('visibilitychange', onVisibilityChange); } catch {}
 
   const timer = setInterval(tick, 500);
   globalThis.__AGContextMeter = {
@@ -2191,11 +2083,16 @@
     closeColorPicker,
     applyTokenHistoryPayload,
     applyPickerHex,
-    setTokenHistoryForTest: payload => applyTokenHistoryPayload(payload),
+    setTokenHistoryForTest: (payload, opts) => applyTokenHistoryPayload(payload, opts),
     getPlanDetailExpanded: () => planDetailExpanded,
     setPlanDetailExpanded,
-    switchHeatView: view => switchHeatView(view),
+    switchHeatView: view => switchHeatView(view, true, { forceRender: true }),
     getActiveHeatView: () => activeHeatView,
+    isHeatViewDirtyForTest: () => heatViewDirty,
+    showPanelForTest: target => showPanel(target),
+    tickForTest: () => tick(),
+    setLastHistorySyncForTest: ts => { lastHistorySync = Number(ts) || 0; },
+    getLastHistorySyncForTest: () => lastHistorySync,
     renderHeatmapMonthly: () => renderHeatmapMonthly(),
     renderHeatmapYearly: () => renderHeatmapYearly(),
     openGithubRepo: path => openGithubRepo(path),
@@ -2268,7 +2165,7 @@
     restoreSettingsForTest: () => restoreSettingsFromHost(),
     translateForTest: (key, vars) => t(key, vars),
     applyStaticTranslationsForTest: (rootNode) => applyStaticPanelTranslations(rootNode),
-    snapshot: () => ({ route: state.route, count: state.count, latest: state.latest, scan: state.scan, requestError: state.requestError, scanError: state.scanError, scanBusy: state.scanBusy, layoutMode: state.layoutMode, sessionCalls: state.sessionCalls }),
+    snapshot: () => ({ route: state.route, count: state.count, latest: state.latest, requestError: state.requestError, layoutMode: state.layoutMode, sessionCalls: state.sessionCalls }),
     dispose() {
       state.disposed = true;
       for (const controller of state.controllers) controller.abort();
@@ -2290,6 +2187,7 @@
         window.removeEventListener?.('mouseup', onPointerUp);
         navigator?.windowControlsOverlay?.removeEventListener?.('geometrychange', onWindowResize);
       } catch {}
+      try { document.removeEventListener?.('visibilitychange', onVisibilityChange); } catch {}
       document.removeEventListener('click', outside);
       document.removeEventListener('keydown', escape);
       try { document.getElementById('ag-wco-spacer')?.remove?.(); } catch {}

@@ -1636,7 +1636,7 @@
 
     const configs = (Array.isArray(state.modelQuotaConfigs) && state.modelQuotaConfigs.length)
       ? state.modelQuotaConfigs
-      : (state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || []);
+      : (state.cascadeModelConfigs || []);
 
     const peekTrigger = peekHostSelectedTrigger();
     const peekText = peekTrigger ? String(peekTrigger.textContent || '') : '';
