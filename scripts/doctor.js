@@ -8,7 +8,7 @@ const { execFileSync } = require('child_process');
 const asarEngine = require('../payload/dist/asar-engine');
 const modulesConfig = require('../payload/dist/modules-config');
 const regionUnlock = require('../payload/dist/meter-region-unlock');
-const contextUnlock = require('../payload/dist/meter-context-unlock');
+const enhance = require('../payload/dist/meter-enhance');
 const cliUnlock = require('../payload/dist/meter-cli-unlock');
 
 function readInfoPlistJson(plistPath) {
@@ -254,28 +254,13 @@ function runDoctor(options = {}) {
         push('hakimi_region_unlock', 'FAIL', '账号地区解锁补丁', `分析失败: ${e.message}`);
       }
 
-      try {
-        const ctxInfo = contextUnlock.analyzeBinary(hakimiLs, {
-          skipProcessCheck: true,
-          backupDir: options.backupDir,
-        });
-        push(
-          'hakimi_context_unlock',
-          'OK',
-          '上下文窗口补丁状态',
-          `上下文=${ctxInfo.configuredMode || ctxInfo.status}${ctxInfo.configuredLimitTokens ? ` (${ctxInfo.configuredLimitTokens})` : ''}`
-        );
-      } catch (e) {
-        push('hakimi_context_unlock', 'WARN', '上下文窗口补丁状态', `检测异常: ${e.message}`);
-      }
-
       if (!options.skipProcess) {
         try {
           const psOut = execFileSync('ps', ['-ax', '-o', 'pid=,lstart=,command='], {
             encoding: 'utf8',
             env: { ...process.env, LANG: 'en_US.UTF-8', LC_CTYPE: 'UTF-8' },
           });
-          const procs = contextUnlock.parseMacPsOutput(psOut, hakimiLs);
+          const procs = enhance.parseMacPsOutput(psOut, hakimiLs);
           push(
             'hakimi_process',
             'OK',

@@ -19,10 +19,7 @@ const {
   markConversationTurnCompleted,
   flushPricingLedger,
   getPluginSettings,
-  savePluginSettings,
-  getContextUnlockStatus,
-  applyContextUnlock,
-  restoreContextUnlock
+  savePluginSettings
 } = require('./meter-collector');
 const { isValidExternalUrl } = require('./meter-core');
 const {
@@ -407,35 +404,38 @@ function registerIpcOnce() {
     }
   });
 
-  ipcMain.handle('context-meter:context-unlock-status', async (event, options) => {
+  ipcMain.handle('context-meter:compact-session', async (event, cascadeId) => {
     const url = isLocalMainFrameSender(event);
     if (!url) throw new Error('仅允许本机主聊天窗口');
-    try {
-      return { ok: true, data: await getContextUnlockStatus(undefined, options || {}) };
-    } catch (e) {
-      return { ok: false, error: e.message };
+    if (typeof cascadeId !== 'string' || !/^[a-f\d-]{36}$/i.test(cascadeId)) {
+      return { ok: false, error: '无效会话标识' };
     }
-  });
-
-  ipcMain.handle('context-meter:context-unlock-apply', async (event, options) => {
-    const url = isLocalMainFrameSender(event);
-    if (!url) throw new Error('仅允许本机主聊天窗口');
     try {
-      const opts = (options && typeof options === 'object') ? { ...options } : {};
-      if (opts.syncConfigFiles === undefined && !opts.backupDir) opts.syncConfigFiles = true;
-      return applyContextUnlock(opts);
-    } catch (e) {
-      return { ok: false, error: e.message };
-    }
-  });
-
-  ipcMain.handle('context-meter:context-unlock-restore', async (event, options) => {
-    const url = isLocalMainFrameSender(event);
-    if (!url) throw new Error('仅允许本机主聊天窗口');
-    try {
-      const opts = (options && typeof options === 'object') ? { ...options } : {};
-      if (opts.syncConfigFiles === undefined && !opts.backupDir) opts.syncConfigFiles = true;
-      return restoreContextUnlock(opts);
+      let callRpc;
+      const remote = getRemoteBackendForSender(event?.sender);
+      if (remote) {
+        const sessionInfo = getRemoteSession(remote.hostId);
+        const requester = createRemoteSessionRequester(event.sender, sessionInfo, url.origin);
+        callRpc = requester.call;
+      } else {
+        const { connect } = require('./local-api');
+        const api = await connect();
+        callRpc = api.call;
+      }
+      let compactInfo = { name: 'compact' };
+      try {
+        const cmdData = await callRpc('GetSlashCommands', { cascadeId });
+        const list = cmdData?.commands || cmdData?.slashCommands || [];
+        const found = Array.isArray(list)
+          ? list.find((c) => c?.name === 'compact' || c?.info?.name === 'compact')
+          : null;
+        if (found) compactInfo = found.info || found;
+      } catch {}
+      await callRpc('SendUserCascadeMessage', {
+        cascadeId,
+        items: [{ item: { slashCommand: { info: compactInfo } } }],
+      });
+      return { ok: true };
     } catch (e) {
       return { ok: false, error: e.message };
     }
@@ -482,39 +482,6 @@ function registerIpcOnce() {
       event.returnValue = getCachedI18nDictJson();
     } catch (e) {
       event.returnValue = null;
-    }
-  });
-
-  ipcMain.handle('context-meter:enhance-status', async (event, options) => {
-    const url = isLocalMainFrameSender(event);
-    if (!url) throw new Error('仅允许本机主聊天窗口');
-    try {
-      const { getEnhanceStatus } = require('./meter-enhance');
-      return { ok: true, data: getEnhanceStatus(options && typeof options === 'object' ? options : {}) };
-    } catch (e) {
-      return { ok: false, error: e.message };
-    }
-  });
-
-  ipcMain.handle('context-meter:enhance-apply', async (event, payload) => {
-    const url = isLocalMainFrameSender(event);
-    if (!url) throw new Error('仅允许本机主聊天窗口');
-    try {
-      const { applyEnhancePatch } = require('./meter-enhance');
-      return applyEnhancePatch(payload && typeof payload === 'object' ? payload : {});
-    } catch (e) {
-      return { ok: false, error: e.message };
-    }
-  });
-
-  ipcMain.handle('context-meter:enhance-restore', async (event, options) => {
-    const url = isLocalMainFrameSender(event);
-    if (!url) throw new Error('仅允许本机主聊天窗口');
-    try {
-      const { restoreAllEnhance } = require('./meter-enhance');
-      return restoreAllEnhance(options && typeof options === 'object' ? options : {});
-    } catch (e) {
-      return { ok: false, error: e.message };
     }
   });
 

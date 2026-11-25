@@ -37,73 +37,10 @@ function generateMeterUtilsCode() {
   };
 }
 
-function generateMainWorldDecoratorScript() {
-  return `(function(){
-  try{
-    if(globalThis.__agMeterClientDecoratorBootstrapped)return;
-    globalThis.__agMeterClientDecoratorBootstrapped=true;
-    var prevDec=typeof globalThis.__JETSKI_LS_CLIENT_DECORATOR__==="function"?globalThis.__JETSKI_LS_CLIENT_DECORATOR__:null;
-    var wrappedSet=typeof WeakSet==="function"?new WeakSet():null;
-    globalThis.__JETSKI_LS_CLIENT_DECORATOR__=function(client){
-      if(!client||(typeof client!=="object"&&typeof client!=="function"))return client;
-      if((wrappedSet&&wrappedSet.has(client))||client.__agMeterWrappedClient)return client;
-      var target=client;
-      if(prevDec){try{var out=prevDec(client);if(out)target=out;}catch(e){}}
-      if(!target||(typeof target!=="object"&&typeof target!=="function"))return target;
-      if((wrappedSet&&wrappedSet.has(target))||target.__agMeterWrappedClient)return target;
-      if(typeof target.sendUserCascadeMessage!=="function")return target;
-      var origSend=target.sendUserCascadeMessage;
-      var wrappedSend=function(req,opts){
-        var dispatchToken=null;
-        try{
-          var hook=globalThis.__AG_METER_ON_SEND_MESSAGE__;
-          if(typeof hook==="function"){dispatchToken=hook(req,"client_object")||null;}
-        }catch(hookErr){}
-        var res;
-        try{
-          res=origSend.call(this,req,opts);
-        }catch(syncErr){
-          try{if(dispatchToken&&dispatchToken.dispatchId&&typeof globalThis.__AG_METER_ON_SEND_RESULT__==="function"){globalThis.__AG_METER_ON_SEND_RESULT__(dispatchToken.dispatchId,false,syncErr);}}catch(e2){}
-          throw syncErr;
-        }
-        if(res&&typeof res.then==="function"){
-          return res.then(function(val){
-            try{if(dispatchToken&&dispatchToken.dispatchId&&typeof globalThis.__AG_METER_ON_SEND_RESULT__==="function"){globalThis.__AG_METER_ON_SEND_RESULT__(dispatchToken.dispatchId,true,null,val);}}catch(e3){}
-            return val;
-          },function(err){
-            try{if(dispatchToken&&dispatchToken.dispatchId&&typeof globalThis.__AG_METER_ON_SEND_RESULT__==="function"){globalThis.__AG_METER_ON_SEND_RESULT__(dispatchToken.dispatchId,false,err);}}catch(e4){}
-            throw err;
-          });
-        }
-        try{if(dispatchToken&&dispatchToken.dispatchId&&typeof globalThis.__AG_METER_ON_SEND_RESULT__==="function"){globalThis.__AG_METER_ON_SEND_RESULT__(dispatchToken.dispatchId,true,null,res);}}catch(e5){}
-        return res;
-      };
-      var proxy=new Proxy(target,{
-        get:function(obj,prop){
-          if(prop==="__agMeterWrappedClient")return true;
-          if(prop==="sendUserCascadeMessage")return wrappedSend;
-          var v=Reflect.get(obj,prop,obj);
-          return typeof v==="function"?v.bind(obj):v;
-        }
-      });
-      if(wrappedSet)wrappedSet.add(proxy);
-      return proxy;
-    };
-  }catch(e){}
-})();`;
-}
-
 function generateMeterPreloadCode() {
-  const mainWorldScriptLiteral = JSON.stringify(generateMainWorldDecoratorScript());
   return `\n${TAGS.METER_PRELOAD_START}
-// Context Meter v2: narrow read-only conversation scan API + cold-start main-world decorator bootstrap
-try {
-  if (typeof electron_1 !== "undefined" && electron_1.webFrame && typeof electron_1.webFrame.executeJavaScript === "function") {
-    var _agDecPromise = electron_1.webFrame.executeJavaScript(${mainWorldScriptLiteral}, false);
-    if (_agDecPromise && typeof _agDecPromise.catch === "function") { _agDecPromise.catch(function(){}); }
-  }
-} catch (_agDecErr) {}
-electron_1.contextBridge.exposeInMainWorld("contextMeterAPI", { scan: (id, force) => electron_1.ipcRenderer.invoke("context-meter:scan", id, force === true), getTokenHistory: (force) => electron_1.ipcRenderer.invoke("context-meter:token-history", force === true), syncOverlay: (opts) => electron_1.ipcRenderer.invoke("context-meter:sync-overlay", opts), recordCalls: (calls) => electron_1.ipcRenderer.invoke("context-meter:record-calls", calls), getSettings: (opts) => electron_1.ipcRenderer.invoke("context-meter:get-settings", opts), saveSettings: (payload) => electron_1.ipcRenderer.invoke("context-meter:save-settings", payload), openExternal: (url) => electron_1.ipcRenderer.invoke("context-meter:open-external", url), getContextUnlockStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:context-unlock-status", opts), applyContextUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:context-unlock-apply", opts), restoreContextUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:context-unlock-restore", opts), getCliUnlockStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-status", opts), applyCliUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-apply", opts), restartHost: () => electron_1.ipcRenderer.invoke("context-meter:restart-host"), getEnhanceStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:enhance-status", opts), applyEnhancePatch: (payload) => electron_1.ipcRenderer.invoke("context-meter:enhance-apply", payload), restoreAllEnhance: (opts) => electron_1.ipcRenderer.invoke("context-meter:enhance-restore", opts), restartLanguageServers: () => electron_1.ipcRenderer.invoke("context-meter:restart-language-servers"), getModulesStatus: () => electron_1.ipcRenderer.invoke("context-meter:modules-status"), toggleModule: (name, enable, opts) => electron_1.ipcRenderer.invoke("context-meter:toggle-module", name, enable, opts) });
+// Context Meter v2: narrow read-only conversation scan API
+electron_1.contextBridge.exposeInMainWorld("contextMeterAPI", { scan: (id, force) => electron_1.ipcRenderer.invoke("context-meter:scan", id, force === true), getTokenHistory: (force) => electron_1.ipcRenderer.invoke("context-meter:token-history", force === true), syncOverlay: (opts) => electron_1.ipcRenderer.invoke("context-meter:sync-overlay", opts), recordCalls: (calls) => electron_1.ipcRenderer.invoke("context-meter:record-calls", calls), getSettings: (opts) => electron_1.ipcRenderer.invoke("context-meter:get-settings", opts), saveSettings: (payload) => electron_1.ipcRenderer.invoke("context-meter:save-settings", payload), openExternal: (url) => electron_1.ipcRenderer.invoke("context-meter:open-external", url), compactSession: (cascadeId) => electron_1.ipcRenderer.invoke("context-meter:compact-session", cascadeId), getCliUnlockStatus: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-status", opts), applyCliUnlock: (opts) => electron_1.ipcRenderer.invoke("context-meter:cli-unlock-apply", opts), restartHost: () => electron_1.ipcRenderer.invoke("context-meter:restart-host"), restartLanguageServers: () => electron_1.ipcRenderer.invoke("context-meter:restart-language-servers"), getModulesStatus: () => electron_1.ipcRenderer.invoke("context-meter:modules-status"), toggleModule: (name, enable, opts) => electron_1.ipcRenderer.invoke("context-meter:toggle-module", name, enable, opts) });
 ${TAGS.METER_PRELOAD_END}\n`;
 }
 
@@ -323,7 +260,6 @@ module.exports = {
   matchWindowLoadAnchors,
   validateSyntax,
   generateMeterUtilsCode,
-  generateMainWorldDecoratorScript,
   generateMeterPreloadCode,
   generateChinesePreloadCode,
   cleanUtilsSource,

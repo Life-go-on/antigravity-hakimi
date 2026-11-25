@@ -59,8 +59,6 @@
   (document.body || document.documentElement).appendChild(host);
   const el = id => shadow.getElementById(id);
   /* @INSERT_I18N_MODULE */
-  /* @INSERT_BUDGET_ENGINE_MODULE */
-  const budgetEngine = globalThis.__AGContextBudgetEngine || {};
   const fmt = v => v == null ? '—' : Math.round(v).toLocaleString('en-US');
   const short = v => {
     if (v == null) return '—';
@@ -134,33 +132,6 @@
     return !el('panel').hidden || !el('panel-tokens').hidden;
   }
 
-  function closeTopbarWindowPopover() {
-    const pop = el('topbar-window-popover');
-    if (pop) pop.hidden = true;
-    el('btn-topbar-window')?.setAttribute('aria-expanded', 'false');
-    if (!isAnyPanelOpen() && el('overflow-menu')?.hidden !== false) {
-      syncHostStackingElevation(false);
-    }
-  }
-
-  function toggleTopbarWindowPopover() {
-    const pop = el('topbar-window-popover');
-    if (!pop) return;
-    const willOpen = Boolean(pop.hidden);
-    showPanel('none');
-    hideContextTooltip();
-    hideTopbarActionTooltip(true);
-    if (willOpen) {
-      pop.hidden = false;
-      el('btn-topbar-window')?.setAttribute('aria-expanded', 'true');
-      if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-      syncHostStackingElevation(true);
-      positionFloatingPanels();
-    } else {
-      closeTopbarWindowPopover();
-    }
-  }
-
   function showPanel(target) {
     const pContext = el('panel');
     const pTokens = el('panel-tokens');
@@ -175,7 +146,6 @@
     bOverflow?.setAttribute('aria-expanded', 'false');
 
     if (target === 'tokens') {
-      closeTopbarWindowPopover();
       hideContextTooltip();
       hideTopbarActionTooltip(true);
       closeColorPicker();
@@ -190,7 +160,6 @@
       void syncTokenHistoryFromHost(false);
       renderActiveHeatView(true);
     } else if (target === 'context') {
-      closeTopbarWindowPopover();
       hideContextTooltip();
       hideTopbarActionTooltip(true);
       closeColorPicker();
@@ -204,12 +173,11 @@
       syncHostStackingElevation(true);
       positionFloatingPanels();
       applyContextViewVisibility?.();
-      if (activeContextTab === 'models' && !isContextSettingsView) {
-        void refreshUnlockStatus();
-      } else if (activeContextTab === 'speed' && !isContextSettingsView) {
+      if (activeContextTab === 'speed' && !isContextSettingsView) {
         renderSpeedComparisonTab?.();
       }
       if (isContextSettingsView) {
+        renderSshRemoteContextBanners();
         void refreshModulesDisplay();
         void refreshCliUnlockDisplay();
       }
@@ -250,7 +218,6 @@
     if (!pOverflow) return;
     const willOpen = pOverflow.hidden;
     showPanel('none');
-    closeTopbarWindowPopover();
     hideContextTooltip();
     hideTopbarActionTooltip(true);
     pOverflow.hidden = !willOpen;
@@ -397,13 +364,13 @@
   });
   el('overflow-tokens-btn')?.addEventListener('click', () => showPanel('tokens'));
   el('badge-cache')?.addEventListener('mouseenter', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('cache', el('badge-cache'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('cache', el('badge-cache'));
   });
   el('badge-cache')?.addEventListener('mouseleave', () => {
     hideTopbarActionTooltip(false);
   });
   el('badge-cache')?.addEventListener('focus', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('cache', el('badge-cache'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('cache', el('badge-cache'));
   });
   el('badge-cache')?.addEventListener('blur', () => {
     hideTopbarActionTooltip(false);
@@ -427,199 +394,47 @@
     hideContextTooltip();
   });
 
-  // 顶部快捷操作（仅图标）：悬停/聚焦展示说明气泡，点击直接触发动作或弹出快速调节浮层
+  // 顶部快捷操作（仅图标）：悬停/聚焦展示说明气泡，点击直接触发动作
   el('btn-topbar-compact')?.addEventListener('mouseenter', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
   });
   el('btn-topbar-compact')?.addEventListener('mouseleave', () => {
     hideTopbarActionTooltip(false);
   });
   el('btn-topbar-compact')?.addEventListener('focus', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
   });
   el('btn-topbar-compact')?.addEventListener('blur', () => {
     hideTopbarActionTooltip(false);
   });
   el('btn-topbar-compact')?.addEventListener('click', () => {
-    closeTopbarWindowPopover();
     void triggerSessionCompact('topbar');
-  });
-
-  el('btn-topbar-window')?.addEventListener('mouseenter', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('window', el('btn-topbar-window'));
-  });
-  el('btn-topbar-window')?.addEventListener('mouseleave', () => {
-    hideTopbarActionTooltip(false);
-  });
-  el('btn-topbar-window')?.addEventListener('focus', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('window', el('btn-topbar-window'));
-  });
-  el('btn-topbar-window')?.addEventListener('blur', () => {
-    hideTopbarActionTooltip(false);
-  });
-  el('btn-topbar-window')?.addEventListener('click', () => {
-    toggleTopbarWindowPopover();
-  });
-
-  el('btn-twp-toggle-scope')?.addEventListener('click', () => {
-    setScopeMode(getContextScopeMode() === 'unified' ? 'per_model' : 'unified');
-  });
-
-  el('btn-twp-open-models')?.addEventListener('click', () => {
-    closeTopbarWindowPopover();
-    isContextSettingsView = false;
-    if (activeSessionProductKey) {
-      selectedProductKey = activeSessionProductKey;
-      selectedEditModelKey = activeSessionModelKey || activeSessionProductKey;
-      manualModelSelection = false;
-      ctxDraftDirty = false;
-    }
-    showPanel('context');
-    switchContextTab('models');
-  });
-
-  el('twp-preset-grid')?.addEventListener('click', (e) => {
-    const btn = e?.target?.closest?.('.twp-preset-btn');
-    if (!btn || btn.disabled) return;
-    const mode = btn.getAttribute('data-qctx-mode') || 'fixed';
-    const rawLim = btn.getAttribute('data-qctx-limit');
-    const lim = rawLim ? Number(rawLim) : null;
-    void applyQuickContextPreset(mode, lim, { source: 'popover' });
-  });
-
-  el('session-ctx-preset-bar')?.addEventListener('click', (e) => {
-    const btn = e?.target?.closest?.('.twp-preset-btn');
-    if (!btn || btn.disabled) return;
-    const mode = btn.getAttribute('data-qctx-mode') || 'fixed';
-    const rawLim = btn.getAttribute('data-qctx-limit');
-    const lim = rawLim ? Number(rawLim) : null;
-    void applyQuickContextPreset(mode, lim, { source: 'session_card' });
   });
 
   el('theme-toggle')?.addEventListener('click', cycleTheme);
   el('theme-toggle-tokens')?.addEventListener('click', cycleTheme);
   el('badge').addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('btn-topbar-compact')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
-  el('btn-topbar-window')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('badge-tokens').addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('badge-speed')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('badge-cache')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
 
   // =========================================================================
-  // 模块 3: 上下文面板分页、设置视图、模型产品偏好、重启验证与速度对比
+  // 模块 3: 上下文面板分页、配置视图、重启确认与速度对比
   // =========================================================================
   const btnTabSession = el('tab-ctx-session');
-  const btnTabModels = el('tab-ctx-models');
   const btnTabSpeed = el('tab-ctx-speed');
   const btnTabSettings = el('tab-ctx-settings');
   const paneSession = el('pane-ctx-session');
-  const paneModels = el('pane-ctx-models');
   const paneSpeed = el('pane-ctx-speed');
   const paneSettings = el('pane-ctx-settings');
   const ctxTabsBar = el('ctx-tabs-bar');
-  const btnCtxSettings = el('btn-ctx-settings');
-  const btnCtxSettingsBack = el('btn-ctx-settings-back');
-  const btnGotoModelSettings = el('btn-goto-model-settings');
-  const btnCardGotoSpeed = el('btn-card-goto-speed');
-  const btnCtxBackCurrent = el('btn-ctx-back-current');
-  const ctxCompactSavedEl = el('ctx-compact-saved');
-  const ctxCompactClientEl = el('ctx-compact-client');
-
-  const btnToggleUnlockDetails = el('btn-toggle-unlock-details');
-  const unlockDrawerBody = el('unlock-drawer-body');
-  const unlockDrawerArrow = el('unlock-drawer-arrow');
-  const unlockBadge = el('unlock-badge');
-  const unlockStatusDesc = el('unlock-status-desc');
-  const ctxClientStatusText = el('ctx-client-status-text');
-  const ctxRestartMismatchNote = el('ctx-restart-mismatch-note');
-  const btnRestartHost = el('btn-restart-host');
-  const ctxManualRestartNote = el('ctx-manual-restart-note');
-  const ctxRestartConfirm = el('ctx-restart-confirm');
-  const btnRestartCancel = el('btn-restart-cancel');
-  const btnRestartConfirmGo = el('btn-restart-confirm-go');
-  const ctxRestartFeedback = el('ctx-restart-feedback');
   const globalRestartModal = el('global-restart-modal');
-  const modalRestartTitle = el('modal-restart-title');
-  const modalRestartText = el('modal-restart-text');
   const modalRestartFeedback = el('modal-restart-feedback');
   const btnModalRestartCancel = el('btn-modal-restart-cancel');
   const btnModalRestartConfirm = el('btn-modal-restart-confirm');
 
-  const btnApplyUnlock = el('btn-apply-unlock');
-  const btnRestoreUnlock = el('btn-restore-unlock');
-  const btnRefreshUnlock = el('btn-refresh-unlock');
-  const unlockResultBox = el('unlock-result-box');
-  const unlockResultText = el('unlock-result-text');
-  const unlockResultActions = el('unlock-result-actions');
-  const btnUnlockResultRestart = el('btn-unlock-result-restart');
-  const btnUnlockResultRetry = el('btn-unlock-result-retry');
-  const unlockResultManual = el('unlock-result-manual');
-  const unlockMetaMode = el('unlock-meta-mode');
-  const unlockMetaTarget = el('unlock-meta-target');
-  const unlockMetaArch = el('unlock-meta-arch');
-  const unlockMetaBackup = el('unlock-meta-backup');
-  const linkUnlockAuthor = el('link-unlock-author');
-  const btnCopyUnlockLink = el('btn-copy-unlock-link');
-  const unlockLinkToast = el('unlock-link-toast');
-
-  const ctxModelSelect = el('ctx-model-select');
-  const ctxModelSelectorRoleEl = el('ctx-model-selector-role');
-  const ctxModelDropdownLabelEl = el('ctx-model-dropdown-label');
-  const ctxModelListEl = el('ctx-model-list');
-  const ctxConflictBanner = el('ctx-conflict-banner');
-  const ctxConflictRows = el('ctx-conflict-rows');
-  const ctxCardVendorDot = el('ctx-card-vendor-dot');
-  const ctxCardVendorName = el('ctx-card-vendor-name');
-  const ctxCardProductName = el('ctx-card-product-name');
-  const ctxCardEffortsList = el('ctx-card-efforts-list');
-  const ctxCardSessionEffort = el('ctx-card-session-effort');
-  const ctxCardSavedEl = el('ctx-card-saved');
-  const ctxCardRequestEl = el('ctx-card-request');
-  const ctxCardClientEl = el('ctx-card-client');
-  const ctxCardClientTagEl = el('ctx-card-client-tag');
-  const ctxCardObservedBudgetEl = el('ctx-card-observed-budget');
-  const ctxCardPreRestartBudgetEl = el('ctx-card-pre-restart-budget');
-  const ctxCardServiceLimitEl = el('ctx-card-service-limit');
-  const ctxCardConvoEl = el('ctx-card-convo');
-  const ctxCardDiagnosisEl = el('ctx-card-diagnosis');
-  const ctxCardObservedSpeedEl = el('ctx-card-observed-speed');
-  const ctxCardHintsEl = el('ctx-card-hints');
-  const ctxCapWindowEl = el('ctx-cap-window');
-  const ctxCapOutputEl = el('ctx-cap-output');
-  const ctxCapModelMaxEl = el('ctx-cap-model-max');
-  const ctxCapClientPolicyEl = el('ctx-cap-client-policy');
-  const ctxCapDefaultEl = el('ctx-cap-default');
-  const ctxCapRangeEl = el('ctx-cap-range');
-  const ctxCapFormulaEl = el('ctx-cap-formula');
-  const ctxRefSavedEl = el('ctx-ref-saved');
-  const ctxRefSentEl = el('ctx-ref-sent');
-  const ctxRefAdoptedEl = el('ctx-ref-adopted');
-  const ctxUnifiedProjEl = el('ctx-unified-projection');
-  const ctxCardTierCapsRowEl = el('ctx-card-tier-caps-row');
-  const ctxCardTierCapsEl = el('ctx-card-tier-caps');
-  const ctxPresetModelMaxSubEl = el('ctx-preset-modelmax-sub');
-
-  const ctxPresetGrid = el('ctx-preset-grid');
-  const ctxCustomInput = el('ctx-custom-limit-input');
-  const ctxValidationEl = el('ctx-limit-validation');
-  const btnSaveModelCtx = el('btn-save-model-ctx');
-  const btnResetModelCtx = el('btn-reset-model-ctx');
-  const ctxResetNoticeEl = el('ctx-reset-notice');
-
-  // 双模式控件与精简展示元素
-  const btnModeUnified = el('btn-ctx-mode-unified');
-  const btnModePerModel = el('btn-ctx-mode-per-model');
-  const ctxModelsToolbar = el('ctx-models-toolbar');
-  const ctxSummaryModeEl = el('ctx-summary-mode');
-  const ctxSummaryModelEl = el('ctx-summary-model');
-  const ctxSummaryLengthEl = el('ctx-summary-length');
-  const ctxSummaryStatusPillEl = el('ctx-summary-status-pill');
-
-  const CTX_DEFAULT_TOKENS = 256000;
-  const CTX_MIN_ENGINEERING_TOKENS = 16384;
-  const CTX_MAX_ENGINEERING_TOKENS = 2097152;
   const CTX_ACTIVE_TAB_KEY = 'ag_ctx_active_tab';
-  const CTX_PRE_RESTART_OBS_KEY = 'ag_ctx_pre_restart_obs_v1';
 
   const VENDOR_ORDER = ['Google', 'Anthropic', 'OpenAI', '其他'];
   const VENDOR_DOT_COLORS = {
@@ -632,98 +447,20 @@
   let activeContextTab = 'session';
   try {
     const savedTab = localStorage?.getItem(CTX_ACTIVE_TAB_KEY);
-    if (savedTab === 'session' || savedTab === 'models' || savedTab === 'speed') {
+    if (savedTab === 'session' || savedTab === 'speed' || savedTab === 'settings') {
       activeContextTab = savedTab;
     }
   } catch {}
-  let isContextSettingsView = false;
-
-  let currentUnlockStatus = null;
-  let unlockStatusFetchError = false;
-  let isUnlocking = false;
-  let lastPartialReason = '';
-  let unlockReqSeq = 0;
-  let contextPrefSaveSeq = 0;
-  let contextPreferencesMap = {};
-  let contextScopeMode = 'unified'; // 'unified' | 'per_model'
-  let contextUnifiedPreference = { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-  try {
-    if (typeof window !== 'undefined' && window.__AGContextPreferences && typeof window.__AGContextPreferences === 'object') {
-      contextPreferencesMap = { ...window.__AGContextPreferences };
-    } else if (typeof localStorage !== 'undefined' && localStorage?.getItem) {
-      const rawPrefs = localStorage.getItem('ag-context-preferences');
-      if (rawPrefs) contextPreferencesMap = JSON.parse(rawPrefs) || {};
-    }
-    const initMode = (typeof window !== 'undefined' && window.__AGContextScopeMode)
-      || (typeof localStorage !== 'undefined' && localStorage?.getItem?.('ag-context-scope-mode'))
-      || '';
-    if (initMode === 'unified' || initMode === 'per_model') {
-      contextScopeMode = initMode;
-    }
-    if (typeof window !== 'undefined' && window.__AGContextUnifiedPreference && typeof window.__AGContextUnifiedPreference === 'object') {
-      contextUnifiedPreference = { ...window.__AGContextUnifiedPreference };
-    } else if (typeof localStorage !== 'undefined' && localStorage?.getItem) {
-      const rawUni = localStorage.getItem('ag-context-unified-preference');
-      if (rawUni) contextUnifiedPreference = JSON.parse(rawUni) || contextUnifiedPreference;
-    }
-  } catch {}
-
-  function getContextScopeMode() {
-    return contextScopeMode || 'unified';
-  }
-
-  function getContextUnifiedPreference() {
-    return contextUnifiedPreference || { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-  }
-
-  function syncContextPreferencesCache(map) {
-    try {
-      if (typeof window !== 'undefined') {
-        window.__AGContextPreferences = { ...(map || {}) };
-        window.__AGContextScopeMode = contextScopeMode;
-        window.__AGContextUnifiedPreference = { ...(contextUnifiedPreference || {}) };
-        localStorage?.setItem('ag-context-preferences', JSON.stringify(map || {}));
-        localStorage?.setItem('ag-context-scope-mode', contextScopeMode);
-        localStorage?.setItem('ag-context-unified-preference', JSON.stringify(contextUnifiedPreference || {}));
-      }
-    } catch {}
-  }
-  let activeSessionModelKey = null;
-  let activeSessionProductKey = null;
-  let activeSessionEffort = null;
-  let activeSessionModelConfirmed = false;
-  let selectedEditModelKey = null;
-  let selectedProductKey = null;
-  let manualModelSelection = false;
-  let ctxDraft = { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-  let ctxDraftDirty = false;
-  let lastAutoObservedBudget = 0;
+  let isContextSettingsView = activeContextTab === 'settings';
   let needsRestartAfterApply = false;
-  let pendingRestartVerification = null;
   let restartTimeoutTimer = null;
   let hostSupportsRestart = true;
-  let restartMismatchNotice = '';
-
-  const observedByModelId = new Map();
-  let preRestartSnapshot = null;
-  try {
-    const rawPre = localStorage?.getItem(CTX_PRE_RESTART_OBS_KEY);
-    if (rawPre) preRestartSnapshot = JSON.parse(rawPre);
-  } catch {}
 
   let speedRangeDays = '7';
   let speedOriginFilter = 'all';
   let speedMetric = 'tps';
   let selectedSpeedExactModelId = null;
-  let ctxHeaderDropdownCtrl = null;
   let speedModelDropdownCtrl = null;
-
-  function formatKShort(tokens) {
-    const n = Number(tokens);
-    if (!Number.isFinite(n) || n <= 0) return '—';
-    if (typeof formatTokensK === 'function') return formatTokensK(n);
-    return short(n);
-  }
 
   function formatMonthDayTime(ts) {
     if (!ts) return '';
@@ -765,9 +502,404 @@
     return str || null;
   }
 
-  /* @INSERT_REQUEST_INTERCEPTOR_MODULE */
+  /** 读取宿主输入框模型选择器中的当前模型（只读 DOM 查询，排除插件自身 DOM） */
+  function extractHostSelectedModel() {
+    if (typeof document === 'undefined') return null;
+    const triggers = typeof document.querySelectorAll === 'function'
+      ? Array.from(document.querySelectorAll('[data-testid="model-selector-trigger"]'))
+      : (typeof document.querySelector === 'function' ? [document.querySelector('[data-testid="model-selector-trigger"]')].filter(Boolean) : []);
+    if (!triggers.length) return null;
 
-  /* @INSERT_CONTEXT_SETTINGS_MODULE */
+    let trigger = null;
+    for (const candidate of triggers) {
+      if (!candidate) continue;
+      if (host && typeof host.contains === 'function' && host.contains(candidate)) continue;
+      if (typeof candidate.closest === 'function' && candidate.closest('#ag-context-meter')) continue;
+      if (typeof candidate.getBoundingClientRect === 'function') {
+        const rect = candidate.getBoundingClientRect();
+        if (rect && rect.width === 0 && rect.height === 0) continue;
+      }
+      trigger = candidate;
+      break;
+    }
+    if (!trigger) return null;
+
+    let effort = null;
+    const effortEl = trigger.querySelector?.('[data-testid="model-selector-effort-option"]')
+      || trigger.querySelector?.('[data-effort]');
+    if (effortEl) {
+      effort = effortEl.getAttribute?.('data-effort') || effortEl.textContent?.trim() || null;
+    }
+
+    const clone = trigger.cloneNode ? trigger.cloneNode(true) : trigger;
+    const svgs = clone.querySelectorAll ? clone.querySelectorAll('svg, [aria-hidden="true"]') : [];
+    if (svgs && svgs.forEach) svgs.forEach(s => s.remove());
+    const rawText = (clone.textContent || '').trim();
+    if (!rawText) return null;
+
+    if (!effort) {
+      const mEffort = rawText.match(/\((Extra High|XHigh|Low|Medium|High|Extra|Minimal|Max)\)/i);
+      if (mEffort) effort = mEffort[1];
+    }
+
+    const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+    const stableId = resolveStableModelKeyClient(rawText) || (typeof resolveStableModelId === 'function' ? resolveStableModelId(rawText, configs) : null);
+    const g = groupProductSafe({
+      modelId: stableId || rawText,
+      label: rawText,
+      effort
+    });
+
+    return {
+      rawText,
+      modelId: stableId || rawText,
+      productKey: g.productKey,
+      productLabel: g.productLabel || rawText,
+      effort: effort || g.effort || null,
+      source: 'dom_trigger'
+    };
+  }
+
+  /** 将已知模型目录、当前会话和历史调用按产品维度分组（只读） */
+  function getKnownModelProducts() {
+    const productMap = new Map();
+    const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+    const slugToKey = new Map();
+    const ensureProduct = (meta, fromAccountCatalog = false) => {
+      const g = groupProductSafe(meta);
+      if (!g.productKey) return null;
+      const keyParts = g.productKey.split(':');
+      const keySlug = keyParts.length >= 3 ? keyParts.slice(2).join(':') : '';
+      let targetKey = g.productKey;
+      if (keySlug && !productMap.has(targetKey) && slugToKey.has(keySlug)) {
+        const existingKey = slugToKey.get(keySlug);
+        const existingProd = productMap.get(existingKey);
+        if (existingProd && (g.vendor === '其他' || existingProd.vendor === '其他')) {
+          if (existingProd.vendor === '其他' && g.vendor !== '其他') {
+            productMap.delete(existingKey);
+            existingProd.productKey = targetKey;
+            existingProd.vendor = g.vendor;
+            productMap.set(targetKey, existingProd);
+            slugToKey.set(keySlug, targetKey);
+          } else {
+            targetKey = existingKey;
+          }
+        }
+      }
+      let prod = productMap.get(targetKey);
+      if (!prod) {
+        prod = {
+          productKey: targetKey,
+          productLabel: g.productLabel,
+          vendor: g.vendor || '其他',
+          inAccountCatalog: Boolean(fromAccountCatalog),
+          unavailable: Boolean(meta.unavailable),
+          unavailabilityReason: meta.unavailabilityReason || null,
+          notice: meta.notice || null,
+          isHistorical: Boolean(meta.isHistorical),
+          members: new Map()
+        };
+        productMap.set(targetKey, prod);
+        if (keySlug && (!slugToKey.has(keySlug) || g.vendor !== '其他')) {
+          slugToKey.set(keySlug, targetKey);
+        }
+      } else if (fromAccountCatalog) {
+        prod.inAccountCatalog = true;
+        if (meta.notice && !prod.notice) prod.notice = meta.notice;
+        if (meta.isHistorical !== undefined) prod.isHistorical = prod.isHistorical && Boolean(meta.isHistorical);
+      }
+      if (meta.modelId) {
+        const mid = String(meta.modelId).trim().toLowerCase();
+        const prev = prod.members.get(mid);
+        prod.members.set(mid, {
+          modelId: mid,
+          label: meta.label || prev?.label || mid,
+          effort: g.effort || prev?.effort || null,
+          unavailable: meta.unavailable !== undefined ? Boolean(meta.unavailable) : (prev?.unavailable || false),
+          unavailabilityReason: meta.unavailabilityReason || prev?.unavailabilityReason || null,
+          notice: meta.notice || prev?.notice || null,
+          isHistorical: meta.isHistorical !== undefined ? Boolean(meta.isHistorical) : (prev?.isHistorical || false)
+        });
+      }
+      return prod;
+    };
+
+    if (Array.isArray(configs)) {
+      for (const c of configs) {
+        const stableId = resolveStableModelKeyClient(c) || c?.modelId || c?.modelOrAlias?.model;
+        ensureProduct({
+          modelId: stableId,
+          label: c?.label || c?.modelId || stableId,
+          modelOrAlias: c?.modelOrAlias,
+          effort: c?.effort,
+          unavailable: c?.unavailable,
+          unavailabilityReason: c?.unavailabilityReason,
+          notice: c?.notice,
+          isHistorical: c?.isHistorical
+        }, true);
+      }
+    }
+
+    if (state.latest?.modelId || state.latest?.modelRaw || state.latest?.model) {
+      const stableId = resolveStableModelKeyClient(state.latest);
+      ensureProduct({
+        modelId: stableId,
+        label: state.latest.model || stableId,
+        modelOrAlias: state.latest.modelOrAlias,
+        effort: state.latest.effort
+      }, false);
+    }
+
+    const calls = [...(ANTIGRAVITY_TOKEN_DATA.speedRecords || []), ...(state.sessionCalls || [])];
+    for (const c of calls) {
+      if (!c) continue;
+      const mid = c.modelExactId || c.modelId || c.model;
+      if (!mid) continue;
+      ensureProduct({
+        modelId: mid,
+        label: c.modelLabel || c.model || mid,
+        effort: c.effort
+      }, false);
+    }
+
+    const rankEffort = { Minimal: 1, Low: 2, Medium: 3, High: 4, XHigh: 5, Extra: 6, 'Extra High': 7, Max: 8 };
+    const result = Array.from(productMap.values()).map(p => {
+      const members = Array.from(p.members.values()).sort((a, b) => (rankEffort[a.effort] || 99) - (rankEffort[b.effort] || 99));
+      const allUnavailable = members.length > 0 && members.every(m => m.unavailable);
+      const partialUnavailable = members.length > 0 && !allUnavailable && members.some(m => m.unavailable);
+      const isUnavailable = members.length > 0 ? allUnavailable : Boolean(p.unavailable);
+      const isHistorical = members.length > 0 ? (members.every(m => m.isHistorical) || !p.inAccountCatalog) : (p.isHistorical || (!p.inAccountCatalog));
+      const notice = p.notice || members.find(m => m.notice)?.notice || null;
+      const reason = isUnavailable
+        ? (p.unavailabilityReason || members.find(m => m.unavailable && m.unavailabilityReason)?.unavailabilityReason || null)
+        : (partialUnavailable ? (members.find(m => m.unavailable && m.unavailabilityReason)?.unavailabilityReason || null) : null);
+      return {
+        productKey: p.productKey,
+        productLabel: p.productLabel,
+        vendor: p.vendor,
+        inAccountCatalog: p.inAccountCatalog,
+        unavailable: isUnavailable,
+        partialUnavailable,
+        unavailabilityReason: reason,
+        notice,
+        isHistorical,
+        members
+      };
+    });
+    result.sort((a, b) => {
+      const va = VENDOR_ORDER.indexOf(a.vendor);
+      const vb = VENDOR_ORDER.indexOf(b.vendor);
+      if (va !== vb) return (va === -1 ? 99 : va) - (vb === -1 ? 99 : vb);
+      return a.productLabel.localeCompare(b.productLabel);
+    });
+    return result;
+  }
+
+  function buildFriendlyWriteError(rawErr) {
+    const msg = String(rawErr || '');
+    if (/EBUSY|EPERM|EACCES|占用|lock|locked|in use/i.test(msg)) {
+      return t('msg.writeBusy');
+    }
+    return t('msg.writeFail', { err: translateBackendText(msg) || t('msg.unknownErr') });
+  }
+
+  function getRemoteSshMeta() {
+    const meta = typeof window !== 'undefined' ? window.__AGContextMeterRemote : null;
+    if (meta && meta.kind === 'ssh') {
+      return {
+        hostId: String(meta.hostId || ''),
+        label: String(meta.label || meta.hostId || 'SSH')
+      };
+    }
+    return null;
+  }
+
+  function renderSshRemoteContextBanners() {
+    const remote = getRemoteSshMeta();
+    const box = el('enhance-ssh-remote-banner');
+    const textEl = el('enhance-ssh-remote-banner-text');
+    if (!box || !textEl) return;
+    if (remote) {
+      textEl.textContent = t('ssh.remote.contextBanner', { host: remote.label });
+      box.hidden = false;
+    } else {
+      box.hidden = true;
+    }
+  }
+
+  function applyContextViewVisibility() {
+    if (ctxTabsBar) ctxTabsBar.hidden = false;
+    if (paneSettings) paneSettings.hidden = activeContextTab !== 'settings';
+    if (paneSession) paneSession.hidden = activeContextTab !== 'session';
+    if (paneSpeed) paneSpeed.hidden = activeContextTab !== 'speed';
+
+    setPillActive(btnTabSession, activeContextTab === 'session');
+    setPillActive(btnTabSpeed, activeContextTab === 'speed');
+    setPillActive(btnTabSettings, activeContextTab === 'settings');
+    btnTabSession?.setAttribute('aria-selected', String(activeContextTab === 'session'));
+    btnTabSpeed?.setAttribute('aria-selected', String(activeContextTab === 'speed'));
+    btnTabSettings?.setAttribute('aria-selected', String(activeContextTab === 'settings'));
+    if (!el('panel')?.hidden) {
+      el('badge-cache')?.setAttribute('aria-expanded', String(activeContextTab === 'session'));
+    }
+  }
+
+  let prevTabBeforeSettings = 'session';
+
+  function switchContextTab(tabName) {
+    if (tabName !== 'session' && tabName !== 'speed' && tabName !== 'settings') return;
+    if (activeContextTab !== 'settings') {
+      prevTabBeforeSettings = activeContextTab;
+    }
+    activeContextTab = tabName;
+    isContextSettingsView = tabName === 'settings';
+    try { localStorage?.setItem(CTX_ACTIVE_TAB_KEY, tabName); } catch {}
+    applyContextViewVisibility();
+    if (tabName === 'speed') {
+      renderSpeedComparisonTab();
+    } else if (tabName === 'settings') {
+      renderSshRemoteContextBanners();
+      void refreshModulesDisplay();
+      void refreshCliUnlockDisplay();
+    }
+    positionFloatingPanels();
+  }
+
+  function openContextSettings(opts = {}) {
+    if (el('panel')?.hidden) showPanel('context');
+    switchContextTab('settings');
+    if (opts.openColors) {
+      toggleColorsDrawer(true);
+    }
+    positionFloatingPanels();
+  }
+
+  btnTabSession?.addEventListener('click', () => switchContextTab('session'));
+  btnTabSpeed?.addEventListener('click', () => switchContextTab('speed'));
+  btnTabSettings?.addEventListener('click', () => switchContextTab('settings'));
+
+  async function saveSettingsPayloadBridge(payload = {}) {
+    if (window.contextMeterAPI?.saveSettings) {
+      return await window.contextMeterAPI.saveSettings(payload);
+    }
+    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
+      const live = window.__AGContextMeterLive;
+      const r = await fetch(`http://127.0.0.1:${live.port}/save-settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
+        body: JSON.stringify(payload)
+      });
+      return await r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
+    }
+    return { ok: false, error: t('msg.noHostBridge') };
+  }
+
+  async function invokeModulesApi(action, name, enable, opts = {}) {
+    if (action === 'status' && window.contextMeterAPI?.getModulesStatus) {
+      return await window.contextMeterAPI.getModulesStatus();
+    }
+    if (action === 'toggle' && window.contextMeterAPI?.toggleModule) {
+      return await window.contextMeterAPI.toggleModule(name, enable, opts);
+    }
+    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
+      const live = window.__AGContextMeterLive;
+      const route = action === 'status' ? '/modules-status' : '/toggle-module';
+      const body = action === 'status' ? {} : { name, enable, opts };
+      const r = await fetch(`http://127.0.0.1:${live.port}${route}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
+        body: JSON.stringify(body)
+      });
+      return await r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
+    }
+    return { ok: false, error: t('msg.noHostBridge'), unavailable: true };
+  }
+
+  async function invokeRestartHostApi() {
+    if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.restartHost === 'function') {
+      return await window.contextMeterAPI.restartHost();
+    }
+    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
+      const live = window.__AGContextMeterLive;
+      const r = await fetch(`http://127.0.0.1:${live.port}/restart-host`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
+        body: '{}'
+      });
+      return await r.json().catch(() => ({ ok: true, supported: false }));
+    }
+    return { ok: true, supported: false };
+  }
+
+  let isRestartInProgress = false;
+
+  async function executeClientRestart() {
+    if (isRestartInProgress) return;
+    isRestartInProgress = true;
+    if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = true;
+
+    if (modalRestartFeedback) {
+      modalRestartFeedback.textContent = t('client.restart.triggering');
+      modalRestartFeedback.hidden = false;
+    }
+
+    const res = await invokeRestartHostApi();
+    if (!res || res.supported === false) {
+      hostSupportsRestart = false;
+      if (modalRestartFeedback) {
+        modalRestartFeedback.textContent = t('client.restart.hostNotSupported');
+        modalRestartFeedback.hidden = false;
+      }
+      isRestartInProgress = false;
+      if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
+      return;
+    }
+    if (res.ok === false) {
+      if (modalRestartFeedback) {
+        modalRestartFeedback.textContent = t('client.restart.failed', { err: translateBackendText(res.error) || t('msg.unknownErr') });
+        modalRestartFeedback.hidden = false;
+      }
+      isRestartInProgress = false;
+      if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
+      return;
+    }
+
+    if (modalRestartFeedback) {
+      modalRestartFeedback.textContent = t('models.restart.restarting');
+      modalRestartFeedback.hidden = false;
+    }
+    if (restartTimeoutTimer) clearTimeout(restartTimeoutTimer);
+    restartTimeoutTimer = setTimeout(() => {
+      if (!state.disposed && modalRestartFeedback) {
+        modalRestartFeedback.textContent = t('models.restart.notExited');
+        modalRestartFeedback.hidden = false;
+      }
+      isRestartInProgress = false;
+      if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
+    }, 15000);
+  }
+
+  function openClientRestartConfirmFlow() {
+    if (globalRestartModal) {
+      if (modalRestartFeedback) {
+        modalRestartFeedback.textContent = hostSupportsRestart ? '' : t('client.restart.hostNotSupported');
+        modalRestartFeedback.hidden = hostSupportsRestart;
+      }
+      if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = !hostSupportsRestart;
+      isRestartInProgress = false;
+      globalRestartModal.hidden = false;
+    }
+  }
+
+  btnModalRestartCancel?.addEventListener('click', () => {
+    if (globalRestartModal) globalRestartModal.hidden = true;
+  });
+  globalRestartModal?.addEventListener('click', (e) => {
+    if (e.target === globalRestartModal) {
+      globalRestartModal.hidden = true;
+    }
+  });
+  btnModalRestartConfirm?.addEventListener('click', () => executeClientRestart());
 
   /* @INSERT_SPEED_PANEL_MODULE */
 
@@ -949,12 +1081,7 @@
       ANTIGRAVITY_TOKEN_DATA.speedRecords = payload.speedRecords;
       if (!isContextSettingsView && activeContextTab === 'speed') {
         renderSpeedComparisonTab();
-      } else if (!isContextSettingsView && activeContextTab === 'models') {
-        renderModelSettingsTab();
       }
-    }
-    if (payload.modelCapabilitiesById && typeof payload.modelCapabilitiesById === 'object') {
-      mergeCapabilitiesMapClient(payload.modelCapabilitiesById);
     }
     if (Array.isArray(payload.cascadeModelConfigs) && payload.cascadeModelConfigs.length > 0) {
       const hasExisting = Array.isArray(state.cascadeModelConfigs) && state.cascadeModelConfigs.length > 0;
@@ -962,8 +1089,6 @@
       const existingHasCaps = hasExisting && state.cascadeModelConfigs.some(c => Number.isFinite(c?.maxTokens) && c.maxTokens > 0);
       if (!hasExisting || (incomingHasCaps && !existingHasCaps)) {
         state.cascadeModelConfigs = payload.cascadeModelConfigs;
-        renderHeaderModelDropdown();
-        if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
       }
     }
 
@@ -1189,31 +1314,6 @@
       }
 
       if (settingsRes?.ok) {
-        if (settingsRes.uiPreferences?.restartVerification && typeof settingsRes.uiPreferences.restartVerification === 'object') {
-          pendingRestartVerification = { ...settingsRes.uiPreferences.restartVerification };
-          void refreshUnlockStatus();
-        }
-        if (settingsRes.contextScopeMode) {
-          contextScopeMode = settingsRes.contextScopeMode === 'per_model' ? 'per_model' : 'unified';
-        } else {
-          const hasPerModelPrefs = settingsRes.contextPreferences && Object.values(settingsRes.contextPreferences).some(p => p && p.mode && p.mode !== 'default');
-          contextScopeMode = hasPerModelPrefs ? 'per_model' : 'unified';
-        }
-
-        if (settingsRes.contextUnifiedPreference && typeof settingsRes.contextUnifiedPreference === 'object') {
-          contextUnifiedPreference = { ...settingsRes.contextUnifiedPreference };
-        } else {
-          contextUnifiedPreference = { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-        }
-
-        if (settingsRes.contextPreferences && typeof settingsRes.contextPreferences === 'object') {
-          contextPreferencesMap = { ...settingsRes.contextPreferences };
-        }
-        syncContextPreferencesCache(contextPreferencesMap);
-        renderHeaderModelDropdown();
-        if (!ctxDraftDirty) loadDraftFromSelectedModel(true);
-        else renderCompactSessionCard();
-        if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
         const savedView = settingsRes.savedHeatView || settingsRes.uiPreferences?.savedHeatView;
         if (savedView && ['daily', 'weekly', 'monthly', 'yearly', 'cum'].includes(savedView)) {
           switchHeatView(savedView, false);
@@ -1237,7 +1337,6 @@
       if (settingsRes?.ok && typeof window !== 'undefined') {
         window.__AGContextMeterSettings = {
           ok: true,
-          contextPreferences: { ...contextPreferencesMap },
           uiPreferences: {
             ...(settingsRes.uiPreferences || {}),
             quotaShow5h: show5hQuota,
@@ -1558,97 +1657,6 @@
   }
 
   let isQuickCompactBusy = false;
-  let isQuickPresetSaving = false;
-  let twpFeedbackTimer = null;
-  let sessionCardFeedbackTimer = null;
-
-  function resolveQuickContextTarget() {
-    const scopeMode = getContextScopeMode();
-    if (scopeMode === 'unified') {
-      const pref = getContextUnifiedPreference();
-      const rp = resolveRuntimeUnlockPolicyClient();
-      const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
-        ? formatPrefShortPill(pref)
-        : (rp?.runtimeMode === 'dynamic'
-            ? t('twp.preset.dynamic')
-            : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
-                ? formatKShort(rp.currentClientLimitTokens)
-                : t('twp.preset.default')));
-      return {
-        scopeMode: 'unified',
-        ready: true,
-        prod: null,
-        pref,
-        rawWindowMax: null,
-        capSummary: null,
-        currentShortLabel: effectiveShort
-      };
-    }
-
-    const products = getKnownModelProducts();
-    const hostSelected = extractHostSelectedModel();
-    let prod = null;
-    if (hostSelected && hostSelected.productKey) {
-      prod = products.find(p => p.productKey === hostSelected.productKey) || {
-        productKey: hostSelected.productKey,
-        productLabel: hostSelected.label || hostSelected.productKey,
-        vendor: hostSelected.vendor || '其他',
-        members: []
-      };
-    } else if (activeSessionModelConfirmed && activeSessionProductKey) {
-      prod = products.find(p => p.productKey === activeSessionProductKey) || null;
-    }
-
-    if (!prod) {
-      return {
-        scopeMode: 'per_model',
-        ready: false,
-        prod: null,
-        pref: null,
-        rawWindowMax: null,
-        capSummary: null,
-        currentShortLabel: t('models.summary.unconfirmed')
-      };
-    }
-
-    const pState = resolveProductPreferenceState(prod);
-    const capSummary = getProductCapabilitySummary(prod);
-    const rawWindowMax = capSummary?.maxTokens ? Number(capSummary.maxTokens) : (capSummary?.modelTheoreticalMaxTokens ? Number(capSummary.modelTheoreticalMaxTokens) : null);
-    const rp = capSummary?.runtimePolicy || resolveRuntimeUnlockPolicyClient();
-    const pref = pState?.pref || null;
-    const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
-      ? formatPrefShortPill(pref)
-      : (rp?.runtimeMode === 'dynamic'
-          ? t('twp.preset.dynamic')
-          : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
-              ? formatKShort(rp.currentClientLimitTokens)
-              : t('twp.preset.default')));
-    return {
-      scopeMode: 'per_model',
-      ready: true,
-      prod,
-      pState,
-      pref,
-      capSummary,
-      rawWindowMax,
-      currentShortLabel: effectiveShort
-    };
-  }
-
-  function resolvePendingSessionBudgetHint(observedBudget) {
-    const obs = Number(observedBudget || 0);
-    if (!obs || obs <= 0) return null;
-    const target = resolveQuickContextTarget();
-    if (!target.ready || !target.pref) return null;
-    if (target.pref.mode === 'fixed' && Number(target.pref.limitTokens) > 0) {
-      const nextTok = Number(target.pref.limitTokens);
-      if (target.capSummary?.maxTokens && nextTok > Number(target.capSummary.maxTokens)) return null;
-      if (Math.abs(nextTok - obs) >= 1024) {
-        return { nextTokens: nextTok, nextLabel: formatKShort(nextTok) };
-      }
-    }
-    return null;
-  }
 
   function formatKeyLimitDisplay(elLimit, budgetVal) {
     if (!elLimit) return;
@@ -1658,87 +1666,12 @@
       elLimit.title = '';
       return;
     }
-    const baseText = short(val);
-    const pending = resolvePendingSessionBudgetHint(val);
-    if (pending) {
-      elLimit.textContent = `${baseText} → ${pending.nextLabel}`;
-      elLimit.title = t('key.limitNextTip', { cur: baseText, next: pending.nextLabel });
-    } else {
-      elLimit.textContent = baseText;
-      elLimit.title = '';
-    }
-  }
-
-  function showQuickContextNote(source, ok, msg, autoHideMs = 0) {
-    const targetId = source === 'session_card' ? 'ctx-compact-feedback' : 'twp-status-note';
-    const node = el(targetId);
-    if (!node) return;
-    if (source === 'session_card') {
-      if (sessionCardFeedbackTimer) { clearTimeout(sessionCardFeedbackTimer); sessionCardFeedbackTimer = null; }
-    } else {
-      if (twpFeedbackTimer) { clearTimeout(twpFeedbackTimer); twpFeedbackTimer = null; }
-    }
-    if (!msg) {
-      node.textContent = '';
-      node.hidden = true;
-      node.className = 'twp-status-note';
-      return;
-    }
-    node.textContent = msg;
-    node.className = `twp-status-note ${ok === true ? 'is-success' : (ok === false ? 'is-error' : '')}`.trim();
-    node.hidden = false;
-    if (autoHideMs > 0) {
-      const tid = setTimeout(() => {
-        if (source === 'session_card') sessionCardFeedbackTimer = null;
-        else twpFeedbackTimer = null;
-        if (el(targetId)) el(targetId).hidden = true;
-      }, autoHideMs);
-      if (source === 'session_card') sessionCardFeedbackTimer = tid;
-      else twpFeedbackTimer = tid;
-    }
-  }
-
-  function syncQuickPresetGrid(gridEl, info) {
-    if (!gridEl) return;
-    const btns = gridEl.querySelectorAll ? gridEl.querySelectorAll('.twp-preset-btn') : [];
-    const rp = info.capSummary?.runtimePolicy || resolveRuntimeUnlockPolicyClient();
-    const effectiveMode = (info.pref?.mode && info.pref.mode !== 'default')
-      ? info.pref.mode
-      : (rp?.runtimeMode === 'dynamic' ? 'dynamic' : 'fixed');
-    const effectiveLimit = (info.pref?.mode === 'fixed' && info.pref.limitTokens)
-      ? Number(info.pref.limitTokens)
-      : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens ? Number(rp.currentClientLimitTokens) : 256000);
-
-    for (const btn of btns) {
-      const bMode = btn.getAttribute('data-qctx-mode') || 'fixed';
-      const bLimRaw = btn.getAttribute('data-qctx-limit');
-      const bLim = bLimRaw ? Number(bLimRaw) : null;
-      const exceedsCap = Boolean(
-        info.ready &&
-        info.scopeMode === 'per_model' &&
-        bMode === 'fixed' &&
-        bLim &&
-        info.rawWindowMax &&
-        bLim > info.rawWindowMax
-      );
-      const disabled = Boolean(isQuickPresetSaving || !info.ready || exceedsCap);
-      btn.disabled = disabled;
-      const isMatched = Boolean(
-        info.ready &&
-        !exceedsCap &&
-        ((bMode === 'dynamic' && effectiveMode === 'dynamic') ||
-          (bMode === 'fixed' && effectiveMode === 'fixed' && bLim === effectiveLimit))
-      );
-      if (isMatched) addClass(btn, 'is-active');
-      else removeClass(btn, 'is-active');
-      btn.setAttribute('aria-pressed', String(isMatched));
-      btn.title = exceedsCap ? `${fmt(bLim)} > ${fmt(info.rawWindowMax)}` : '';
-    }
+    elLimit.textContent = short(val);
+    elLimit.title = '';
   }
 
   function renderQuickContextControls() {
     const btnTopCompact = el('btn-topbar-compact');
-    const btnTopWindow = el('btn-topbar-window');
     const prevTopCompactHidden = btnTopCompact ? btnTopCompact.hidden : true;
     const hasSession = Boolean(state.route);
 
@@ -1748,57 +1681,12 @@
       btnTopCompact.setAttribute('aria-label', isQuickCompactBusy ? t('session.quick.compactBusy') : t('topbar.quick.compactTitle'));
     }
 
-    const info = resolveQuickContextTarget();
-    if (btnTopWindow) {
-      btnTopWindow.hidden = false;
-      btnTopWindow.disabled = isQuickPresetSaving;
-      btnTopWindow.setAttribute('aria-label', t('twp.tipTitle', { cur: info.currentShortLabel || '—' }));
-    }
-
-    const scopeLbl = el('twp-scope-label');
-    const scopeToggle = el('btn-twp-toggle-scope');
-    if (scopeLbl) {
-      if (info.scopeMode === 'unified') {
-        scopeLbl.textContent = t('twp.scopeUnified');
-      } else if (info.ready && info.prod) {
-        scopeLbl.textContent = t('twp.scopeModel', { model: info.prod.productLabel });
-      } else {
-        scopeLbl.textContent = t('twp.scopeModelPending');
-      }
-      scopeLbl.title = scopeLbl.textContent;
-    }
-    if (scopeToggle) {
-      scopeToggle.textContent = info.scopeMode === 'unified' ? t('twp.switchToPerModel') : t('twp.switchToUnified');
-    }
-
-    syncQuickPresetGrid(el('twp-preset-grid'), info);
-    syncQuickPresetGrid(el('session-ctx-preset-bar'), info);
-
-    if (!twpFeedbackTimer) {
-      if (info.scopeMode === 'per_model' && !info.ready) {
-        showQuickContextNote('popover', null, t('twp.unconfirmedHint'));
-      } else if (info.pref?.mode === 'fixed' && info.pref.limitTokens && ![512000, 1000000].includes(Number(info.pref.limitTokens))) {
-        showQuickContextNote('popover', null, t('twp.customActiveNote', { val: formatKShort(info.pref.limitTokens) }));
-      } else {
-        showQuickContextNote('popover', null, '');
-      }
-    }
-    if (!sessionCardFeedbackTimer) {
-      if (info.scopeMode === 'per_model' && !info.ready) {
-        showQuickContextNote('session_card', null, t('twp.unconfirmedHint'));
-      } else if (info.pref?.mode === 'fixed' && info.pref.limitTokens && ![512000, 1000000].includes(Number(info.pref.limitTokens))) {
-        showQuickContextNote('session_card', null, t('twp.customActiveNote', { val: formatKShort(info.pref.limitTokens) }));
-      } else {
-        showQuickContextNote('session_card', null, '');
-      }
-    }
-
-    if (activeTopbarTipKind && !isTopbarTipFeedback) {
-      if (activeTopbarTipKind === 'compact' && btnTopCompact?.hidden) {
+    if (activeTopbarTipKind === 'compact' && !isTopbarTipFeedback) {
+      if (btnTopCompact?.hidden) {
         hideTopbarActionTooltip(true);
       } else {
-        syncTopbarActionTooltipContent(activeTopbarTipKind);
-        positionTopbarActionTooltip(activeTopbarTipKind === 'window' ? btnTopWindow : btnTopCompact);
+        syncTopbarActionTooltipContent('compact');
+        positionTopbarActionTooltip(btnTopCompact);
       }
     }
 
@@ -1807,119 +1695,10 @@
     }
   }
 
-  async function applyQuickContextPreset(mode, limitTokens = null, opts = {}) {
-    const source = opts.source || 'popover';
-    if (isQuickPresetSaving) return { ok: false, busy: true };
-    const info = resolveQuickContextTarget();
-    if (!info.ready) {
-      const msg = t('twp.unconfirmedHint');
-      showQuickContextNote(source, false, msg, 3500);
-      return { ok: false, error: msg };
-    }
-
-    const nextMode = mode === 'dynamic' ? 'dynamic' : 'fixed';
-    const nextTokens = nextMode === 'fixed' ? Number(limitTokens || 512000) : null;
-    const targetLabel = nextMode === 'dynamic' ? t('twp.preset.dynamic') : formatKShort(nextTokens);
-
-    isQuickPresetSaving = true;
-    renderQuickContextControls();
-    try {
-      if (info.scopeMode === 'unified') {
-        const nextPref = {
-          modelId: 'unified',
-          mode: nextMode,
-          limitTokens: nextTokens,
-          updatedAt: new Date().toISOString()
-        };
-        const res = await saveSettingsPayloadBridge({
-          contextUnifiedPreference: nextPref,
-          contextScopeMode: 'unified'
-        });
-        if (!res || !res.ok) {
-          throw new Error(translateBackendText(res?.error) || t('msg.saveFail'));
-        }
-        contextUnifiedPreference = nextPref;
-      } else {
-        const prod = info.prod;
-        const legacyKeys = resolveProductPreferenceState(prod).legacyKeys;
-        const res = await saveSettingsPayloadBridge({
-          contextPreference: {
-            scope: 'product',
-            productKey: prod.productKey,
-            modelId: prod.productKey,
-            label: prod.productLabel,
-            mode: nextMode,
-            limitTokens: nextTokens,
-            clearLegacyKeys: legacyKeys
-          }
-        });
-        if (!res || !res.ok) {
-          throw new Error(translateBackendText(res?.error) || t('msg.saveFail'));
-        }
-        if (res.contextPreferences && typeof res.contextPreferences === 'object') {
-          contextPreferencesMap = { ...res.contextPreferences };
-        } else {
-          for (const lk of legacyKeys) delete contextPreferencesMap[lk];
-          contextPreferencesMap[prod.productKey] = {
-            scope: 'product',
-            productKey: prod.productKey,
-            modelId: prod.productKey,
-            label: prod.productLabel,
-            mode: nextMode,
-            limitTokens: nextTokens,
-            updatedAt: new Date().toISOString()
-          };
-        }
-      }
-      syncContextPreferencesCache(contextPreferencesMap);
-      if (!ctxDraftDirty) loadDraftFromSelectedModel(true);
-
-      let needsRestart = false;
-      const needBackendUnlock = (nextMode === 'dynamic' || (nextTokens && nextTokens > 256000))
-        && (!currentUnlockStatus || currentUnlockStatus.status === 'not_patched');
-      if (needBackendUnlock) {
-        const uRes = await invokeUnlockApi('apply', {
-          mode: 'dynamic',
-          limitTokens: null,
-          serviceLimit: state.latest?.serviceLimit || undefined
-        });
-        if (!uRes || !uRes.ok) {
-          throw new Error(buildFriendlyWriteError(uRes?.error));
-        }
-        needsRestart = Boolean(uRes.needsRestart);
-        if (needsRestart) needsRestartAfterApply = true;
-        await refreshUnlockStatus();
-      } else {
-        renderCompactSessionCard();
-        renderClientStatusBar();
-      }
-      renderHeaderModelDropdown();
-      renderModelSettingsTab();
-      render();
-      const doneMsg = needsRestart
-        ? t('twp.savedNeedRestart', { target: targetLabel })
-        : t('twp.savedDone', { target: targetLabel });
-      showQuickContextNote(source, true, doneMsg, 3200);
-      return { ok: true, targetLabel, needsRestart };
-    } catch (err) {
-      const errMsg = t('twp.saveFail', { err: err?.message || t('msg.unknownErr') });
-      showQuickContextNote(source, false, errMsg, 4200);
-      return { ok: false, error: errMsg };
-    } finally {
-      isQuickPresetSaving = false;
-      renderQuickContextControls();
-    }
-  }
-
   function getHostCsrfToken() {
     try {
       const fromConfig = typeof window !== 'undefined' ? window.__APP_CONFIG__?.csrfToken : null;
       if (fromConfig && typeof fromConfig === 'string') return fromConfig;
-    } catch {}
-    try {
-      if (state && typeof state.observedCsrfToken === 'string' && state.observedCsrfToken) {
-        return state.observedCsrfToken;
-      }
     } catch {}
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -1932,8 +1711,9 @@
 
   async function triggerSessionCompact(source = 'topbar') {
     const cascadeId = state.route;
+    const hasIpcCompact = typeof window !== 'undefined' && typeof window.contextMeterAPI?.compactSession === 'function';
     const csrf = getHostCsrfToken();
-    if (!cascadeId || !csrf) {
+    if (!cascadeId || (!hasIpcCompact && !csrf)) {
       const noSessMsg = t('session.quick.compactNoSession');
       if (source === 'topbar') showTopbarTransientFeedback(false, noSessMsg, el('btn-topbar-compact'));
       return { ok: false, error: noSessMsg };
@@ -1942,47 +1722,51 @@
     isQuickCompactBusy = true;
     renderQuickContextControls();
     try {
-      let compactInfo = { name: 'compact' };
-      try {
-        const cmdRes = await fetch('/exa.language_server_pb.LanguageServerService/GetSlashCommands', {
+      if (hasIpcCompact) {
+        const ipcRes = await window.contextMeterAPI.compactSession(cascadeId);
+        if (!ipcRes || !ipcRes.ok) {
+          throw new Error(ipcRes?.error || t('msg.unknownErr'));
+        }
+      } else {
+        let compactInfo = { name: 'compact' };
+        try {
+          const cmdRes = await fetch('/exa.language_server_pb.LanguageServerService/GetSlashCommands', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Connect-Protocol-Version': '1',
+              'x-codeium-csrf-token': csrf
+            },
+            body: JSON.stringify({ cascadeId })
+          });
+          if (cmdRes.ok) {
+            const cmdData = await cmdRes.json().catch(() => null);
+            const list = cmdData?.commands || cmdData?.slashCommands || [];
+            const found = Array.isArray(list)
+              ? list.find(c => c?.name === 'compact' || c?.info?.name === 'compact')
+              : null;
+            if (found) {
+              compactInfo = found.info || found;
+            }
+          }
+        } catch {}
+
+        const sendRes = await fetch('/exa.language_server_pb.LanguageServerService/SendUserCascadeMessage', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Connect-Protocol-Version': '1',
             'x-codeium-csrf-token': csrf
           },
-          body: JSON.stringify({ cascadeId })
+          body: JSON.stringify({
+            cascadeId,
+            items: [{ item: { slashCommand: { info: compactInfo } } }]
+          })
         });
-        if (cmdRes.ok) {
-          const cmdData = await cmdRes.json().catch(() => null);
-          const list = cmdData?.commands || cmdData?.slashCommands || [];
-          const found = Array.isArray(list)
-            ? list.find(c => c?.name === 'compact' || c?.info?.name === 'compact')
-            : null;
-          if (found) {
-            compactInfo = found.info || found;
-          }
+        if (!sendRes.ok) {
+          const errTxt = await sendRes.text().catch(() => '');
+          throw new Error(errTxt || `HTTP ${sendRes.status}`);
         }
-      } catch {}
-
-      const cachedCtx = lastCascadeConfigByConv.get(cascadeId) || {};
-      const sendBody = {
-        cascadeId,
-        items: [{ item: { slashCommand: { info: compactInfo } } }],
-        ...cachedCtx
-      };
-      const sendRes = await fetch('/exa.language_server_pb.LanguageServerService/SendUserCascadeMessage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Connect-Protocol-Version': '1',
-          'x-codeium-csrf-token': csrf
-        },
-        body: JSON.stringify(sendBody)
-      });
-      if (!sendRes.ok) {
-        const errTxt = await sendRes.text().catch(() => '');
-        throw new Error(errTxt || `HTTP ${sendRes.status}`);
       }
       const doneMsg = t('session.quick.compactDone');
       if (source === 'topbar') showTopbarTransientFeedback(true, doneMsg, el('btn-topbar-compact'));
@@ -2045,16 +1829,6 @@
     if (barFill) barFill.style.width = pct != null ? `${pct}%` : (d?.exceeded ? '100%' : '0%');
 
     updateRingAndBubble(d, session, pct, danger, stale, incomplete);
-
-    syncContextModelSelectionFromState();
-
-    // 若观测到的上下文预算变化且抽屉已展开或尚未读取状态，触发一次轻量同步（不再据此判定真实请求已验证）
-    if (d?.budget && d.budget !== lastAutoObservedBudget && d.budget > 256000) {
-      lastAutoObservedBudget = d.budget;
-      if (currentUnlockStatus || (unlockDrawerBody && unlockDrawerBody.style.display === 'block')) {
-        void refreshUnlockStatus();
-      }
-    }
 
     const status = disp.isError
       ? disp.statusText
@@ -2319,12 +2093,6 @@
         });
         if (value) {
           state.latest = withStepError(value, rows[i]);
-          const callInfo = parseGeneratorCall ? parseGeneratorCall(rows[i], id, 'desktop', { cascadeModelConfigs: modelConfigsList }) : null;
-          recordObservationFromSummary(state.latest, id, {
-            callId: callInfo?.callId || null,
-            stepCount: state.count,
-            ts: Date.now()
-          });
           break;
         }
       }
@@ -2347,23 +2115,12 @@
       if (generation !== state.generation || state.disposed) return;
       if (!result?.ok) throw new Error(result?.error || '扫描未返回有效结果');
       state.scan = result.data; state.scanError = '';
-      if (result.data.modelCapabilitiesById && typeof result.data.modelCapabilitiesById === 'object') {
-        mergeCapabilitiesMapClient(result.data.modelCapabilitiesById);
-      }
       if (Array.isArray(result.data.cascadeModelConfigs) && result.data.cascadeModelConfigs.length) {
         state.cascadeModelConfigs = result.data.cascadeModelConfigs;
       }
       if (result.data.scannedAt >= state.requestAt && result.data.latest) {
         state.latest = result.data.latest;
         state.requestAt = result.data.scannedAt;
-        const genSteps = Number(result.data.generatorCount);
-        const msgSteps = Number(result.data.session?.userMessages || 0) + Number(result.data.session?.assistantMessages || 0);
-        const resolvedStepCount = Number.isFinite(genSteps) && genSteps >= 0 ? genSteps : (msgSteps > 0 ? msgSteps : state.count);
-        recordObservationFromSummary(state.latest, id, {
-          callId: result.data.latestCallId || null,
-          stepCount: resolvedStepCount,
-          ts: Number(result.data.scannedAt || Date.now())
-        });
       }
       state.latest = withStepError(state.latest);
       renderFiles(result.data.session);
@@ -2372,67 +2129,6 @@
   }
 
   let lastHistorySync = 0;
-  let lastAvailableModelsSync = 0;
-  let availableModelsFetchInFlight = false;
-  async function fetchAvailableModelsIfNeeded() {
-    if (availableModelsFetchInFlight) return;
-    if (typeof fetch !== 'function') return;
-    const csrf = getHostCsrfToken();
-    if (!csrf) return;
-    if (Date.now() - lastAvailableModelsSync < 300000 && state.modelCapabilitiesById && Object.keys(state.modelCapabilitiesById).length > 0) {
-      return;
-    }
-    availableModelsFetchInFlight = true;
-    try {
-      const response = await fetch('/exa.language_server_pb.LanguageServerService/GetAvailableModels', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Connect-Protocol-Version': '1', 'x-codeium-csrf-token': csrf },
-        body: JSON.stringify({ forceRefresh: false })
-      });
-      if (!response.ok) return;
-      const data = await response.json();
-      const modelsObj = data?.response?.models || data?.models;
-      if (!modelsObj || typeof modelsObj !== 'object') return;
-      const entries = Array.isArray(modelsObj)
-        ? modelsObj.map(item => [item?.model || item?.modelId || '', item])
-        : Object.entries(modelsObj);
-      const nextCaps = {};
-      for (const [entryKey, d] of entries) {
-        if (!d || typeof d !== 'object') continue;
-        const rawId = String(d.model || d.modelId || entryKey || '').trim();
-        if (!rawId) continue;
-        const normKey = rawId.toLowerCase().replace(/^model_/, '');
-        const maxTokens = Number.isSafeInteger(Number(d.maxTokens)) && Number(d.maxTokens) > 0 ? Number(d.maxTokens) : null;
-        const maxOutputTokens = d.maxOutputTokens != null && Number.isSafeInteger(Number(d.maxOutputTokens)) && Number(d.maxOutputTokens) >= 0
-          ? Number(d.maxOutputTokens)
-          : null;
-        const rec = {
-          modelId: rawId,
-          displayName: d.displayName || null,
-          maxTokens,
-          maxOutputTokens,
-          thinkingBudget: d.thinkingBudget ?? null,
-          minThinkingBudget: d.minThinkingBudget ?? null,
-          thinkingLevel: d.thinkingLevel || null,
-          supportsModelInfoOverride: typeof d.supportsModelInfoOverride === 'boolean' ? d.supportsModelInfoOverride : null,
-          capabilitySource: 'get_available_models'
-        };
-        if (normKey) nextCaps[normKey] = rec;
-        if (entryKey) nextCaps[String(entryKey).trim().toLowerCase().replace(/^model_/, '')] = rec;
-      }
-      if (Object.keys(nextCaps).length > 0) {
-        mergeCapabilitiesMapClient(nextCaps);
-        lastAvailableModelsSync = Date.now();
-        if (!isContextSettingsView && activeContextTab === 'models') {
-          renderModelSettingsTab();
-          renderPresetSelectionUI();
-        }
-      }
-    } catch {}
-    finally {
-      availableModelsFetchInFlight = false;
-    }
-  }
 
   function tick() {
     if (!state.disposed && !host.isConnected) {
@@ -2454,19 +2150,14 @@
         reportedFinalCallIds: state.reportedFinalCallIds || new Set(),
         reportedFinalCallOutputs: state.reportedFinalCallOutputs || new Map()
       });
-      closeTopbarWindowPopover();
       toggle(false); hideContextTooltip(); hideTopbarActionTooltip(true); renderFiles(null); render();
       void syncTokenHistoryFromHost(false);
     }
     if (id && !state.requestBusy && Date.now() >= state.requestNext) void requestPoll(state.generation, id);
     if (id && !state.scanBusy && Date.now() >= state.scanNext) void scan(state.generation, id);
     if (Date.now() - lastHistorySync > 15000) {
-      const isInitialSync = lastHistorySync === 0;
       lastHistorySync = Date.now();
       void syncTokenHistoryFromHost(false);
-      if (!isInitialSync && activeContextTab === 'models' && !isContextSettingsView) {
-        void fetchAvailableModelsIfNeeded();
-      }
     }
   }
 
@@ -2524,75 +2215,22 @@
     findTopRightClusterForTest: () => findTopRightCluster(),
     syncWindowControlsOverlayForTest: () => syncWindowControlsOverlay(),
     computeWindowControlsWidthForTest: el => computeWindowControlsWidth(el),
-    getContextPreferencesState: () => ({
-      activeSessionModelKey,
-      activeSessionProductKey,
-      selectedEditModelKey,
-      selectedProductKey,
-      activeContextTab,
-      isContextSettingsView,
-      draft: { ...ctxDraft },
-      contextPreferences: { ...contextPreferencesMap },
-      unlockStatus: currentUnlockStatus ? { ...currentUnlockStatus } : null,
-      pendingRestartVerification: pendingRestartVerification ? { ...pendingRestartVerification } : null,
-      needsRestartAfterApply
-    }),
-    setContextLatestForTest: (latestObj, configs = [], capabilitiesById = null) => {
-      if (capabilitiesById && typeof capabilitiesById === 'object') mergeCapabilitiesMapClient(capabilitiesById);
+    setContextLatestForTest: (latestObj, configs = []) => {
       if (Array.isArray(configs) && configs.length) state.cascadeModelConfigs = configs;
       state.latest = latestObj;
-      if (latestObj && (state.route || state.activeConversationId)) {
-        recordObservationFromSummary(latestObj, state.route || state.activeConversationId, { ts: latestObj.ts || Date.now() });
-      }
-      manualModelSelection = false;
       render();
-      return { activeSessionModelKey, activeSessionProductKey, selectedEditModelKey, selectedProductKey, draft: { ...ctxDraft } };
     },
-    setModelCapabilitiesForTest: (capabilitiesById) => {
-      mergeCapabilitiesMapClient(capabilitiesById);
-      if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
-    },
-    getBudgetTrackerTracesForTest: () => (budgetTracker && typeof budgetTracker.exportDiagnosticTraces === 'function')
-      ? budgetTracker.exportDiagnosticTraces()
-      : [],
     switchContextTabForTest: (tab) => switchContextTab(tab),
     openContextSettingsForTest: (opts) => openContextSettings(opts),
     setSpeedRecordsForTest: (records, calls = []) => {
       ANTIGRAVITY_TOKEN_DATA.speedRecords = Array.isArray(records) ? records : [];
       if (Array.isArray(calls)) state.sessionCalls = calls;
       if (!isContextSettingsView && activeContextTab === 'speed') renderSpeedComparisonTab();
-      if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
-    },
-    setRestartVerificationForTest: (ver, preSnapshot = null) => {
-      pendingRestartVerification = ver ? { ...ver } : null;
-      if (preSnapshot) preRestartSnapshot = preSnapshot;
-      if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
     },
     getKnownModelProductsForTest: () => getKnownModelProducts(),
-    refreshUnlockStatusForTest: () => refreshUnlockStatus(),
     refreshCliUnlockForTest: () => refreshCliUnlockDisplay(),
     refreshModulesForTest: () => refreshModulesDisplay(),
-    resolveQuickContextTargetForTest: () => resolveQuickContextTarget(),
-    applyQuickContextPresetForTest: (mode, lim, opts) => applyQuickContextPreset(mode, lim, opts),
     triggerSessionCompactForTest: (src) => triggerSessionCompact(src),
-    refreshEnhanceStatusForTest: () => refreshEnhanceStatus(),
-    getEnhanceStateForTest: () => ({
-      currentBrandTitle,
-      hasPendingLsReload,
-      currentEnhanceStatus: currentEnhanceStatus ? { ...currentEnhanceStatus } : null
-    }),
-    getUnlockUiStateForTest: () => ({
-      hostSupportsRestart,
-      needsRestartAfterApply,
-      resultBoxDisplay: unlockResultBox?.style?.display || '',
-      resultRestartHidden: btnUnlockResultRestart ? btnUnlockResultRestart.hidden : null,
-      resultRetryHidden: btnUnlockResultRetry ? btnUnlockResultRetry.hidden : null,
-      resultManualHidden: unlockResultManual ? unlockResultManual.hidden : null,
-      headerRestartHidden: btnRestartHost ? btnRestartHost.hidden : null
-    }),
-    getContextScopeModeForTest: () => getContextScopeMode(),
-    setContextScopeModeForTest: mode => setScopeMode(mode),
-    getContextUnifiedPreferenceForTest: () => getContextUnifiedPreference(),
     getPanelLanguage: () => getPanelLanguage(),
     setPanelLanguage: (lang, opts) => applyPanelLanguage(lang, opts),
     renderModelQuotaForTest: (force = true) => renderModelQuota(force),
@@ -2618,17 +2256,8 @@
         clearTimeout(topbarTipFeedbackTimer);
         topbarTipFeedbackTimer = null;
       }
-      if (twpFeedbackTimer) {
-        clearTimeout(twpFeedbackTimer);
-        twpFeedbackTimer = null;
-      }
-      if (sessionCardFeedbackTimer) {
-        clearTimeout(sessionCardFeedbackTimer);
-        sessionCardFeedbackTimer = null;
-      }
       if (layoutRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(layoutRaf);
       syncHostStackingElevation(false);
-      try { uninstallRequestInterceptor(); } catch {}
       try { themeObserver?.disconnect(); } catch {}
       try { resizeObserver?.disconnect(); } catch {}
       try { hostDomObserver?.disconnect(); } catch {}
@@ -2652,9 +2281,9 @@
   applyStaticPanelTranslations(shadow);
   applyStaticPanelTranslations(quotaShadow);
   if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) applyStaticPanelTranslations(shortcutsShadow);
-  renderEnhanceSectionUI();
+  applyContextViewVisibility();
+  renderSshRemoteContextBanners();
   void restoreSettingsFromHost();
-  installRequestInterceptor();
   render();
   tick();
 })();

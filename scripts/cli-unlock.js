@@ -12,8 +12,6 @@ function parseArgs(argv) {
   const opts = {
     action: 'analyze',
     binaryPath: null,
-    mode: 'dynamic',
-    limitTokens: null,
     strict: false,
     json: false,
   };
@@ -22,13 +20,11 @@ function parseArgs(argv) {
     if (a === '--analyze') opts.action = 'analyze';
     else if (a === '--apply') opts.action = 'apply';
     else if (a === '--binary') opts.binaryPath = argv[++i];
-    else if (a === '--mode') opts.mode = argv[++i];
-    else if (a === '--limit') opts.limitTokens = Number(argv[++i]);
     else if (a === '--strict') opts.strict = true;
     else if (a === '--json') opts.json = true;
     else if (a === '-h' || a === '--help') {
       console.log(
-        'Usage: node scripts/cli-unlock.js [--analyze|--apply] [--binary <path>] [--mode <default|fixed|dynamic>] [--limit <tokens>] [--strict] [--json]'
+        'Usage: node scripts/cli-unlock.js [--analyze|--apply] [--binary <path>] [--strict] [--json]'
       );
       process.exit(0);
     } else if (!a.startsWith('--') && !opts.binaryPath) {
@@ -57,7 +53,7 @@ if (require.main === module) {
     console.log(JSON.stringify(res, null, 2));
   } else if (opts.action === 'apply') {
     if (!res.ok) {
-      console.error(`❌ agy CLI 修补失败: ${res.error}`);
+      console.error(`❌ agy CLI 地区解锁失败: ${res.error}`);
       if (/EACCES|EPERM/i.test(String(res.error || ''))) {
         console.error('💡 提示: 目标 agy 二进制所在目录无写权限，可尝试使用 sudo 执行或将 agy 安装到 ~/.local/bin/agy');
       }
@@ -75,9 +71,6 @@ if (require.main === module) {
     if (!res.found) {
       console.log('💡 提示: 如 agy 位于自定义路径，可传 --binary <path> 或设置 AGY_CLI_BIN=<path>');
     }
-    if (res.syncedConfigs && res.syncedConfigs.length) {
-      console.log(`  同步配置: ${res.syncedConfigs.join(', ')}`);
-    }
   } else {
     if (!res.found) {
       console.log(`[not_found] ${res.message}`);
@@ -88,21 +81,7 @@ if (require.main === module) {
       }
     } else {
       const targetMeta = res.format && res.arch ? `${res.format} ${res.arch}` : 'unknown';
-      const parts = [
-        `offersContextWindow=${res.offersContextWindow?.status}`,
-        `autoCompactEnv=${res.autoCompactEnv?.status}`,
-      ];
-      if (res.regionUnlock) {
-        parts.push(`regionUnlock=${res.regionUnlock.status}`);
-      }
-      if (res.checkpointUnlock) {
-        const ck = res.checkpointUnlock;
-        const ckLabel = ck.configuredMode
-          ? `${ck.configuredMode}${ck.configuredLimitTokens ? `:${ck.configuredLimitTokens}` : ''}`
-          : ck.status;
-        parts.push(`checkpointConfig=${ckLabel}`);
-      }
-      console.log(`[${res.status}] ${res.realPath} (${targetMeta}; ${parts.join(', ')})`);
+      console.log(`[${res.status}] ${res.realPath} (${targetMeta}; regionUnlock=${res.regionUnlock?.status || 'missing'})`);
     }
   }
   process.exit(res.ok ? 0 : 1);

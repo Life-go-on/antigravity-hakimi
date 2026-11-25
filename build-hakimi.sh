@@ -5,8 +5,7 @@
 #   1. 基于只读源 /Applications/Antigravity.app（或 --from 指定副本）复制并生成独立应用 /Applications/哈基米.app
 #   2. 严格保护官方 /Applications/Antigravity.app 及 .orig 绝不被修改
 #   3. 内核级与客户端能力整合：
-#      - 账号地区 / Free-tier 检测解锁 (ValidateAndOnboardAccount，UI 还原操作绝不回滚该补丁)
-#      - 上下文窗口解锁 (default 官方默认 / fixed / dynamic) + 发送链路 maxTokenLimit 动态覆写
+#      - 账号地区 / Free-tier 检测解锁 (ValidateAndOnboardAccount)
 #      - 桌面端简体中文界面（纯本地 DOM 翻译，不影响请求与提示词）
 #      - 实时上下文占用监控、速率监测、8 类错误诊断与 Token 消费历史看板
 #
@@ -24,8 +23,6 @@ APP="/Applications/哈基米.app"
 SRC=""
 STAGE_ONLY=0
 FORCE=0
-CONTEXT_MODE="dynamic"
-CONTEXT_LIMIT=""
 CLIENT_LANG=""
 ICON_PATH=""
 RAW_ICON=0
@@ -48,10 +45,8 @@ usage() {
   --raw-icon                      可选：配合 --icon 使用，不自动添加 macOS 圆角矩形留白遮罩
   --default-icon                  可选：覆盖旧副本时强制恢复为默认官方图标
   -r, --restart                   若目标应用当前正在运行，构建完成后自动优雅退出旧进程并重启新版
-  --context-mode <mode>           上下文窗口模式: default | fixed | dynamic (默认: dynamic)
-  --context-limit <tokens>        当 --context-mode fixed 时指定固定 token 上限 (16384 ~ 2097152)
-  --patch-cli                     构建完成后联动修补本机 agy CLI 二进制并同步 CLI 上下文配置（Linux 下自动仅执行 CLI 修补）
-  --cli-only                      仅修补本机 agy CLI 二进制并同步 CLI 配置，跳过 macOS 桌面应用构建（支持 Linux x86-64/arm64 与 macOS arm64）
+  --patch-cli                     构建完成后联动对本机 agy CLI 执行地区解锁（Linux 下自动仅执行 CLI 解锁）
+  --cli-only                      仅对本机 agy CLI 执行地区解锁，跳过 macOS 桌面应用构建（支持 Linux x86-64/arm64 与 macOS arm64）
   --cli-bin <path>                可选：配合 --patch-cli / --cli-only 指定 agy 二进制路径
   --client-lang <zh-CN|en>        桌面端界面语言 (首次写入配置默认为 zh-CN)
   -h, --help                      显示本帮助信息
@@ -83,16 +78,6 @@ while [[ $# -gt 0 ]]; do
     --app)
       require_arg "$@"
       APP="$2"
-      shift 2
-      ;;
-    --context-mode)
-      require_arg "$@"
-      CONTEXT_MODE="$2"
-      shift 2
-      ;;
-    --context-limit)
-      require_arg "$@"
-      CONTEXT_LIMIT="$2"
       shift 2
       ;;
     --patch-cli)
@@ -144,18 +129,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case "$CONTEXT_MODE" in
-  default|fixed|dynamic) ;;
-  *) echo "无效 --context-mode: $CONTEXT_MODE (可选: default | fixed | dynamic)" >&2; exit 2 ;;
-esac
-
-if [[ "$CONTEXT_MODE" == "fixed" ]]; then
-  if [[ -z "$CONTEXT_LIMIT" || ! "$CONTEXT_LIMIT" =~ ^[0-9]+$ ]]; then
-    echo "--context-mode fixed 必须配合正整数 --context-limit (16384 ~ 2097152)" >&2
-    exit 2
-  fi
-fi
-
 if [[ -n "$CLIENT_LANG" ]]; then
   case "$CLIENT_LANG" in
     zh-CN|en) ;;
@@ -165,16 +138,14 @@ fi
 
 run_cli_unlock() {
   if command -v node >/dev/null 2>&1; then
-    local cli_args=(--apply --mode "$CONTEXT_MODE")
-    [[ -n "$CONTEXT_LIMIT" ]] && cli_args+=(--limit "$CONTEXT_LIMIT")
+    local cli_args=(--apply)
     if [[ -n "$CLI_BIN" ]]; then
       cli_args+=(--binary "$CLI_BIN" --strict)
     fi
     node "$SCRIPT_DIR/scripts/cli-unlock.js" "${cli_args[@]}"
     return $?
   elif command -v python3 >/dev/null 2>&1; then
-    local py_args=(--in-place --mode "$CONTEXT_MODE")
-    [[ -n "$CONTEXT_LIMIT" ]] && py_args+=(--limit "$CONTEXT_LIMIT")
+    local py_args=(--in-place)
     [[ -n "$CLI_BIN" ]] && py_args+=(--binary "$CLI_BIN")
     python3 "$SCRIPT_DIR/unlock/agy-cli/agy-patch.py" "${py_args[@]}"
     return $?
@@ -186,7 +157,7 @@ run_cli_unlock() {
 
 HOST_OS="$(uname -s)"
 if [[ $CLI_ONLY -eq 1 ]]; then
-  echo "==> [CLI] 修补本机 agy CLI 并同步配置"
+  echo "==> [CLI] 对本机 agy CLI 执行地区解锁"
   run_cli_unlock
   exit $?
 fi
@@ -312,71 +283,10 @@ codesign -d --entitlements - --xml "$SRC_LS" 2>/dev/null > "$ENT_LS"  || true
 </dict></plist>
 PLIST
 
-echo "==> [1/4] 写入地区 / Free-tier 解锁补丁 (authclient.ValidateAndOnboardAccount)"
+echo "==> [1/3] 写入地区 / Free-tier 解锁补丁 (authclient.ValidateAndOnboardAccount)"
 node "$SCRIPT_DIR/scripts/region-unlock.js" --apply "$STAGE_LS"
 
-echo "==> [2/4] 写入上下文窗口解锁 (${CONTEXT_MODE}${CONTEXT_LIMIT:+:$CONTEXT_LIMIT})"
-node -e '
-const path = require("path");
-const scriptDir = process.argv[1];
-const stageLs = process.argv[2];
-const appBundle = process.argv[3];
-const workDir = process.argv[4];
-const stageOnly = process.argv[5] === "1";
-const contextMode = process.argv[6];
-const contextLimit = process.argv[7];
-
-const enhance = require(path.join(scriptDir, "payload", "dist", "meter-enhance.js"));
-const contextUnlock = require(path.join(scriptDir, "payload", "dist", "meter-context-unlock.js"));
-
-const recordedLs = stageOnly
-  ? stageLs
-  : path.join(appBundle, "Contents", "Resources", "bin", "language_server");
-
-const enhanceOpts = {
-  targets: [
-    {
-      id: "desktop",
-      label: "哈基米.app 后端 (language_server)",
-      path: stageLs,
-    },
-  ],
-  recordedTargetPath: recordedLs,
-  skipProcessCheck: true,
-  skipCodesign: true,
-};
-
-if (stageOnly) {
-  enhanceOpts.backupDir = path.join(workDir, "unlock-backups");
-  enhanceOpts.stateDir = path.join(workDir, "state");
-}
-
-const payload = {
-  contextMode,
-  ...(contextLimit ? { contextLimitTokens: Number(contextLimit) } : {}),
-};
-
-const res = enhance.applyEnhancePatch(payload, enhanceOpts);
-if (!res || !res.ok) {
-  console.error("applyEnhancePatch failed:", res && res.error ? res.error : res);
-  process.exit(1);
-}
-for (const line of res.logs || []) {
-  console.log(" ", line);
-}
-
-if (!stageOnly) {
-  const ctxInfo = res.status && res.status.summary && res.status.summary.contextUnlock;
-  const effMode = (ctxInfo && ctxInfo.configuredMode) || contextMode;
-  const effLimit = (ctxInfo && ctxInfo.configuredLimitTokens) || (contextLimit ? Number(contextLimit) : null);
-  contextUnlock.syncExternalContextConfigs(effMode, effLimit, {
-    syncConfigFiles: true,
-    syncCliConfigs: true,
-  });
-}
-' "$SCRIPT_DIR" "$STAGE_LS" "$APP" "$WORK" "$STAGE_ONLY" "$CONTEXT_MODE" "$CONTEXT_LIMIT"
-
-echo "==> [3/4] 重新打包 app.asar (Context Meter + 客户端汉化)"
+echo "==> [2/3] 重新打包 app.asar (Context Meter + 客户端汉化)"
 PACK_ARGS=(
   --src-asar "$SRC/Contents/Resources/app.asar"
   --dest-asar "$STAGE/Contents/Resources/app.asar"
@@ -425,7 +335,7 @@ fi
 ASAR_HASH="$(node "$SCRIPT_DIR/scripts/pack-hakimi-asar.js" "${PACK_ARGS[@]}")"
 echo "  ElectronAsarIntegrity Resources/app.asar SHA256: $ASAR_HASH"
 
-echo "==> [4/4] 更新 Info.plist ASAR 完整性摘要并重签名"
+echo "==> [3/3] 更新 Info.plist ASAR 完整性摘要并重签名"
 python3 - "$STAGE/Contents/Info.plist" "$ASAR_HASH" "$USING_CUSTOM_ICON" <<'PY'
 import plistlib, sys
 

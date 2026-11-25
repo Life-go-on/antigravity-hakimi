@@ -402,12 +402,8 @@
   }
 
   function getTopbarVisibleQuickWidth() {
-    let count = 0;
     const btnCompact = el('btn-topbar-compact');
-    const btnWindow = el('btn-topbar-window');
-    if (btnCompact && !btnCompact.hidden) count++;
-    if (btnWindow && !btnWindow.hidden) count++;
-    return count * 28;
+    return (btnCompact && !btnCompact.hidden) ? 28 : 0;
   }
 
   function updateResponsiveLayout() {
@@ -418,12 +414,10 @@
     applyLayoutMode(nextMode);
     if (state.tooltipOpen) positionContextTooltip();
     if (el('topbar-action-tooltip')?.getAttribute('data-visible') === 'true') {
-      const anchor = activeTopbarTipKind === 'window'
-        ? el('btn-topbar-window')
-        : (activeTopbarTipKind === 'cache' ? el('badge-cache') : el('btn-topbar-compact'));
+      const anchor = activeTopbarTipKind === 'cache' ? el('badge-cache') : el('btn-topbar-compact');
       positionTopbarActionTooltip(anchor);
     }
-    if (isAnyPanelOpen() || !el('overflow-menu')?.hidden || !el('topbar-window-popover')?.hidden) positionFloatingPanels();
+    if (isAnyPanelOpen() || !el('overflow-menu')?.hidden) positionFloatingPanels();
   }
 
   function scheduleLayoutSync() {
@@ -496,9 +490,7 @@
 
   function positionTopbarActionTooltip(anchorEl) {
     const tip = el('topbar-action-tooltip');
-    const target = (anchorEl && !anchorEl.hidden)
-      ? anchorEl
-      : (el('btn-topbar-window') && !el('btn-topbar-window').hidden ? el('btn-topbar-window') : el('badge'));
+    const target = (anchorEl && !anchorEl.hidden) ? anchorEl : el('badge');
     if (!tip || !target || !target.getBoundingClientRect) return;
     try {
       const bRect = target.getBoundingClientRect();
@@ -579,17 +571,6 @@
         descEl.textContent = lines.join('\n');
         descEl.hidden = false;
       }
-    } else if (kind === 'window') {
-      const info = typeof resolveQuickContextTarget === 'function' ? resolveQuickContextTarget() : { scopeMode: 'unified', ready: true, currentShortLabel: '—' };
-      const curLbl = info.currentShortLabel || t('status.savedShortDefault');
-      titleEl.textContent = t('twp.tipTitle', { cur: curLbl });
-      if (info.scopeMode === 'unified') {
-        descEl.textContent = t('twp.tipDescUnified');
-      } else {
-        const modelLbl = info.prod?.productLabel || t('models.summary.unconfirmed');
-        descEl.textContent = t('twp.tipDescModel', { model: modelLbl });
-      }
-      descEl.hidden = false;
     }
   }
 
@@ -710,7 +691,6 @@
       placePanel(el('panel'), 472, el('badge'));
       placePanel(el('panel-tokens'), 730, el('badge-tokens'));
       placePanel(el('overflow-menu'), 220, el('badge-overflow'));
-      placePanel(el('topbar-window-popover'), 232, el('btn-topbar-window'));
       positionColorPickerPopover();
     } catch {}
   }

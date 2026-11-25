@@ -68,14 +68,6 @@
         const open = tokenColorDrawerBody.style.display === 'block';
         tokenColorDrawerArrow.textContent = open ? t('drawer.colors.collapse') : t('drawer.colors.expand');
       }
-      if (cardDrawerArrow && cardDrawerBody) {
-        const open = cardDrawerBody.style.display === 'block';
-        cardDrawerArrow.textContent = open ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-      }
-      if (unlockDrawerArrow && unlockDrawerBody) {
-        const open = unlockDrawerBody.style.display === 'block';
-        unlockDrawerArrow.textContent = open ? t('drawer.collapse') : t('drawer.expand');
-      }
       const btnPlanDet = el('btn-plan-detail-toggle');
       if (btnPlanDet) {
         btnPlanDet.textContent = planDetailExpanded ? t('plan.detail.toggleClose') : t('plan.detail.toggleOpen');
@@ -83,11 +75,9 @@
     } catch {}
     try { if (typeof applyTheme === 'function') applyTheme(); } catch {}
     try { renderVersionSyncBanner(); } catch {}
+    try { renderSshRemoteContextBanners(); } catch {}
     try { render(); } catch {}
-    try { renderHeaderModelDropdown(); } catch {}
-    try { renderModelSettingsTab(); } catch {}
     try { renderSpeedComparisonTab(); } catch {}
-    try { if (currentUnlockStatus) { renderClientStatusBar(); renderCompactSessionCard(); } } catch {}
     try { renderCliUnlockState(currentCliUnlockStatus); } catch {}
     try {
       if (typeof renderPlanDetail === 'function' && ANTIGRAVITY_TOKEN_DATA?.planStatus) {
@@ -95,15 +85,11 @@
       }
     } catch {}
     try {
-      if (typeof renderEnhanceSectionUI === 'function') renderEnhanceSectionUI();
-    } catch {}
-    try {
-      if (isChineseExpanded || isProxyExpanded || isContextSettingsView) {
+      if (isChineseExpanded || isContextSettingsView) {
         void refreshModulesDisplay();
       }
       if (isContextSettingsView) {
         void refreshCliUnlockDisplay();
-        if (typeof refreshEnhanceStatus === 'function') void refreshEnhanceStatus();
       }
     } catch {}
     try {
@@ -179,219 +165,18 @@
     }
   });
 
-  // -------------------------------------------------------------
-  // 模块 3: 推荐配置与客户端品牌控制器
-  // -------------------------------------------------------------
-  const btnEnhancePresetApply = el('btn-enhance-preset-apply');
-  const btnEnhanceRestoreAll = el('btn-enhance-restore-all');
-  const enhanceGlobalBadge = el('enhance-global-badge');
-  const enhancePresetConfirm = el('enhance-preset-confirm');
-  const enhanceConfirmTitle = el('enhance-preset-confirm-text');
-  const btnEnhanceConfirmCancel = el('btn-enhance-confirm-cancel');
-  const btnEnhanceConfirmGo = el('btn-enhance-confirm-go');
-  const enhanceGlobalResult = el('enhance-global-result');
-  const enhanceResultText = el('enhance-global-result-text');
-  const enhanceResultActions = el('enhance-global-result-actions');
-  const enhanceManualNote = el('enhance-global-manual-note');
-  const btnEnhanceRestartHost = el('btn-enhance-restart-host');
-  const btnEnhanceRestartLs = el('btn-enhance-restart-ls');
+  const btnClientLangRestart = el('btn-client-lang-restart');
+  const clientLangResultBox = el('client-lang-result');
+  const clientLangResultText = el('client-lang-result-text');
 
-  const chkPresetLang = el('chk-rec-lang');
-  const chkPresetCtx = el('chk-rec-ctx');
-
-  let currentEnhanceStatus = null;
-  let pendingEnhanceConfirmMode = null; // 'preset' | 'restore' | null
-  let isEnhanceBusy = false;
-  let hasPendingLsReload = false;
-
-  function renderEnhanceSectionUI() {
-    if (typeof renderSshRemoteContextBanners === 'function') renderSshRemoteContextBanners();
-    const data = currentEnhanceStatus;
-    const s = data?.summary || data;
-    const ctxUnlock = s?.contextUnlock || null;
-    const isPatched = Boolean(
-      ctxUnlock && ctxUnlock.status && ctxUnlock.status !== 'not_patched' && ctxUnlock.status !== 'unsupported'
-    );
-
-    if (enhanceGlobalBadge) {
-      if (!data || !data.supported) {
-        enhanceGlobalBadge.textContent = t('enhance.status.unread');
-        enhanceGlobalBadge.className = 'key-pill pill-muted';
-      } else if (isPatched) {
-        enhanceGlobalBadge.textContent = t('enhance.status.patchedActive');
-        enhanceGlobalBadge.className = 'key-pill pill-ok';
-      } else {
-        enhanceGlobalBadge.textContent = t('enhance.status.stock');
-        enhanceGlobalBadge.className = 'key-pill pill-muted';
-      }
-    }
+  function showClientLangResult(ok, message) {
+    if (!clientLangResultBox || !clientLangResultText) return;
+    clientLangResultBox.style.display = 'block';
+    clientLangResultBox.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
+    clientLangResultText.textContent = message;
   }
 
-  function showEnhanceResultBox(ok, message, opts = {}) {
-    if (!enhanceGlobalResult || !enhanceResultText) return;
-    enhanceGlobalResult.style.display = 'block';
-    enhanceGlobalResult.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
-    enhanceResultText.textContent = message;
-    const needLs = Boolean(opts.needsLsRestart);
-    const needHost = Boolean(opts.needsHostRestart);
-    const canRestartHost = Boolean(hostSupportsRestart);
-    if (btnEnhanceRestartLs) btnEnhanceRestartLs.hidden = !needLs;
-    if (btnEnhanceRestartHost) btnEnhanceRestartHost.hidden = !(needHost && canRestartHost);
-    if (enhanceManualNote) enhanceManualNote.hidden = !(needHost && !canRestartHost);
-    if (enhanceResultActions) enhanceResultActions.hidden = !(needLs || (needHost && canRestartHost));
-  }
-
-  async function refreshEnhanceStatus() {
-    try {
-      const res = await invokeEnhanceApi('status', {});
-      if (res && res.ok && res.data) {
-        currentEnhanceStatus = res.data;
-      } else if (res && res.unavailable) {
-        currentEnhanceStatus = { supported: false };
-      }
-    } catch {
-      currentEnhanceStatus = null;
-    }
-    renderEnhanceSectionUI();
-  }
-
-  btnEnhancePresetApply?.addEventListener('click', () => {
-    const selectedLabels = [];
-    if (chkPresetLang?.checked) selectedLabels.push(t('enhance.preset.itemLang'));
-    if (chkPresetCtx?.checked) selectedLabels.push(t('enhance.preset.itemCtx'));
-    if (!selectedLabels.length) {
-      showEnhanceResultBox(false, t('enhance.confirm.noneSelected'));
-      return;
-    }
-    pendingEnhanceConfirmMode = 'preset';
-    if (enhanceConfirmTitle) {
-      enhanceConfirmTitle.textContent = t('enhance.confirm.presetSummary', { items: selectedLabels.join('、') });
-    }
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = false;
-  });
-
-  btnEnhanceRestoreAll?.addEventListener('click', () => {
-    pendingEnhanceConfirmMode = 'restore';
-    if (enhanceConfirmTitle) {
-      enhanceConfirmTitle.textContent = t('enhance.confirm.restoreSummary');
-    }
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = false;
-  });
-
-  btnEnhanceConfirmCancel?.addEventListener('click', () => {
-    pendingEnhanceConfirmMode = null;
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = true;
-  });
-
-  btnEnhanceConfirmGo?.addEventListener('click', async () => {
-    const mode = pendingEnhanceConfirmMode;
-    pendingEnhanceConfirmMode = null;
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = true;
-    if (!mode || isEnhanceBusy) return;
-
-    isEnhanceBusy = true;
-    try {
-      const doneParts = [];
-      const failedParts = [];
-      const needsLsRestart = false;
-      let needsHostRestart = false;
-
-      if (mode === 'preset') {
-        const wantLang = Boolean(chkPresetLang?.checked);
-        const wantCtx = Boolean(chkPresetCtx?.checked);
-
-        if (wantLang) {
-          try {
-            const lRes = await invokeModulesApi('toggle', 'chinese', true, {
-              language: 'zh-CN'
-            });
-            if (!lRes || !lRes.ok) {
-              throw new Error(translateBackendText(lRes?.error) || t('mod.zh.toggleFail'));
-            }
-            doneParts.push(t('enhance.preset.itemLang'));
-            needsHostRestart = true;
-          } catch (stepErr) {
-            failedParts.push(`${t('enhance.preset.itemLang')}: ${stepErr?.message || t('mod.zh.toggleFail')}`);
-          }
-        }
-
-        if (wantCtx) {
-          try {
-            const cRes = await invokeUnlockApi('apply', { mode: 'dynamic', limitTokens: null });
-            if (!cRes || !cRes.ok) {
-              throw new Error(buildFriendlyWriteError(cRes?.error));
-            }
-            doneParts.push(t('enhance.preset.itemCtx'));
-            if (cRes.needsRestart) needsHostRestart = true;
-          } catch (stepErr) {
-            failedParts.push(`${t('enhance.preset.itemCtx')}: ${stepErr?.message || t('msg.unknownErr')}`);
-          }
-        }
-      } else if (mode === 'restore') {
-        try {
-          const lRes = await invokeModulesApi('toggle', 'chinese', false, { language: 'en' });
-          if (!lRes || !lRes.ok) {
-            throw new Error(translateBackendText(lRes?.error) || t('mod.zh.toggleFail'));
-          }
-          doneParts.push(t('enhance.preset.itemLang'));
-          needsHostRestart = true;
-        } catch (stepErr) {
-          failedParts.push(`${t('enhance.preset.itemLang')}: ${stepErr?.message || t('mod.zh.toggleFail')}`);
-        }
-
-        try {
-          const cRes = await invokeUnlockApi('restore', {});
-          if (!cRes || !cRes.ok) {
-            throw new Error(buildFriendlyWriteError(cRes?.error));
-          }
-          doneParts.push(t('enhance.preset.itemCtx'));
-          if (cRes.needsRestart) needsHostRestart = true;
-        } catch (stepErr) {
-          failedParts.push(`${t('enhance.preset.itemCtx')}: ${stepErr?.message || t('msg.restoreFail')}`);
-        }
-      }
-
-      if (needsHostRestart) needsRestartAfterApply = true;
-
-      if (failedParts.length > 0) {
-        const msg = doneParts.length > 0
-          ? t('enhance.result.partialFail', { done: doneParts.join('、'), failed: failedParts.join('；') })
-          : t('enhance.result.fail', { err: failedParts.join('；') });
-        showEnhanceResultBox(false, msg, { needsLsRestart, needsHostRestart });
-      } else if (mode === 'preset') {
-        showEnhanceResultBox(
-          true,
-          t('enhance.result.presetDone', { summary: doneParts.join('、') }),
-          { needsLsRestart, needsHostRestart }
-        );
-      } else if (mode === 'restore') {
-        showEnhanceResultBox(true, t('enhance.result.restoredDone'), { needsLsRestart, needsHostRestart: true });
-      }
-      await Promise.all([refreshEnhanceStatus(), refreshModulesDisplay(), refreshUnlockStatus()]);
-    } catch (e) {
-      showEnhanceResultBox(false, t('enhance.result.fail', { err: e?.message || t('msg.unknownErr') }));
-    } finally {
-      isEnhanceBusy = false;
-    }
-  });
-
-  btnEnhanceRestartLs?.addEventListener('click', async () => {
-    try {
-      const res = await invokeEnhanceApi('restart-ls', {});
-      if (!res || !res.ok) {
-        showEnhanceResultBox(false, t('enhance.result.lsRestartFail', { err: translateBackendText(res?.error) || t('msg.unknownErr') }));
-        return;
-      }
-      const killedCount = Array.isArray(res.killed) ? res.killed.length : (Number(res.killed) || 0);
-      hasPendingLsReload = false;
-      showEnhanceResultBox(true, t('enhance.result.lsRestarted', { killed: killedCount }), { needsLsRestart: false, needsHostRestart: needsRestartAfterApply });
-      await refreshEnhanceStatus(false);
-    } catch (e) {
-      showEnhanceResultBox(false, t('enhance.result.lsRestartFail', { err: e?.message || t('msg.unknownErr') }));
-    }
-  });
-
-  btnEnhanceRestartHost?.addEventListener('click', openClientRestartConfirmFlow);
+  btnClientLangRestart?.addEventListener('click', openClientRestartConfirmFlow);
 
   let lastVersionSyncState = null;
 
@@ -529,14 +314,15 @@
         language: wantChinese ? 'zh-CN' : 'en'
       });
       if (!res || !res.ok) {
-        showEnhanceResultBox(false, translateBackendText(res?.error) || t('mod.zh.toggleFail'));
+        showClientLangResult(false, translateBackendText(res?.error) || t('mod.zh.toggleFail'));
       } else {
         needsRestartAfterApply = true;
-        renderClientStatusBar();
+        if (btnClientLangRestart) btnClientLangRestart.hidden = false;
+        showClientLangResult(true, t('msg.appliedRestart'));
       }
       await refreshModulesDisplay();
     } catch (e) {
-      showEnhanceResultBox(false, `${t('mod.zh.toggleFail')}: ${e.message}`);
+      showClientLangResult(false, `${t('mod.zh.toggleFail')}: ${e.message}`);
     } finally {
       if (btnToggleChineseModule) {
         btnToggleChineseModule.disabled = false;
@@ -587,14 +373,14 @@
     }
 
     const d = res.data;
-    const hooks = [d.offersContextWindow, d.autoCompactEnv, d.regionUnlock].filter(
-      h => h && h.status && h.status !== 'missing'
-    );
-    const patchedCount = hooks.filter(h => h.status === 'patched').length;
-    const totalCount = hooks.length;
+    const region = d.regionUnlock && d.regionUnlock.status && d.regionUnlock.status !== 'missing'
+      ? d.regionUnlock
+      : null;
+    const patchedCount = region && region.status === 'patched' ? 1 : 0;
+    const totalCount = region ? 1 : 0;
 
     if (d.status === 'patched') {
-      cliUnlockBadge.textContent = t('settings.cliUnlock.patched', { ok: patchedCount, total: totalCount || 1 });
+      cliUnlockBadge.textContent = t('settings.cliUnlock.patched', { ok: patchedCount || 1, total: totalCount || 1 });
       cliUnlockBadge.className = 'key-pill pill-ok';
     } else if (d.status === 'partial') {
       cliUnlockBadge.textContent = t('settings.cliUnlock.partial');
@@ -620,9 +406,6 @@
       metaParts.push(t('settings.cliUnlock.brokenLinks', {
         paths: d.brokenSymlinks.map(s => s.path).join(', ')
       }));
-    }
-    if (d.configStatus?.configContextWindow) {
-      metaParts.push(`config: ${d.configStatus.configContextWindow}`);
     }
     cliUnlockMeta.textContent = metaParts.join(' · ') || '—';
 
@@ -657,7 +440,7 @@
     renderCliUnlockState(currentCliUnlockStatus);
     if (cliUnlockResultBox) cliUnlockResultBox.style.display = 'none';
     try {
-      const res = await invokeCliUnlockApi('apply', { mode: 'dynamic' });
+      const res = await invokeCliUnlockApi('apply', {});
       if (!res || !res.ok) {
         if (cliUnlockResultBox && cliUnlockResultText) {
           cliUnlockResultBox.className = 'unlock-result-box result-error';
@@ -668,10 +451,7 @@
         if (cliUnlockResultBox && cliUnlockResultText) {
           cliUnlockResultBox.className = 'unlock-result-box result-success';
           cliUnlockResultBox.style.display = 'block';
-          const syncN = Array.isArray(res.syncedConfigs) ? res.syncedConfigs.length : 0;
-          cliUnlockResultText.textContent = syncN > 0
-            ? `${res.message || ''} (${t('settings.cliUnlock.metaCfg', { n: syncN })})`
-            : (res.message || t('msg.applied'));
+          cliUnlockResultText.textContent = res.message || t('msg.applied');
         }
       }
       await refreshCliUnlockDisplay();
@@ -687,9 +467,8 @@
     }
   });
 
-  // 静默初始化检测一次解锁状态与各模块状态
+  // 静默初始化检测各模块状态
   setTimeout(() => {
-    void refreshUnlockStatus();
     void refreshModulesDisplay();
     void refreshCliUnlockDisplay();
   }, 500);
@@ -726,18 +505,6 @@
     drawerBody.style.display = isHidden ? 'block' : 'none';
     if (drawerArrow) drawerArrow.textContent = isHidden ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
     btnDetails.setAttribute('aria-expanded', String(isHidden));
-  });
-
-  // 模型卡片下一层详情折叠展开（实测预算、速度与内部详情）
-  const btnCardDetails = el('btn-toggle-card-details');
-  const cardDrawerBody = el('ctx-card-drawer-body');
-  const cardDrawerArrow = el('ctx-card-drawer-arrow');
-  btnCardDetails?.addEventListener('click', () => {
-    if (!cardDrawerBody) return;
-    const isHidden = cardDrawerBody.style.display === 'none' || !cardDrawerBody.style.display;
-    cardDrawerBody.style.display = isHidden ? 'block' : 'none';
-    if (cardDrawerArrow) cardDrawerArrow.textContent = isHidden ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-    btnCardDetails.setAttribute('aria-expanded', String(isHidden));
   });
 
   // 二级抽屉 3（面板 A 内就近设置）: 热力图色阶与面板外观自定义抽屉折叠展开
@@ -889,10 +656,8 @@
   const outside = e => {
     const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
     const pop = el('color-picker-popover');
-    const twpPop = el('topbar-window-popover');
     if (!path.includes(host)) {
       closeColorPicker(true);
-      closeTopbarWindowPopover();
       toggle(false);
       hideContextTooltip();
       hideTopbarActionTooltip(true);
@@ -900,9 +665,6 @@
       if (om) om.hidden = true;
       syncHostStackingElevation(false);
       return;
-    }
-    if (twpPop && !twpPop.hidden && !path.includes(twpPop) && !path.includes(el('btn-topbar-window'))) {
-      closeTopbarWindowPopover();
     }
     const isClosingNow = pop?.classList ? pop.classList.contains('is-closing') : pop?.getAttribute('data-closing') === 'true';
     if (pop && !pop.hidden && !isClosingNow) {
@@ -915,12 +677,6 @@
   };
   const escape = e => {
     if (e.key === 'Escape') {
-      const twpPop = el('topbar-window-popover');
-      if (twpPop && !twpPop.hidden) {
-        closeTopbarWindowPopover();
-        el('btn-topbar-window')?.focus?.();
-        return;
-      }
       const pop = el('color-picker-popover');
       const isEscClosing = pop?.classList ? pop.classList.contains('is-closing') : pop?.getAttribute('data-closing') === 'true';
       if (pop && !pop.hidden && !isEscClosing) {

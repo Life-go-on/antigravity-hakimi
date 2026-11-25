@@ -337,24 +337,6 @@
     :host([data-occupancy="danger"]) #btn-topbar-compact:focus-visible{
       background:rgba(239,68,68,0.20);
     }
-    :host([data-occupancy="danger"]) #btn-topbar-window{
-      color:#60a5fa;
-      background:rgba(37,99,235,0.16);
-      border-color:rgba(59,130,246,0.38);
-    }
-    :host([data-occupancy="danger"]) #btn-topbar-window:hover,
-    :host([data-occupancy="danger"]) #btn-topbar-window:focus-visible,
-    #btn-topbar-window[aria-expanded="true"]{
-      background:rgba(37,99,235,0.24);
-      border-color:rgba(59,130,246,0.45);
-      color:#60a5fa;
-    }
-    :host([data-theme="light"][data-occupancy="danger"]) #btn-topbar-window,
-    :host([data-panel-tone="light"][data-occupancy="danger"]) #btn-topbar-window,
-    :host([data-theme="light"]) #btn-topbar-window[aria-expanded="true"],
-    :host([data-panel-tone="light"]) #btn-topbar-window[aria-expanded="true"]{
-      color:#2563eb;
-    }
 
     /* 单元 2: 输出速度 */
     #badge-speed{
@@ -587,16 +569,6 @@
       display:none!important;
     }
 
-    /* 顶部上下文窗口快速调节微浮层（方案A做法1） */
-    .topbar-window-popover{
-      position:fixed;top:36px;right:12px;z-index:2147483550;
-      width:232px;padding:9px 10px;border-radius:10px;
-      border:1px solid var(--ag-float-border);
-      background:var(--ag-float-bg);color:var(--ag-text-primary);
-      box-shadow:var(--ag-float-shadow);
-      display:flex;flex-direction:column;gap:7px;
-    }
-    .topbar-window-popover[hidden]{display:none!important}
     .twp-header{display:flex;align-items:center;justify-content:space-between;gap:6px}
     .twp-scope-label{font-size:11px;font-weight:600;color:var(--ag-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
     .twp-scope-toggle-btn{
@@ -1364,7 +1336,7 @@
     .ag-vendor-dot{width:7px;height:7px;border-radius:999px;display:inline-block;flex-shrink:0;background:var(--ag-text-muted)}
     .ag-dropdown-badge{font-size:9.5px;padding:0 5px;border-radius:9px;background:rgba(56,189,248,0.14);color:var(--ag-link,#38bdf8);border:1px solid rgba(56,189,248,0.3);margin-left:4px;flex-shrink:0}
 
-    .ctx-tabs-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--ag-bg-subcard);border:1px solid var(--ag-border-subcard);border-radius:7px;padding:3px;margin-bottom:9px;box-sizing:border-box;width:100%}
+    .ctx-tabs-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--ag-bg-subcard);border:1px solid var(--ag-border-subcard);border-radius:7px;padding:3px;margin-bottom:9px;box-sizing:border-box;width:100%}
     .ctx-tab-btn{display:flex;align-items:center;justify-content:center;min-width:0;border:1px solid transparent;background:transparent;color:var(--ag-text-muted);font-size:11.5px;font-weight:500;padding:5px 4px;border-radius:5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .15s ease,color .15s ease,border-color .15s ease,transform .05s ease}
     .ctx-tab-btn:hover{color:var(--ag-text-primary);background:rgba(255,255,255,0.05)}
     .ctx-tab-btn:active{transform:scale(0.97);background:rgba(255,255,255,0.08)}
@@ -1398,7 +1370,6 @@
     .ctx-compact-meta strong{color:var(--ag-text-primary);font-weight:600}
     .ctx-compact-link-btn{background:var(--ag-bg-subcard);border:1px solid var(--ag-border-subcard);color:var(--ag-text-primary);border-radius:5px;padding:4px 9px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0}
     .ctx-compact-link-btn:hover{background:var(--ag-btn-hover);border-color:var(--ag-btn-border-hover)}
-    .session-ctx-preset-bar{margin-top:1px}
 
     /* 模型设置页：全局状态条 */
     .ctx-status-bar{background:var(--ag-bg-card);border:1px solid var(--ag-border-card);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
@@ -1638,16 +1609,10 @@
     <span id="hover-wrap" class="sr-only"><span id="hover-extra"></span></span>
   </button>
 
-  <!-- 顶部快捷操作: 一键 Compact 与上下文窗口快速调节（仅图标，悬停气泡说明） -->
+  <!-- 顶部快捷操作: 一键 Compact（仅图标，悬停气泡说明） -->
   <button id="btn-topbar-compact" class="ag-unit ag-unit-quick" type="button" hidden aria-label="Compact 压缩上下文" data-i18n-aria="topbar.quick.compactTitle" aria-describedby="topbar-action-tooltip">
     <svg class="topbar-quick-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M8 1.75v3.75M5.75 3.75L8 5.75l2.25-2M3 8h10M8 14.25v-3.75M5.75 12.25L8 10.25l2.25 2"></path>
-    </svg>
-  </button>
-  <button id="btn-topbar-window" class="ag-unit ag-unit-quick ag-unit-quick-window" type="button" aria-label="调整上下文窗口上限" data-i18n-aria="twp.aria" aria-describedby="topbar-action-tooltip" aria-expanded="false">
-    <svg class="topbar-quick-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <rect x="1.75" y="3" width="12.5" height="10" rx="2"></rect>
-      <path d="M5.25 8h5.5M9 6.25L10.75 8 9 9.75M7 6.25L5.25 8 7 9.75"></path>
     </svg>
   </button>
 
@@ -1691,21 +1656,6 @@
   <div id="topbar-action-tooltip" role="tooltip" data-visible="false" data-placement="bottom" data-tone="default">
     <div id="topbar-tip-title" class="topbar-tip-title"></div>
     <div id="topbar-tip-desc" class="topbar-tip-desc"></div>
-  </div>
-
-  <!-- 顶部上下文窗口快速调节微浮层（方案A做法1） -->
-  <div id="topbar-window-popover" class="topbar-window-popover" hidden role="dialog" aria-label="快速调整上下文窗口上限" data-i18n-aria="twp.aria">
-    <div class="twp-header">
-      <span id="twp-scope-label" class="twp-scope-label">—</span>
-      <button id="btn-twp-toggle-scope" class="twp-scope-toggle-btn" type="button"></button>
-    </div>
-    <div id="twp-preset-grid" class="twp-preset-grid" role="group" aria-label="上下文长度预设" data-i18n-aria="models.preset.aria">
-      <button type="button" class="twp-preset-btn" data-qctx-mode="fixed" data-qctx-limit="512000">512K</button>
-      <button type="button" class="twp-preset-btn" data-qctx-mode="fixed" data-qctx-limit="1000000">1M</button>
-      <button type="button" class="twp-preset-btn" data-qctx-mode="dynamic" data-qctx-limit="" data-i18n="twp.preset.dynamic">动态</button>
-    </div>
-    <div id="twp-status-note" class="twp-status-note" hidden></div>
-    <button id="btn-twp-open-models" class="twp-more-btn" type="button" data-i18n="twp.moreModels">⚙️ 自定义数值 / 管理全部模型 ›</button>
   </div>
 
   <!-- 窄屏溢出菜单 -->
@@ -1752,10 +1702,9 @@
     </div>
 
     <div id="view-context">
-      <!-- 顶部 4 分页标签栏 -->
+      <!-- 顶部 3 分页标签栏 -->
       <div id="ctx-tabs-bar" class="ctx-tabs-bar" role="tablist" aria-label="上下文面板分页" data-i18n-aria="tabs.aria">
         <button id="tab-ctx-session" class="ctx-tab-btn active" type="button" role="tab" aria-selected="true" data-ctx-tab="session" data-i18n="tab.session">当前会话</button>
-        <button id="tab-ctx-models" class="ctx-tab-btn" type="button" role="tab" aria-selected="false" data-ctx-tab="models" data-i18n="tab.models">模型设置</button>
         <button id="tab-ctx-speed" class="ctx-tab-btn" type="button" role="tab" aria-selected="false" data-ctx-tab="speed" data-i18n="tab.speed">速度对比</button>
         <button id="tab-ctx-settings" class="ctx-tab-btn" type="button" role="tab" aria-selected="false" data-ctx-tab="settings" data-i18n="tab.settings">配置</button>
       </div>
@@ -1824,28 +1773,6 @@
           <div id="cache-takeaway" class="key-takeaway" data-i18n="session.cache.wait">等待请求返回输入与缓存复用统计…</div>
         </div>
 
-        <!-- 紧凑上下文设置入口卡片（支持直接点选常用档位） -->
-        <div id="ctx-compact-card" class="ctx-compact-card">
-          <div class="ctx-compact-top">
-            <div class="ctx-compact-info">
-              <div class="ctx-compact-title-row">
-                <span id="ctx-compact-scope-title" class="ctx-compact-title" data-i18n="session.compact.title">上下文设置</span>
-                <span id="ctx-compact-saved" class="key-pill pill-muted">—</span>
-              </div>
-              <div class="ctx-compact-meta">
-                <span><span data-i18n="session.compact.clientLabel">客户端当前使用：</span><strong id="ctx-compact-client">状态读取中…</strong></span>
-              </div>
-            </div>
-            <button id="btn-goto-model-settings" class="ctx-compact-link-btn" type="button" data-i18n="session.compact.gotoModels">管理全部模型 ›</button>
-          </div>
-          <div id="session-ctx-preset-bar" class="twp-preset-grid session-ctx-preset-bar" role="group" aria-label="上下文长度预设" data-i18n-aria="models.preset.aria">
-            <button type="button" class="twp-preset-btn" data-qctx-mode="fixed" data-qctx-limit="512000">512K</button>
-            <button type="button" class="twp-preset-btn" data-qctx-mode="fixed" data-qctx-limit="1000000">1M</button>
-            <button type="button" class="twp-preset-btn" data-qctx-mode="dynamic" data-qctx-limit="" data-i18n="twp.preset.dynamic">动态</button>
-          </div>
-          <div id="ctx-compact-feedback" class="twp-status-note" hidden></div>
-        </div>
-
         <!-- 底层技术参数与附件审计 -->
         <div class="tech-drawer">
           <button id="btn-toggle-details" class="drawer-trigger" aria-expanded="false" type="button">
@@ -1863,314 +1790,6 @@
             <p id="coverage"></p><h4 data-i18n="session.tech.filesHeading">附件逐项检查</h4><div id="files"></div><button id="refresh" type="button" data-i18n="session.tech.rescan">重新扫描整段会话与附件</button>
             <p id="note" data-i18n-html="session.tech.note">会话累计包括可读取的全部归档历史；已压缩内容仍计入累计。它不等于当前实际发送给模型的上下文，不能用累计值除以 1M 判断剩余空间。附件原文与工具读出的文本可能在历史中分别出现，各按一次出现计入。尚未发送的草稿与待上传附件不在归档内，暂未计入；新上传可能使下一次请求明显增长。<br><br>本地 token 区间是文本启发式估算，不是 Gemini 分词结果，也不是严格上下界。图像、音视频、加密文件、不可访问文件和未解析部分会明确列为未知。未知内容不按零处理；只有服务端返回的用量才标为实际统计。此功能不向外部发送文件，不执行宏或公式。</p>
             <p id="updated"></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分页 2: 模型设置 -->
-      <div id="pane-ctx-models" class="ctx-tab-pane" role="tabpanel" aria-labelledby="tab-ctx-models" hidden>
-        <!-- 1. 客户端状态条（全局一条） -->
-        <div id="ctx-client-status-bar" class="ctx-status-bar">
-          <div class="ctx-status-bar-main">
-            <div class="ctx-status-left">
-              <span id="ctx-client-status-text" class="ctx-client-status-text" data-i18n="status.client.reading">客户端当前使用：状态读取中…</span>
-              <span id="unlock-badge" class="key-pill pill-muted" data-i18n="status.badge.reading">状态读取中…</span>
-            </div>
-            <div class="ctx-status-actions">
-              <button id="btn-restart-host" class="unlock-btn unlock-btn-primary ctx-restart-btn" type="button" hidden data-i18n="models.restartBtn">重启客户端使设置生效</button>
-            </div>
-          </div>
-          <div id="ctx-restart-mismatch-note" class="ctx-status-subnote" hidden></div>
-          <div id="ctx-manual-restart-note" class="ctx-manual-restart-note" hidden data-i18n="models.manualRestart">请手动重启：关闭所有 Antigravity 窗口（包括托盘图标里的“退出”），再重新打开 Antigravity。</div>
-          <div id="ctx-restart-confirm" class="ctx-restart-confirm" hidden>
-            <div class="ctx-restart-confirm-text" data-i18n="models.restartConfirm.text">重启会中断正在运行的任务。请先保存未保存的内容。</div>
-            <div class="ctx-restart-confirm-actions">
-              <button id="btn-restart-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
-              <button id="btn-restart-confirm-go" class="unlock-btn unlock-btn-primary" type="button" data-i18n="models.restartConfirm.go">重启</button>
-            </div>
-          </div>
-          <div id="ctx-restart-feedback" class="ctx-restart-feedback" hidden></div>
-        </div>
-
-        <div id="ctx-ssh-remote-banner" class="ssh-remote-banner" hidden role="note">
-          <div id="ctx-ssh-remote-banner-text" class="ssh-remote-banner-text"></div>
-        </div>
-
-        <!-- 2. 模式选择器（统一设置 vs 按模型分别设置） -->
-        <div class="ctx-scope-selector-wrap" id="ctx-scope-selector-wrap">
-          <div class="ctx-scope-mode-toggle" role="radiogroup" aria-label="上下文设置模式" data-i18n-aria="models.mode.aria">
-            <button type="button" class="ctx-mode-tab-btn is-active" id="btn-ctx-mode-unified" data-mode="unified" role="radio" aria-checked="true">
-              <span class="ctx-mode-tab-title" data-i18n="models.mode.unifiedTitle">所有模型统一设置</span>
-              <span class="ctx-mode-tab-desc" data-i18n="models.mode.unifiedDesc">设置一次，所有模型使用相同的上下文长度。</span>
-            </button>
-            <button type="button" class="ctx-mode-tab-btn" id="btn-ctx-mode-per-model" data-mode="per_model" role="radio" aria-checked="false">
-              <span class="ctx-mode-tab-title" data-i18n="models.mode.perModelTitle">按模型分别设置</span>
-              <span class="ctx-mode-tab-desc" data-i18n="models.mode.perModelDesc">每个模型分别保存，使用哪个模型，就采用它的上下文长度。</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 3. 模型查看与切换条（仅在分别设置模式下呈现） -->
-        <div class="ctx-models-toolbar" id="ctx-models-toolbar" hidden>
-          <div class="ctx-header-model-ctrl">
-            <span id="ctx-model-selector-role" class="ctx-selector-role-lbl" data-i18n="panel.ctx.viewModel">查看模型</span>
-            <select id="ctx-model-select" class="ctx-model-select" aria-label="查看模型" data-i18n-aria="panel.ctx.viewModel" style="display:none"></select>
-            <div id="ctx-model-dropdown-wrap" class="ag-dropdown-wrapper ctx-header-dropdown">
-              <div id="ctx-model-dropdown-trigger" class="ag-dropdown-trigger ctx-compact-trigger" tabindex="0" title="按厂商查看不同模型的上下文设置" data-i18n-title="panel.ctx.viewModelTitle">
-                <span id="ctx-model-dropdown-label" class="ag-dropdown-label" data-i18n="panel.ctx.loadingModels">正在读取模型…</span>
-                <div class="ag-dropdown-arrow">
-                  <svg viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
-                </div>
-              </div>
-              <div id="ctx-model-dropdown-menu" class="ag-dropdown-menu ctx-model-dropdown-menu"></div>
-            </div>
-            <button id="btn-ctx-back-current" class="ctx-mini-link-btn" type="button" hidden title="回到当前会话正在使用的模型" data-i18n="panel.ctx.backCurrent" data-i18n-title="panel.ctx.backCurrentTitle">回到当前模型</button>
-          </div>
-          <div class="ctx-selector-hint" data-i18n="panel.ctx.viewModelHint">仅查看模型配置与实测数据；切换聊天模型请在输入框右侧选择。</div>
-        </div>
-
-        <!-- 4. 模型列表（按厂商分组，仅在分别设置模式下呈现） -->
-        <div id="ctx-model-list" class="ctx-model-list" aria-label="按厂商分组的模型产品列表" data-i18n-aria="models.list.aria" hidden></div>
-
-        <!-- 5. 核心操作区（前置到首屏，点选预设即时生效） -->
-        <div class="ctx-adjust-box" id="ctx-adjust-box">
-          <div class="ctx-preset-grid" id="ctx-preset-grid" role="group" aria-label="上下文长度预设" data-i18n-aria="models.preset.aria">
-            <button type="button" class="ctx-preset-btn" data-ctx-mode="fixed" data-ctx-limit="512000">
-              <span class="ctx-preset-title">512,000 (512K)</span>
-              <span class="ctx-preset-sub" data-i18n="models.preset.p512Sub">标准预设 · 512,000 tokens</span>
-            </button>
-            <button type="button" class="ctx-preset-btn" data-ctx-mode="fixed" data-ctx-limit="1000000">
-              <span class="ctx-preset-title">1,000,000 (1M)</span>
-              <span class="ctx-preset-sub" data-i18n="models.preset.p1mSub">1M 满血窗口 · 自动预留输出</span>
-            </button>
-            <button type="button" class="ctx-preset-btn" data-ctx-mode="dynamic" data-ctx-limit="">
-              <span class="ctx-preset-title" data-i18n="models.preset.dynamic">动态跟随</span>
-              <span class="ctx-preset-sub" data-i18n="models.preset.dynamicSub">不固定数值，按底座动态计算</span>
-            </button>
-          </div>
-
-          <div class="ctx-custom-row">
-            <label for="ctx-custom-limit-input" class="ctx-small-label" data-i18n="models.custom.label">自定义长度</label>
-            <div class="ctx-custom-input-wrap">
-              <input id="ctx-custom-limit-input" class="ctx-custom-input" type="text" inputmode="numeric" placeholder="输入整数，例如 300000" data-i18n-placeholder="models.custom.placeholder" autocomplete="off">
-              <span class="ctx-input-unit">tokens</span>
-            </div>
-          </div>
-          <div id="ctx-limit-validation" class="ctx-validation-msg" data-i18n="models.validation.defaultRange">可设置范围：16,384 – 2,097,152 tokens。</div>
-
-          <div class="ctx-pref-actions">
-            <button id="btn-save-model-ctx" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.btn.save">保存自定义</button>
-            <button id="btn-apply-unlock" class="unlock-btn unlock-btn-primary" type="button" hidden data-i18n="models.btn.saveApply">保存并应用</button>
-            <button id="btn-reset-model-ctx" class="ctx-text-action-btn" type="button" data-i18n="models.btn.reset">恢复默认</button>
-          </div>
-
-          <div id="ctx-reset-notice" class="ctx-reset-notice" hidden></div>
-
-          <div class="ctx-plain-help">
-            <div data-i18n="models.help.line1">点击预设即时生效；自定义整数请填写后点「保存自定义」（底座在动态跟随解锁后逐模型生效）。</div>
-            <div data-i18n="models.help.line2">各模型根据保存的设置独立生效，多会话与模型切换互不干扰。</div>
-          </div>
-
-          <div id="unlock-result-box" class="unlock-result-box" style="display:none;">
-            <div id="unlock-result-text" class="unlock-result-text"></div>
-            <div id="unlock-result-actions" class="unlock-result-actions" hidden>
-              <button id="btn-unlock-result-restart" class="unlock-btn unlock-btn-primary" type="button" hidden data-i18n="models.restartBtn">重启客户端使设置生效</button>
-              <button id="btn-unlock-result-retry" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="models.btn.retryApply">重新检测并应用</button>
-            </div>
-            <div id="unlock-result-manual" class="ctx-result-manual-note" hidden data-i18n="models.manualRestart">请手动重启：关闭所有 Antigravity 窗口（包括托盘图标里的“退出”），再重新打开 Antigravity。</div>
-          </div>
-        </div>
-
-        <!-- 6. 选中模型摘要卡片（详细信息与能力参考默认折叠） -->
-        <div id="ctx-model-card" class="ctx-detail-card">
-          <div id="ctx-conflict-banner" class="ctx-conflict-banner" hidden>
-            <div class="ctx-conflict-title" data-i18n="models.conflict.title">这个模型的不同档位保存过不同长度，请选一个统一值。</div>
-            <div id="ctx-conflict-rows" class="ctx-conflict-rows"></div>
-          </div>
-
-          <div class="ctx-card-top">
-            <div class="ctx-card-vendor-row">
-              <span id="ctx-card-vendor-dot" class="ag-vendor-dot"></span>
-              <span id="ctx-card-vendor-name" class="ctx-card-vendor-name">—</span>
-            </div>
-            <div id="ctx-card-product-name" class="ctx-card-product-name" data-i18n="models.card.waiting">等待读取模型…</div>
-            <div class="ctx-card-efforts-row">
-              <span id="ctx-card-efforts-list" class="ctx-card-efforts-list" data-i18n="models.card.effortsEmpty">可用档位：—</span>
-              <span id="ctx-card-session-effort" class="ctx-card-session-effort" hidden>当前会话：—</span>
-            </div>
-          </div>
-
-          <!-- 主界面极简核心展示区：当前模式、当前模型、当前使用长度 -->
-          <div class="ctx-summary-highlight-grid" id="ctx-summary-highlight-grid">
-            <div class="ctx-summary-item">
-              <span class="ctx-summary-label" data-i18n="models.summary.mode">当前模式</span>
-              <span class="ctx-summary-value" id="ctx-summary-mode" data-i18n="models.mode.unifiedTitle">所有模型统一设置</span>
-            </div>
-            <div class="ctx-summary-item">
-              <span class="ctx-summary-label" data-i18n="models.summary.model">当前模型</span>
-              <span class="ctx-summary-value" id="ctx-summary-model">—</span>
-            </div>
-            <div class="ctx-summary-item ctx-summary-item-length">
-              <span class="ctx-summary-label" data-i18n="models.summary.length">目标设置与状态</span>
-              <div class="ctx-summary-length-row">
-                <span class="ctx-summary-value ctx-length-val" id="ctx-summary-length" data-i18n="models.summary.modelDefault">使用模型默认值</span>
-                <span class="key-pill pill-muted" id="ctx-summary-status-pill" hidden>待重启生效</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 折叠抽屉：详细信息（模型能力参考、配置来源、请求参数、底座状态、实测预算） -->
-          <div class="ctx-card-details-drawer">
-            <button id="btn-toggle-card-details" class="drawer-trigger ctx-card-drawer-trigger" aria-expanded="false" type="button">
-              <span class="drawer-trigger-left" data-i18n="models.card.detailsToggle">详细信息（能力参考、请求参数与预算验证）</span>
-              <span id="ctx-card-drawer-arrow" class="drawer-arrow" data-i18n="session.techDrawer.expand">▼ 点击展开明细</span>
-            </button>
-            <div id="ctx-card-drawer-body" class="drawer-body ctx-card-drawer-body" style="display:none;">
-              <!-- 模型能力与当前生效参考 -->
-              <div class="ctx-cap-ref-card" id="ctx-capability-ref">
-                <div class="ctx-cap-ref-grid">
-                  <div class="ctx-cap-item">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.window">模型总窗口</span>
-                    <span class="ctx-cap-val" id="ctx-cap-window">—</span>
-                  </div>
-                  <div class="ctx-cap-item">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.output">最大输出</span>
-                    <span class="ctx-cap-val" id="ctx-cap-output">—</span>
-                  </div>
-                  <div class="ctx-cap-item">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.modelMax">模型理论输入上限</span>
-                    <span class="ctx-cap-val" id="ctx-cap-model-max">—</span>
-                  </div>
-                  <div class="ctx-cap-item">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.clientPolicy">当前客户端限制</span>
-                    <span class="ctx-cap-val" id="ctx-cap-client-policy">—</span>
-                  </div>
-                  <div class="ctx-cap-item">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.defaultCap">当前策略默认预算</span>
-                    <span class="ctx-cap-val" id="ctx-cap-default">—</span>
-                  </div>
-                  <div class="ctx-cap-item">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.range">当前可采纳输入范围</span>
-                    <span class="ctx-cap-val" id="ctx-cap-range">16,384 – 2,097,152</span>
-                  </div>
-                  <div class="ctx-cap-item ctx-cap-item-wide">
-                    <span class="ctx-cap-lbl" data-i18n="models.cap.formulaLbl">来源与计算说明</span>
-                    <span class="ctx-cap-sub" id="ctx-cap-formula">等待读取模型元数据…</span>
-                  </div>
-                </div>
-                <div class="ctx-cap-verify-strip" id="ctx-cap-verify-strip">
-                  <span class="ctx-cap-v-cell"><em data-i18n="models.cap.saved">已保存</em> <strong id="ctx-ref-saved">—</strong></span>
-                  <span class="ctx-cap-v-cell"><em data-i18n="models.cap.sent">最近请求携带</em> <strong id="ctx-ref-sent">尚无本次验证</strong></span>
-                  <span class="ctx-cap-v-cell"><em data-i18n="models.cap.adopted">后端实际采用</em> <strong id="ctx-ref-adopted">尚无本次验证</strong></span>
-                </div>
-                <div class="ctx-unified-proj" id="ctx-unified-projection" hidden></div>
-              </div>
-
-              <div class="ctx-card-metrics">
-                <div class="ctx-metric-row ctx-metric-saved">
-                  <span class="ctx-metric-label" data-i18n="models.card.saved">已保存</span>
-                  <span class="ctx-metric-value" id="ctx-card-saved" data-i18n="status.savedDefault">未单独设置（使用默认）</span>
-                  <span class="ctx-metric-side" data-i18n="models.card.savedSide">为这个模型记下的长度</span>
-                </div>
-                <div class="ctx-metric-row ctx-metric-request">
-                  <span class="ctx-metric-label" data-i18n="models.card.request">请求携带</span>
-                  <span class="ctx-metric-value" id="ctx-card-request">默认透传</span>
-                  <span class="ctx-metric-side" data-i18n="models.card.requestSide">本次请求发送给底座的参数</span>
-                </div>
-                <div class="ctx-metric-row ctx-metric-client">
-                  <span class="ctx-metric-label" data-i18n="models.card.client">底座状态</span>
-                  <span class="ctx-metric-value">
-                    <span id="ctx-card-client" data-i18n="status.badge.reading">状态读取中…</span>
-                    <span id="ctx-card-client-tag" class="key-pill pill-muted" data-i18n="status.badge.reading">状态读取中…</span>
-                  </span>
-                  <span class="ctx-metric-side" data-i18n="models.card.clientSide">底座运行模式</span>
-                </div>
-                <div class="ctx-metric-row ctx-metric-observed">
-                  <span class="ctx-metric-label" data-i18n="models.card.observedBudget">实测预算</span>
-                  <div class="ctx-metric-value-col">
-                    <span class="ctx-metric-value" id="ctx-card-observed-budget" data-i18n="models.card.observedBudgetNone">尚未观测</span>
-                    <span class="ctx-metric-pre-restart" id="ctx-card-pre-restart-budget" hidden></span>
-                    <span class="ctx-metric-service-limit" id="ctx-card-service-limit" hidden></span>
-                  </div>
-                  <span class="ctx-metric-side" data-i18n="models.card.observedBudgetSide">对话中实际分配</span>
-                </div>
-                <div class="ctx-metric-row ctx-metric-convo">
-                  <span class="ctx-metric-label" data-i18n="models.card.convoIdTitle">对应会话</span>
-                  <span class="ctx-metric-value" id="ctx-card-convo">—</span>
-                  <span class="ctx-metric-side">发生调用的会话标识</span>
-                </div>
-                <div class="ctx-metric-row ctx-metric-diagnosis">
-                  <span class="ctx-metric-label" data-i18n="models.card.diagnosisTitle">生效诊断</span>
-                  <span class="ctx-metric-value" id="ctx-card-diagnosis">—</span>
-                  <span class="ctx-metric-side">目标值与观测值比对结果</span>
-                </div>
-                <div class="ctx-metric-row ctx-metric-observed">
-                  <span class="ctx-metric-label" data-i18n="models.card.observedSpeed">实测速度</span>
-                  <div class="ctx-metric-value-col">
-                    <div id="ctx-card-observed-speed" class="ctx-speed-effort-lines" data-i18n="models.card.observedSpeedNone">暂无实测数据</div>
-                    <button id="btn-card-goto-speed" class="ctx-inline-link-btn" type="button" data-i18n="models.card.gotoSpeed">查看速度对比 ›</button>
-                  </div>
-                </div>
-                <div class="ctx-metric-row ctx-metric-client" id="ctx-card-tier-caps-row" hidden>
-                  <span class="ctx-metric-label" data-i18n="models.card.tierCaps">档位能力</span>
-                  <div class="ctx-metric-value-col">
-                    <div id="ctx-card-tier-caps" class="ctx-speed-effort-lines">—</div>
-                  </div>
-                </div>
-              </div>
-              <div id="ctx-card-hints" class="ctx-card-hints" hidden></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. 唯一保留的折叠区：详细说明 -->
-        <div class="tech-drawer" id="context-unlock-drawer">
-          <button id="btn-toggle-unlock-details" class="drawer-trigger" aria-expanded="false" type="button">
-            <span class="drawer-trigger-left">
-              <span data-i18n="models.details.title">详细说明</span>
-            </span>
-            <span id="unlock-drawer-arrow" class="drawer-arrow" data-i18n="drawer.expand">▼ 展开</span>
-          </button>
-          <div id="unlock-drawer-body" class="drawer-body" style="display:none;">
-            <div class="unlock-panel-content">
-              <div class="unlock-notice">
-                <ol class="unlock-notice-list ctx-detail-ol">
-                  <li data-i18n-html="models.details.li1"><strong>底座解锁与按模型请求注入的分工</strong>：客户端语言服务原版会对默认与回落预算实施 256,000 tokens 钳位（256K 限制点），并允许远程实验覆写。底座解锁用于一次性开启「动态跟随（Dynamic）」默认策略并屏蔽远程实验覆写；每次发送消息时，插件再按当次请求实际选中的模型在请求参数 <code>checkpointConfig.maxTokenLimit</code> 中写入你设定的预算。若设定超过 256,000 tokens，仍需底座处于「动态跟随」已解锁状态。</li>
-                  <li data-i18n-html="models.details.li2"><strong>多项安全检查点说明</strong>：客户端包含默认/钳位双检查点、远程实验覆写拦截点以及上下文窗口序列上限检查点；本插件只依赖本地偏好配合每次请求参数写入实现按模型隔离，不会在切换模型时反复改写宿主程序文件。</li>
-                  <li data-i18n-html="models.details.li3"><strong>恢复客户端默认 vs 按模型最大可用</strong>：「恢复客户端默认」仅清除请求级覆盖参数，把决定权交回当前语言服务的全局策略（若已开启「动态跟随」则走模型动态默认，无法逐模型单切回原版 256K 钳位）；「按模型最大可用」则按 IDE 元数据公式 <code>maxTokens - maxOutputTokens</code> 计算并显式发送该整数上限。</li>
-                  <li data-i18n-html="models.details.li4"><strong>几个数字的区别</strong>：
-                    <div>模型总窗口 / 最大输出：来自 IDE 模型目录与步骤元数据，不代表实际已分配配额。</div>
-                    <div>已保存：你为当前模型或统一模式保存的目标值。</div>
-                    <div>最近请求携带 / 后端实际采用：按当前会话与模型轮次严格隔离对照，尚无对应发送时显示「尚无本次验证」。</div>
-                    <div>服务端报错上限：仅当请求被服务端拒绝且报错给出明确数字时出现。</div>
-                  </li>
-                  <li data-i18n-html="models.details.li5"><strong>工程范围与预设说明</strong>：512,000 / 1,000,000 属于插件预设；合法自定义工程范围为 16,384 – 2,097,152 任意整数 tokens，真实超长请求能否被服务端接受取决于各模型自身配额与风控策略。</li>
-                </ol>
-              </div>
-
-              <div class="unlock-actions-row">
-                <button id="btn-restore-unlock" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.btn.restoreOriginal">客户端恢复原始设置</button>
-                <button id="btn-refresh-unlock" class="unlock-btn unlock-btn-secondary" type="button" title="重新检测状态" data-i18n="models.btn.refreshStatus" data-i18n-title="models.btn.refreshStatus">刷新状态</button>
-              </div>
-
-              <div id="unlock-status-desc" class="unlock-desc" style="margin-top:8px;" data-i18n="models.status.detecting">正在检测当前 Antigravity 状态…</div>
-              <dl class="unlock-meta-dl">
-                <dt data-i18n="models.meta.mode">当前配置 / 实测</dt><dd id="unlock-meta-mode">—</dd>
-                <dt data-i18n="models.meta.target">目标进程</dt><dd id="unlock-meta-target">—</dd>
-                <dt data-i18n="models.meta.arch">系统架构</dt><dd id="unlock-meta-arch">—</dd>
-                <dt data-i18n="models.meta.backup">原版备份状态</dt><dd id="unlock-meta-backup">—</dd>
-              </dl>
-
-              <div class="unlock-credit-bar">
-                <div class="unlock-credit-left">
-                  <span class="unlock-credit-lbl" data-i18n="models.credit.source">方案来源：</span>
-                  <a id="link-unlock-author" href="https://linux.do/t/topic/3117832" target="_blank" rel="noopener noreferrer" class="unlock-author-link" role="link" tabindex="0" title="点击在系统默认浏览器中打开原作者帖子" data-i18n="models.credit.author">原作者帖子 (Linux.do @23375) ↗</a>
-                  <button id="btn-copy-unlock-link" class="unlock-copy-link-btn" type="button" title="复制原作者帖子链接" data-i18n="models.credit.copy">📋 复制链接</button>
-                </div>
-                <span class="unlock-adapter-note" data-i18n="models.credit.adapter">本项目负责 Node.js 适配与集成</span>
-              </div>
-              <div id="unlock-link-toast" class="unlock-link-toast" style="display:none;" role="status"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -2231,56 +1850,13 @@
         <div id="speed-active-test-note" class="ctx-active-test-note" data-i18n="speed.activeTestNote">主动测试：未接通。目前没有可靠的指定模型调用入口，暂时只能使用日常对话的实测记录。</div>
       </div>
 
-      <!-- 设置与系统配置 (第四分页: 配置 / setting) -->
+      <!-- 设置与系统配置 (配置 / setting) -->
       <div id="pane-ctx-settings" class="ctx-tab-pane" role="tabpanel" aria-labelledby="tab-ctx-settings" hidden>
         <div id="enhance-ssh-remote-banner" class="ssh-remote-banner" hidden role="note">
           <div id="enhance-ssh-remote-banner-text" class="ssh-remote-banner-text"></div>
         </div>
-        <!-- 1. 一键推荐配置与总览（默认不自动应用，需用户预览勾选并确认） -->
-        <div class="ctx-settings-card" id="enhance-preset-card">
-          <div class="ctx-settings-card-hdr">
-            <div class="ctx-settings-card-title" data-i18n="enhance.preset.title">✨ 一键推荐配置（按需勾选预览）</div>
-            <span id="enhance-global-badge" class="key-pill pill-muted" data-i18n="settings.common.reading">读取中…</span>
-          </div>
-          <div class="ctx-settings-card-desc" data-i18n="enhance.preset.desc">下方列出推荐增强组合；可按需勾选并预览确认，地区免切锁补丁始终保留不受恢复影响。</div>
-          <div class="ctx-preset-checklist">
-            <label class="ctx-preset-check-item">
-              <input id="chk-rec-lang" type="checkbox" checked>
-              <div class="ctx-preset-check-meta">
-                <strong data-i18n="enhance.preset.itemLang">客户端简体中文界面（哈基米）</strong>
-                <span data-i18n="enhance.preset.itemLangSub">仅改变桌面端壳层中文，不影响你选择的插件面板语言。</span>
-              </div>
-            </label>
-            <label class="ctx-preset-check-item">
-              <input id="chk-rec-ctx" type="checkbox" checked>
-              <div class="ctx-preset-check-meta">
-                <strong data-i18n="enhance.preset.itemCtx">上下文模式：跟随模型</strong>
-                <span data-i18n="enhance.preset.itemCtxSub">按模型各自支持的最大长度运行，不硬锁固定 983,040 或 512,000。</span>
-              </div>
-            </label>
-          </div>
-          <div class="ctx-settings-card-actions">
-            <button id="btn-enhance-preset-apply" class="unlock-btn unlock-btn-primary" type="button" data-i18n="enhance.preset.applyBtn">应用所选推荐配置</button>
-            <button id="btn-enhance-restore-all" class="unlock-btn unlock-btn-danger" type="button" data-i18n="enhance.restoreAll.btn">恢复功能默认</button>
-          </div>
-          <div id="enhance-preset-confirm" class="ctx-enhance-confirm" hidden>
-            <div id="enhance-preset-confirm-text"></div>
-            <div class="ctx-enhance-confirm-actions">
-              <button id="btn-enhance-confirm-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
-              <button id="btn-enhance-confirm-go" class="unlock-btn unlock-btn-primary" type="button" data-i18n="enhance.confirm.go">确认应用</button>
-            </div>
-          </div>
-          <div id="enhance-global-result" class="unlock-result-box" style="display:none;">
-            <div id="enhance-global-result-text" class="unlock-result-text"></div>
-            <div id="enhance-global-result-actions" class="unlock-result-actions" hidden>
-              <button id="btn-enhance-restart-ls" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="enhance.btn.restartLs">重启语言服务</button>
-              <button id="btn-enhance-restart-host" class="unlock-btn unlock-btn-primary" type="button" data-i18n="models.restartBtn">重启客户端使设置生效</button>
-            </div>
-            <div id="enhance-global-manual-note" class="ctx-result-manual-note" hidden data-i18n="models.manualRestart">请手动重启：关闭所有 哈基米 窗口（Cmd+Q 完全退出），再重新打开 哈基米.app。</div>
-          </div>
-        </div>
 
-        <!-- 2. 客户端界面语言 (哈基米) -->
+        <!-- 1. 客户端界面语言 (哈基米) -->
         <div class="ctx-settings-card" id="client-lang-card">
           <div class="ctx-settings-card-hdr">
             <div class="ctx-settings-card-title" data-i18n="settings.clientLang.title">🖥️ 客户端界面语言（哈基米）</div>
@@ -2294,19 +1870,23 @@
           <div id="client-lang-license-note" class="ctx-client-lang-note" data-i18n="settings.clientLang.licenseNote">说明：此设置控制桌面端壳层，与顶部插件面板语言相互独立。切换客户端语言在保存后需重启客户端完全生效。</div>
           <div class="ctx-settings-card-actions">
             <button id="btn-toggle-chinese-module" class="unlock-btn unlock-btn-primary" type="button" data-i18n="settings.clientLang.toggle">切换汉化状态</button>
+            <button id="btn-client-lang-restart" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="models.restartBtn">重启客户端使设置生效</button>
+          </div>
+          <div id="client-lang-result" class="unlock-result-box" style="display:none;">
+            <div id="client-lang-result-text" class="unlock-result-text"></div>
           </div>
         </div>
 
-        <!-- 3. agy CLI 上下文联动解锁 -->
+        <!-- 2. agy CLI 地区解锁 -->
         <div class="ctx-settings-card" id="cli-unlock-card">
           <div class="ctx-settings-card-hdr">
-            <div class="ctx-settings-card-title" data-i18n="settings.cliUnlock.title">⌨️ agy CLI 上下文联动解锁</div>
+            <div class="ctx-settings-card-title" data-i18n="settings.cliUnlock.title">⌨️ agy CLI 地区解锁</div>
             <span id="cli-unlock-badge" class="key-pill pill-muted" data-i18n="settings.common.reading">读取中…</span>
           </div>
-          <div id="cli-unlock-desc" class="ctx-settings-card-desc" data-i18n="settings.cliUnlock.desc">检测本机 agy 命令行二进制，解除 /model 上下文选择器机型白名单并修复 AGY_CLI_AUTO_COMPACT_OVERRIDE 环境变量读取，同时同步上下文窗口配置。</div>
+          <div id="cli-unlock-desc" class="ctx-settings-card-desc" data-i18n="settings.cliUnlock.desc">检测本机 agy 命令行二进制，应用账号地区解锁补丁并自动完成签名校验。</div>
           <div id="cli-unlock-meta" class="ctx-client-lang-note">—</div>
           <div class="ctx-settings-card-actions">
-            <button id="btn-cli-unlock-apply" class="unlock-btn unlock-btn-primary" type="button" data-i18n="settings.cliUnlock.applyBtn">一键修补并同步 agy CLI</button>
+            <button id="btn-cli-unlock-apply" class="unlock-btn unlock-btn-primary" type="button" data-i18n="settings.cliUnlock.applyBtn">一键应用 agy CLI 地区解锁</button>
             <button id="btn-cli-unlock-refresh" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.btn.refreshStatus">刷新状态</button>
           </div>
           <div id="cli-unlock-result" class="unlock-result-box" style="display:none;">
@@ -2817,9 +2397,9 @@
     // 分页 1: 当前会话与版本同步提示
     'versionSync.mismatch': { 'zh-CN': '⚠️ 检测到官方 Antigravity 已更新至 v{officialVer}（当前哈基米基于 v{hakimiVer}）。如需同步新版底座，请运行：bash ./build-hakimi.sh --force --restart', 'zh-TW': '⚠️ 偵測到官方 Antigravity 已更新至 v{officialVer}（目前哈基米基於 v{hakimiVer}）。如需同步新版底座，請執行：bash ./build-hakimi.sh --force --restart', en: '⚠️ Official Antigravity updated to v{officialVer} (Hakimi is on v{hakimiVer}). Rebuild with: bash ./build-hakimi.sh --force --restart' },
     'ssh.remote.contextBanner': {
-      'zh-CN': '🌐 SSH 远端窗口（{host}）：修改并应用上下文模式后会同步保存到本机配置，并在下次重连 SSH 时自动应用到远端 language_server；“重启语言服务”仅作用于本机 哈基米.app 后端。',
-      'zh-TW': '🌐 SSH 遠端視窗（{host}）：修改並套用上下文模式後會同步儲存至本機設定，並在下次重連 SSH 時自動套用到遠端 language_server；「重啟語言服務」僅作用於本機 哈基米.app 後端。',
-      en: '🌐 SSH Remote Window ({host}): Context window changes are saved locally and automatically synced to the remote language_server on the next SSH reconnect; "Restart Language Server" only restarts the local 哈基米.app backend.'
+      'zh-CN': '🌐 SSH 远端窗口（{host}）：远端 language_server 已在连接时自动应用地区解锁；客户端界面语言与 CLI 地区解锁设置仅作用于本机。',
+      'zh-TW': '🌐 SSH 遠端視窗（{host}）：遠端 language_server 已在連線時自動套用地區解鎖；用戶端介面語言與 CLI 地區解鎖設定僅作用於本機。',
+      en: '🌐 SSH Remote Window ({host}): Remote language_server region unlock is applied automatically on connect; client UI language and CLI region unlock settings apply locally.'
     },
     'ssh.remote.localRestartLsTitle': {
       'zh-CN': '仅重启本机 哈基米.app 语言服务（不影响已连接的 SSH 远端主机）',
@@ -3657,9 +3237,9 @@
       'colors.eyedropperUnsupported': { 'zh-CN': '当前环境不支持原生吸管，可直接粘贴 HEX', 'zh-TW': '目前環境不支援原生滴管，可直接貼上 HEX', en: 'Eyedropper unsupported; paste HEX directly' },
       'colors.appliedHex': { 'zh-CN': '已应用 {hex}', 'zh-TW': '已套用 {hex}', en: 'Applied {hex}' },
       'colors.copied': { 'zh-CN': '✔ 已复制 {label}: {val}', 'zh-TW': '✔ 已複製 {label}: {val}', en: '✔ Copied {label}: {val}' },
-      'settings.cliUnlock.title': { 'zh-CN': '⌨️ agy CLI 上下文联动解锁', 'zh-TW': '⌨️ agy CLI 上下文連動解鎖', en: '⌨️ agy CLI Context Unlock' },
-      'settings.cliUnlock.desc': { 'zh-CN': '检测本机 agy 命令行二进制，解除 /model 上下文选择器机型白名单并修复 AGY_CLI_AUTO_COMPACT_OVERRIDE 环境变量读取，同时同步上下文窗口配置。', 'zh-TW': '偵測本機 agy 命令列二進位檔，解除 /model 上下文選擇器機型白名單並修復 AGY_CLI_AUTO_COMPACT_OVERRIDE 環境變數讀取，同時同步上下文視窗設定。', en: 'Detects local agy CLI binary, bypasses /model context selector allowlist, fixes AGY_CLI_AUTO_COMPACT_OVERRIDE env reading, and syncs CLI context config.' },
-      'settings.cliUnlock.applyBtn': { 'zh-CN': '一键修补并同步 agy CLI', 'zh-TW': '一鍵修補並同步 agy CLI', en: 'Patch & Sync agy CLI' },
+      'settings.cliUnlock.title': { 'zh-CN': '⌨️ agy CLI 地区解锁', 'zh-TW': '⌨️ agy CLI 地區解鎖', en: '⌨️ agy CLI Region Unlock' },
+      'settings.cliUnlock.desc': { 'zh-CN': '检测本机 agy 命令行二进制，应用账号地区解锁补丁并自动完成签名校验。', 'zh-TW': '偵測本機 agy 命令列二進位檔，套用帳號地區解鎖修補並自動完成簽章校驗。', en: 'Detects the local agy CLI binary, applies the account region unlock patch, and re-signs it.' },
+      'settings.cliUnlock.applyBtn': { 'zh-CN': '一键应用 agy CLI 地区解锁', 'zh-TW': '一鍵套用 agy CLI 地區解鎖', en: 'Apply agy CLI Region Unlock' },
       'settings.cliUnlock.busy': { 'zh-CN': '正在修补并重签名 agy CLI…', 'zh-TW': '正在修補並重簽章 agy CLI…', en: 'Patching & codesigning agy CLI…' },
       'settings.cliUnlock.patched': { 'zh-CN': '🟢 已解锁 ({ok}/{total})', 'zh-TW': '🟢 已解鎖 ({ok}/{total})', en: '🟢 Unlocked ({ok}/{total})' },
       'settings.cliUnlock.unpatched': { 'zh-CN': '⚪ 未修补', 'zh-TW': '⚪ 未修補', en: '⚪ Unpatched' },
@@ -3851,2060 +3431,6 @@
     return vendor;
   }
 
-(function (root) {
-  'use strict';
-
-  const DEFAULT_MIN_TOKENS = 16384;
-  const DEFAULT_MAX_TOKENS = 2097152;
-  // Gate 3A (utils.GetCheckpointConfig) stock binary local clamp (0x3e800 = 256,000);
-  // distinct from Gate 3B remote experiment policy (e.g. official 512K rollout).
-  const STOCK_DEFAULT_CLAMP_TOKENS = 256000;
-  const DEFAULT_CONFIRM_TIMEOUT_MS = 45000;
-
-  // 来自宿主 bundle E.Model 的已知静态枚举值（动态 PLACEHOLDER_M* 由 cascadeModelConfigs 解析）
-  const STATIC_MODEL_ENUM_MAP = {
-    235: 'chat_20706',
-    246: 'google_gemini_2_5_pro',
-    269: 'chat_23310',
-    281: 'claude_4_sonnet',
-    282: 'claude_4_sonnet_thinking',
-    290: 'claude_4_opus',
-    291: 'claude_4_opus_thinking',
-    312: 'google_gemini_2_5_flash',
-    313: 'google_gemini_2_5_flash_thinking',
-    327: 'google_gemini_for_google_2_5_pro',
-    328: 'google_gemini_nemosreef',
-    329: 'google_gemini_2_5_flash_thinking_tools',
-    330: 'google_gemini_2_5_flash_lite',
-    331: 'google_gemini_2_5_pro_eval',
-    332: 'google_gemini_2_5_flash_image_preview',
-    333: 'claude_4_5_sonnet',
-    334: 'claude_4_5_sonnet_thinking',
-    335: 'google_gemini_computer_use_experimental',
-    336: 'google_gemini_horizondawn',
-    337: 'google_gemini_pureprism',
-    338: 'google_gemini_gentleisland',
-    339: 'google_gemini_rainsong',
-    340: 'claude_4_5_haiku',
-    341: 'claude_4_5_haiku_thinking',
-    342: 'openai_gpt_oss_120b_medium',
-    343: 'google_gemini_orionfire',
-    346: 'google_jarvis_proxy',
-    347: 'google_gemini_cosmicforge',
-    348: 'google_gemini_riftrunner',
-    349: 'google_jarvis_v4s',
-    350: 'google_gemini_infinityjet',
-    351: 'google_gemini_infinitybloom',
-    352: 'google_gemini_riftrunner_thinking_low',
-    353: 'google_gemini_riftrunner_thinking_high',
-    354: 'google_gemini_example_gemax_sampler'
-  };
-
-  /**
-   * 规范化 Protobuf 枚举前缀：将 "MODEL_PLACEHOLDER_M37" 与 "PLACEHOLDER_M37" 对齐
-   */
-  function stripModelEnumPrefix(raw) {
-    if (raw === null || raw === undefined) return '';
-    const s = String(raw).trim();
-    if (!s) return '';
-    return s.replace(/^MODEL_/i, '');
-  }
-
-  /**
-   * 从通用数值编号转成 E.Model 枚举名（支持 1000+ 为 PLACEHOLDER_M{n-1000}）
-   */
-  function modelEnumNumberToName(num) {
-    const n = Number(num);
-    if (!Number.isInteger(n) || n <= 0) return null;
-    if (STATIC_MODEL_ENUM_MAP[n]) return STATIC_MODEL_ENUM_MAP[n].toUpperCase();
-    if (n >= 1000 && n < 2000) return `PLACEHOLDER_M${n - 1000}`;
-    return null;
-  }
-
-  /**
-   * 判断 URL / RPC 方法是否为允许注入上下文预算的目标 RPC
-   * 事实核对：StartCascadeRequest 不含 cascade_config，仅 SendUserCascadeMessage 携带
-   */
-  function isTargetBudgetRpc(urlOrProcedure) {
-    if (!urlOrProcedure) return false;
-    const s = String(urlOrProcedure);
-    if (s.includes('StartCascade')) return false;
-    return s.includes('SendUserCascadeMessage');
-  }
-
-  // =========================================================================
-  // 1. Protobuf Binary Wire 编解码器（零依赖精准读写 SendUserCascadeMessageRequest）
-  //    真实 Schema 核验结果：
-  //    - SendUserCascadeMessageRequest: 1 = cascade_id (string), 5 = cascade_config (CascadeConfig)
-  //    - CascadeConfig: 1 = planner_config (CascadePlannerConfig), 2 = checkpoint_config (CheckpointConfig)
-  //    - CascadePlannerConfig: 1 = plan_model (enum), 15 = requested_model (ModelOrAlias: 1=model, 2=alias),
-  //                            27 = custom_model_info_override (ModelInfo), 28 = model_name (string)
-  //    - CheckpointConfig: 1 = token_threshold, 2 = is_sync, 5 = max_token_limit (uint32),
-  //                        11 = max_output_tokens, 36 = context_window (string)
-  // =========================================================================
-
-  function readVarint(bytes, offset) {
-    let result = 0n;
-    let shift = 0n;
-    let pos = offset;
-    while (pos < bytes.length) {
-      const b = bytes[pos++];
-      result |= BigInt(b & 0x7f) << shift;
-      if ((b & 0x80) === 0) {
-        return { value: result, nextOffset: pos };
-      }
-      shift += 7n;
-      if (shift > 70n) throw new Error('Invalid protobuf varint overflow');
-    }
-    throw new Error('Truncated protobuf varint');
-  }
-
-  function writeVarint(num) {
-    let v = typeof num === 'bigint' ? num : BigInt(num);
-    if (v < 0n) v = BigInt.asUintN(64, v);
-    const out = [];
-    while (v >= 0x80n) {
-      out.push(Number((v & 0x7fn) | 0x80n));
-      v >>= 7n;
-    }
-    out.push(Number(v));
-    return new Uint8Array(out);
-  }
-
-  function concatUint8Arrays(chunks) {
-    let total = 0;
-    for (const c of chunks) total += c.length;
-    const out = new Uint8Array(total);
-    let pos = 0;
-    for (const c of chunks) {
-      out.set(c, pos);
-      pos += c.length;
-    }
-    return out;
-  }
-
-  function encodeVarintField(fieldNumber, value) {
-    const tag = writeVarint((fieldNumber << 3) | 0);
-    const val = writeVarint(value);
-    return concatUint8Arrays([tag, val]);
-  }
-
-  function encodeLengthDelimitedField(fieldNumber, payloadBytes) {
-    const tag = writeVarint((fieldNumber << 3) | 2);
-    const len = writeVarint(payloadBytes.length);
-    return concatUint8Arrays([tag, len, payloadBytes]);
-  }
-
-  /**
-   * 严格解析单层 Protobuf 消息字段，保留每个字段的原始完整切片（tag+value）
-   */
-  function parseProtoFields(bytes) {
-    if (!(bytes instanceof Uint8Array)) throw new Error('Expected Uint8Array');
-    const fields = [];
-    let pos = 0;
-    while (pos < bytes.length) {
-      const start = pos;
-      const tagInfo = readVarint(bytes, pos);
-      pos = tagInfo.nextOffset;
-      const tagNum = Number(tagInfo.value);
-      const fieldNumber = tagNum >>> 3;
-      const wireType = tagNum & 0x07;
-      if (fieldNumber <= 0) throw new Error(`Invalid protobuf field number: ${fieldNumber}`);
-
-      let valueStart = pos;
-      let valueEnd = pos;
-      let varintValue = null;
-      let sliceValue = null;
-
-      if (wireType === 0) {
-        const vInfo = readVarint(bytes, pos);
-        varintValue = vInfo.value;
-        pos = vInfo.nextOffset;
-        valueEnd = pos;
-      } else if (wireType === 1) {
-        if (pos + 8 > bytes.length) throw new Error('Truncated 64-bit field');
-        pos += 8;
-        valueEnd = pos;
-      } else if (wireType === 2) {
-        const lenInfo = readVarint(bytes, pos);
-        const len = Number(lenInfo.value);
-        pos = lenInfo.nextOffset;
-        if (!Number.isSafeInteger(len) || len < 0 || pos + len > bytes.length) {
-          throw new Error('Truncated length-delimited field');
-        }
-        valueStart = pos;
-        sliceValue = bytes.subarray(pos, pos + len);
-        pos += len;
-        valueEnd = pos;
-      } else if (wireType === 5) {
-        if (pos + 4 > bytes.length) throw new Error('Truncated 32-bit field');
-        pos += 4;
-        valueEnd = pos;
-      } else {
-        throw new Error(`Unsupported protobuf wire type: ${wireType}`);
-      }
-
-      fields.push({
-        fieldNumber,
-        wireType,
-        varintValue,
-        bytesValue: sliceValue,
-        rawField: bytes.subarray(start, valueEnd)
-      });
-    }
-    return fields;
-  }
-
-  function decodeUtf8Strict(bytes) {
-    if (!(bytes instanceof Uint8Array) || !bytes.length) return '';
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-  }
-
-  /**
-   * 从二进制 SendUserCascadeMessageRequest 提取 cascadeId、模型标识与既有 checkpointConfig
-   */
-  function extractProtoSendMessageMetadata(bytes) {
-    const topFields = parseProtoFields(bytes);
-    let cascadeId = null;
-    let planModelEnum = null;
-    let requestedModelEnum = null;
-    let modelName = null;
-    let customModelOverrideRaw = null;
-    let existingMaxTokenLimit = null;
-    let existingContextWindow = null;
-
-    for (const f of topFields) {
-      if (f.fieldNumber === 1 && f.wireType === 2 && f.bytesValue) {
-        try { cascadeId = decodeUtf8Strict(f.bytesValue); } catch {}
-      } else if (f.fieldNumber === 5 && f.wireType === 2 && f.bytesValue) {
-        const cfgFields = parseProtoFields(f.bytesValue);
-        for (const cf of cfgFields) {
-          if (cf.fieldNumber === 1 && cf.wireType === 2 && cf.bytesValue) {
-            const plannerFields = parseProtoFields(cf.bytesValue);
-            for (const pf of plannerFields) {
-              if (pf.fieldNumber === 1 && pf.wireType === 0 && pf.varintValue !== null) {
-                planModelEnum = Number(pf.varintValue);
-              } else if (pf.fieldNumber === 15 && pf.wireType === 2 && pf.bytesValue) {
-                const moaFields = parseProtoFields(pf.bytesValue);
-                for (const mf of moaFields) {
-                  if (mf.fieldNumber === 1 && mf.wireType === 0 && mf.varintValue !== null) {
-                    requestedModelEnum = Number(mf.varintValue);
-                  } else if (mf.fieldNumber === 2 && mf.wireType === 0 && mf.varintValue !== null) {
-                    requestedModelEnum = Number(mf.varintValue);
-                  }
-                }
-              } else if (pf.fieldNumber === 27 && pf.wireType === 2 && pf.bytesValue) {
-                try {
-                  const overrideFields = parseProtoFields(pf.bytesValue);
-                  for (const ofield of overrideFields) {
-                    if (ofield.wireType === 2 && ofield.bytesValue) {
-                      const s = decodeUtf8Strict(ofield.bytesValue);
-                      if (s && !customModelOverrideRaw) customModelOverrideRaw = s;
-                    } else if (ofield.fieldNumber === 15 && ofield.wireType === 0 && ofield.varintValue !== null) {
-                      if (planModelEnum === null) planModelEnum = Number(ofield.varintValue);
-                    }
-                  }
-                } catch {}
-              } else if (pf.fieldNumber === 28 && pf.wireType === 2 && pf.bytesValue) {
-                try { modelName = decodeUtf8Strict(pf.bytesValue); } catch {}
-              }
-            }
-          } else if (cf.fieldNumber === 2 && cf.wireType === 2 && cf.bytesValue) {
-            const cpFields = parseProtoFields(cf.bytesValue);
-            for (const cpf of cpFields) {
-              if (cpf.fieldNumber === 5 && cpf.wireType === 0 && cpf.varintValue !== null) {
-                existingMaxTokenLimit = Number(cpf.varintValue);
-              } else if (cpf.fieldNumber === 36 && cpf.wireType === 2 && cpf.bytesValue) {
-                try { existingContextWindow = decodeUtf8Strict(cpf.bytesValue); } catch {}
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return {
-      cascadeId,
-      planModelEnum,
-      requestedModelEnum,
-      modelName,
-      customModelOverrideRaw,
-      existingMaxTokenLimit,
-      existingContextWindow
-    };
-  }
-
-  /**
-   * 无损重写二进制 SendUserCascadeMessageRequest 中的 cascade_config(5).checkpoint_config(2).max_token_limit(5)
-   * @param {Uint8Array} bytes
-   * @param {{ mode: 'fixed'|'dynamic'|'default', limitTokens?: number|null }} action
-   */
-  function rewriteProtoSendMessageCheckpointLimit(bytes, action) {
-    const topFields = parseProtoFields(bytes);
-    const isFixed = action?.mode === 'fixed' && Number.isSafeInteger(action?.limitTokens) && action.limitTokens > 0;
-
-    // 重建 CheckpointConfig bytes：保留所有非 field 5 (max_token_limit) 的字段
-    const buildCheckpointBytes = (existingCpBytes) => {
-      const kept = [];
-      if (existingCpBytes) {
-        const cpFields = parseProtoFields(existingCpBytes);
-        for (const cpf of cpFields) {
-          if (cpf.fieldNumber === 5) continue;
-          kept.push(cpf.rawField);
-        }
-      }
-      if (isFixed) {
-        kept.push(encodeVarintField(5, action.limitTokens));
-      }
-      if (!kept.length) return null;
-      return concatUint8Arrays(kept);
-    };
-
-    // 重建 CascadeConfig bytes：保留所有非 field 2 (checkpoint_config) 的字段
-    const buildCascadeConfigBytes = (existingCfgBytes) => {
-      const kept = [];
-      let mergedCp = null;
-      if (existingCfgBytes) {
-        const cfgFields = parseProtoFields(existingCfgBytes);
-        for (const cf of cfgFields) {
-          if (cf.fieldNumber === 2 && cf.wireType === 2 && cf.bytesValue) {
-            mergedCp = mergedCp ? concatUint8Arrays([mergedCp, cf.bytesValue]) : cf.bytesValue;
-            continue;
-          }
-          kept.push(cf.rawField);
-        }
-      }
-      const nextCpBytes = buildCheckpointBytes(mergedCp);
-      if (nextCpBytes) {
-        kept.push(encodeLengthDelimitedField(2, nextCpBytes));
-      }
-      if (!kept.length) return null;
-      return concatUint8Arrays(kept);
-    };
-
-    const outFields = [];
-    let mergedCascadeCfg = null;
-    for (const f of topFields) {
-      if (f.fieldNumber === 5 && f.wireType === 2 && f.bytesValue) {
-        mergedCascadeCfg = mergedCascadeCfg ? concatUint8Arrays([mergedCascadeCfg, f.bytesValue]) : f.bytesValue;
-        continue;
-      }
-      outFields.push(f.rawField);
-    }
-
-    if (mergedCascadeCfg || isFixed) {
-      const nextCfgBytes = buildCascadeConfigBytes(mergedCascadeCfg);
-      if (nextCfgBytes) {
-        outFields.push(encodeLengthDelimitedField(5, nextCfgBytes));
-      }
-    }
-
-    return concatUint8Arrays(outFields);
-  }
-
-  // =========================================================================
-  // 2. 多传输格式解包与回包（JSON / Lcc WebSocket JSON / 5-byte Envelope / Protobuf Binary）
-  // =========================================================================
-
-  function toUint8Array(body) {
-    if (!body) return null;
-    if (body instanceof Uint8Array) return body;
-    if (body instanceof ArrayBuffer) return new Uint8Array(body);
-    if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView && ArrayBuffer.isView(body)) {
-      return new Uint8Array(body.buffer, body.byteOffset, body.byteLength);
-    }
-    return null;
-  }
-
-  function looksLikeJsonText(text) {
-    if (typeof text !== 'string') return false;
-    const trimmed = text.trim();
-    return (trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'));
-  }
-
-  /**
-   * 统一解包外发请求体或 WebSocket 文本帧
-   * @param {any} body
-   * @param {{ channel?: string, urlOrProcedure?: string, contentType?: string }} [meta]
-   */
-  function unpackTransportPayload(body, meta = {}) {
-    if (!body) return null;
-    const channel = meta.channel || 'http';
-    const contentType = String(meta.contentType || '').toLowerCase();
-    const urlOrProc = String(meta.urlOrProcedure || '');
-
-    if (typeof body === 'string') {
-      if (!looksLikeJsonText(body)) return null;
-      let parsed = null;
-      try {
-        parsed = JSON.parse(body.trim());
-      } catch {
-        return null;
-      }
-      // 宿主 Lcc WebSocket JSON 封装：{ streamId, type: "start", procedure, stream, headers, payload }
-      if (parsed && typeof parsed === 'object' && parsed.type === 'start' && typeof parsed.procedure === 'string' && parsed.payload && typeof parsed.payload === 'object') {
-        return {
-          format: 'ws_lcc_json',
-          procedure: parsed.procedure,
-          envelope: parsed,
-          payload: parsed.payload
-        };
-      }
-      return { format: 'json_string', payload: parsed };
-    }
-
-    const raw = toUint8Array(body);
-    if (!raw || raw.length === 0) return null;
-
-    // 优先判断是否为 5 字节 Connect / gRPC-Web Envelope：[flags(1B), uint32BE length(4B)] + body
-    const expectsProtoContentType = contentType.includes('proto') || contentType.includes('grpc');
-    if (raw.length >= 5) {
-      const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
-      const flags = view.getUint8(0);
-      const declaredLen = view.getUint32(1, false);
-      if (raw.length === 5 + declaredLen || (raw.length > 5 + declaredLen && (flags === 0 || flags === 1 || flags === 2))) {
-        if ((flags & 1) !== 0) {
-          return { format: 'compressed_unsupported', flags, uninjectableReason: 'unsupported_compressed_frame' };
-        }
-        const inner = raw.subarray(5, 5 + declaredLen);
-        let decodedText = null;
-        try {
-          decodedText = new TextDecoder('utf-8', { fatal: true }).decode(inner);
-        } catch {}
-        if (!expectsProtoContentType && decodedText && looksLikeJsonText(decodedText)) {
-          try {
-            return { format: 'connect_envelope', flags, payload: JSON.parse(decodedText.trim()) };
-          } catch {}
-        }
-        try {
-          const protoMeta = extractProtoSendMessageMetadata(inner);
-          return { format: 'connect_proto_envelope', flags, rawInner: inner, trailing: raw.subarray(5 + declaredLen), protoMeta };
-        } catch {}
-      }
-    }
-
-    // 尝试纯 UTF-8 JSON 二进制体
-    if (!expectsProtoContentType) {
-      try {
-        const text = new TextDecoder('utf-8', { fatal: true }).decode(raw);
-        if (looksLikeJsonText(text)) {
-          const parsed = JSON.parse(text.trim());
-          if (parsed && typeof parsed === 'object' && parsed.type === 'start' && typeof parsed.procedure === 'string' && parsed.payload) {
-            return {
-              format: 'ws_lcc_json_binary',
-              procedure: parsed.procedure,
-              envelope: parsed,
-              payload: parsed.payload
-            };
-          }
-          return { format: 'raw_binary_json', payload: parsed };
-        }
-      } catch {}
-    }
-
-    // 尝试原始二进制 Protobuf（仅当 URL/类型表明是目标 Protobuf RPC，避免对任意二进制误解析）
-    if (expectsProtoContentType || isTargetBudgetRpc(urlOrProc)) {
-      try {
-        const protoMeta = extractProtoSendMessageMetadata(raw);
-        return { format: 'raw_binary_proto', rawBytes: raw, protoMeta };
-      } catch {
-        return { format: 'unparseable_binary', uninjectableReason: 'invalid_protobuf_wire' };
-      }
-    }
-
-    return null;
-  }
-
-  function packTransportPayload(unpacked, nextData) {
-    if (!unpacked) return null;
-    if (unpacked.format === 'json_string') {
-      return JSON.stringify(nextData);
-    }
-    if (unpacked.format === 'ws_lcc_json') {
-      return JSON.stringify({ ...unpacked.envelope, payload: nextData });
-    }
-    if (unpacked.format === 'ws_lcc_json_binary') {
-      return new TextEncoder().encode(JSON.stringify({ ...unpacked.envelope, payload: nextData }));
-    }
-    if (unpacked.format === 'raw_binary_json') {
-      return new TextEncoder().encode(JSON.stringify(nextData));
-    }
-    if (unpacked.format === 'connect_envelope') {
-      const bytes = new TextEncoder().encode(JSON.stringify(nextData));
-      const out = new Uint8Array(5 + bytes.length);
-      const view = new DataView(out.buffer, out.byteOffset, out.byteLength);
-      view.setUint8(0, unpacked.flags || 0);
-      view.setUint32(1, bytes.length, false);
-      out.set(bytes, 5);
-      return out;
-    }
-    if (unpacked.format === 'connect_proto_envelope' && nextData instanceof Uint8Array) {
-      const tailLen = unpacked.trailing ? unpacked.trailing.length : 0;
-      const out = new Uint8Array(5 + nextData.length + tailLen);
-      const view = new DataView(out.buffer, out.byteOffset, out.byteLength);
-      view.setUint8(0, unpacked.flags || 0);
-      view.setUint32(1, nextData.length, false);
-      out.set(nextData, 5);
-      if (tailLen > 0) out.set(unpacked.trailing, 5 + nextData.length);
-      return out;
-    }
-    if (unpacked.format === 'raw_binary_proto' && nextData instanceof Uint8Array) {
-      return nextData;
-    }
-    return null;
-  }
-
-  // =========================================================================
-  // 2.5 模型能力参考、当前客户端运行策略解析、可调范围与统一模式逐模型预测
-  // =========================================================================
-
-  /**
-   * 严格解析底座解锁/运行策略状态，将“磁盘检测模式”与“当前运行态确认状态”彻底分离
-   * 绝不将 null / partial / pending_restart / runtime_unconfirmed 当作已运行的 dynamic 或 256K
-   */
-  function resolveRuntimeUnlockPolicy(unlockStatus) {
-    if (!unlockStatus || typeof unlockStatus !== 'object') {
-      return {
-        policyKnown: false,
-        runtimeState: 'unknown',
-        diskMode: 'unknown',
-        diskLimitTokens: null,
-        runtimeMode: 'unknown',
-        runtimeLimitTokens: null,
-        currentClientLimitTokens: null,
-        isDynamicUnlocked: null,
-        diskVsRuntimeMismatch: false,
-        status: null
-      };
-    }
-
-    const status = typeof unlockStatus.status === 'string' ? unlockStatus.status : null;
-    const gate3a = unlockStatus.gate3a && typeof unlockStatus.gate3a === 'object' ? unlockStatus.gate3a : null;
-    const runtimeEvidence = unlockStatus.runtimeEvidence && typeof unlockStatus.runtimeEvidence === 'object'
-      ? unlockStatus.runtimeEvidence
-      : null;
-
-    // 1. 解析磁盘/配置态策略（读取真实 fixed 固定值，绝不一律退化为 256,000）
-    let diskMode = 'unknown';
-    let diskLimitTokens = null;
-    const rawConfMode = unlockStatus.configuredMode;
-    const rawClampState = gate3a?.clampState || null;
-
-    if (rawConfMode === 'dynamic' || (!rawConfMode && rawClampState === 'DYN')) {
-      diskMode = 'dynamic';
-    } else if (rawConfMode === 'fixed' || (!rawConfMode && rawClampState === 'CONST')) {
-      const rawLim = Number(unlockStatus.configuredLimitTokens ?? gate3a?.limit);
-      if (Number.isSafeInteger(rawLim) && rawLim > 0) {
-        diskMode = 'fixed';
-        diskLimitTokens = rawLim;
-      } else {
-        diskMode = 'unknown';
-      }
-    } else if (
-      rawConfMode === 'default' ||
-      (!rawConfMode && rawClampState === 'ORIG') ||
-      (!rawConfMode && status === 'not_patched')
-    ) {
-      diskMode = 'default';
-      diskLimitTokens = STOCK_DEFAULT_CLAMP_TOKENS;
-    } else if (rawConfMode === 'partial' || status === 'partial_match') {
-      diskMode = 'partial';
-    }
-
-    // 2. 判定运行态确认级别（磁盘修改后尚未重启、进程未确认、部分匹配、未知均不可直接冒充已运行生效）
-    let runtimeState = 'unknown';
-    let policyKnown = false;
-    let diskVsRuntimeMismatch = false;
-
-    if (status === 'partial_match' || diskMode === 'partial') {
-      runtimeState = 'partial';
-    } else if (status === 'failed' || status === 'unsupported' || diskMode === 'unknown') {
-      runtimeState = 'unknown';
-    } else if (status === 'patched_pending_restart' || runtimeEvidence?.restartDetected === false) {
-      runtimeState = 'pending_restart';
-      diskVsRuntimeMismatch = true;
-    } else if (status === 'patched_runtime_unconfirmed') {
-      runtimeState = 'runtime_unconfirmed';
-      diskVsRuntimeMismatch = true;
-    } else if (status === 'patched_loaded' || status === 'not_patched' || !status) {
-      // 无否定状态且非待重启时，若传入明确策略（patched_loaded / not_patched / 或直接传入策略对象）则认定策略已知
-      runtimeState = 'confirmed';
-      policyKnown = true;
-    }
-
-    const runtimeMode = policyKnown ? diskMode : 'unknown';
-    const runtimeLimitTokens = policyKnown ? diskLimitTokens : null;
-    const currentClientLimitTokens = policyKnown && (runtimeMode === 'default' || runtimeMode === 'fixed')
-      ? runtimeLimitTokens
-      : null;
-    const isDynamicUnlocked = policyKnown ? (runtimeMode === 'dynamic') : null;
-
-    return {
-      policyKnown,
-      runtimeState,
-      diskMode,
-      diskLimitTokens,
-      runtimeMode,
-      runtimeLimitTokens,
-      currentClientLimitTokens,
-      isDynamicUnlocked,
-      diskVsRuntimeMismatch,
-      status
-    };
-  }
-
-  /**
-   * 从产品及其成员（含 GetAvailableModels / Step.metadata.modelInfo）汇总真实能力元数据，
-   * 并严格分离：模型理论能力上限、当前客户端限制、当前策略默认预算、当前环境可采纳范围
-   * 仅采信结构化字段（maxTokens / maxOutputTokens）；不做型号名字猜测或硬编码
-   */
-  function deriveModelCapabilitySummary(product, unlockStatus = null, modelCapabilitiesById = null) {
-    const members = Array.isArray(product?.members) ? product.members : [];
-    const capById = modelCapabilitiesById && typeof modelCapabilitiesById === 'object' ? modelCapabilitiesById : null;
-
-    const findCapForMember = (m) => {
-      if (!capById || !m) return null;
-      const candidates = [m.modelId, m.modelOrAlias?.model, m.label]
-        .filter(Boolean)
-        .map(v => stripModelEnumPrefix(v).toLowerCase());
-      for (const k of candidates) {
-        if (k && capById[k]) return capById[k];
-      }
-      return null;
-    };
-
-    const tierDetails = [];
-    for (const m of members) {
-      const extCap = findCapForMember(m);
-      const maxTokens = Number.isSafeInteger(Number(m?.maxTokens)) && Number(m.maxTokens) > 0
-        ? Number(m.maxTokens)
-        : (Number.isSafeInteger(Number(extCap?.maxTokens)) && Number(extCap.maxTokens) > 0 ? Number(extCap.maxTokens) : null);
-      const rawOut = m?.maxOutputTokens ?? extCap?.maxOutputTokens;
-      const maxOutputTokens = rawOut !== null && rawOut !== undefined && Number.isSafeInteger(Number(rawOut)) && Number(rawOut) >= 0
-        ? Number(rawOut)
-        : null;
-      const thinkingBudget = m?.thinkingBudget ?? extCap?.thinkingBudget ?? null;
-      const thinkingLevel = m?.thinkingLevel || extCap?.thinkingLevel || null;
-      const capabilitySource = m?.capabilitySource || extCap?.capabilitySource || null;
-      if (maxTokens !== null || maxOutputTokens !== null || thinkingLevel || thinkingBudget !== null) {
-        tierDetails.push({
-          modelId: m.modelId || null,
-          effort: m.effort || null,
-          maxTokens,
-          maxOutputTokens,
-          thinkingBudget,
-          thinkingLevel,
-          capabilitySource
-        });
-      }
-    }
-
-    const withWindow = tierDetails.filter(t => t.maxTokens !== null);
-    const withOutput = tierDetails.filter(t => t.maxOutputTokens !== null);
-    const uniqueWindows = Array.from(new Set(withWindow.map(t => t.maxTokens)));
-    const uniqueOutputs = Array.from(new Set(withOutput.map(t => t.maxOutputTokens)));
-
-    const maxTokens = uniqueWindows.length > 0 ? Math.min(...uniqueWindows) : null;
-    const maxOutputTokens = uniqueOutputs.length > 0 ? Math.max(...uniqueOutputs) : null;
-    const hasTierVariance = uniqueWindows.length > 1 || uniqueOutputs.length > 1;
-    const sources = Array.from(new Set(tierDetails.map(t => t.capabilitySource).filter(Boolean)));
-
-    const runtimePolicy = resolveRuntimeUnlockPolicy(unlockStatus);
-    const isDynamicUnlocked = runtimePolicy.isDynamicUnlocked;
-    const currentClientLimitTokens = runtimePolicy.currentClientLimitTokens;
-
-    // 1. 模型理论能力上限与动态基准（仅依据模型结构化元数据，不受客户端状态左右）
-    let modelTheoreticalMaxTokens = null;
-    let dynamicDefaultBudget = null;
-    if (maxTokens !== null && maxOutputTokens !== null && maxTokens > maxOutputTokens) {
-      const reserve = Math.max(maxOutputTokens, 40000);
-      dynamicDefaultBudget = maxTokens > reserve ? (maxTokens - reserve) : 0;
-      modelTheoreticalMaxTokens = Math.min(DEFAULT_MAX_TOKENS, maxTokens - maxOutputTokens);
-    }
-
-    // 2. 当前策略默认预算（未携带自定义 maxTokenLimit 时的当前运行态默认结果）：
-    //    依据二进制核实：
-    //    - utils.GetCheckpointConfig 在 default(ORIG) 下按 min(dynamicDefault, 256000) 钳位；
-    //    - 在 fixed(CONST=N) 下直接改写为 N，并经 ClampCheckpointConfigForModelInfo 钳位至 <= maxTokens - maxOutputTokens；
-    //    - 在 dynamic(DYN) 下采用 dynamicDefault；
-    //    - 在未知 / 部分匹配 / 待重启 / 运行未确认状态下必须保持 null（不可猜测或直接套用 983040 / 256000）
-    let currentStrategyDefaultBudget = null;
-    if (runtimePolicy.policyKnown) {
-      if (runtimePolicy.runtimeMode === 'dynamic') {
-        currentStrategyDefaultBudget = dynamicDefaultBudget;
-      } else if (runtimePolicy.runtimeMode === 'default') {
-        currentStrategyDefaultBudget = dynamicDefaultBudget !== null
-          ? Math.min(dynamicDefaultBudget, STOCK_DEFAULT_CLAMP_TOKENS)
-          : null;
-      } else if (runtimePolicy.runtimeMode === 'fixed' && runtimePolicy.runtimeLimitTokens !== null) {
-        const fixedVal = Math.min(DEFAULT_MAX_TOKENS, runtimePolicy.runtimeLimitTokens);
-        if (modelTheoreticalMaxTokens !== null) {
-          currentStrategyDefaultBudget = Math.min(fixedVal, modelTheoreticalMaxTokens);
-        } else if (maxTokens !== null) {
-          currentStrategyDefaultBudget = Math.min(fixedVal, maxTokens);
-        } else {
-          currentStrategyDefaultBudget = fixedVal;
-        }
-      }
-    }
-    const effectiveDefaultBudget = currentStrategyDefaultBudget;
-
-    // 3. 当前环境下可确认的安全可调上限（与参考卡、最大可用按钮、预设/校验和统一预测一致）：
-    //    虽然局部合并链中请求显式 maxTokenLimit 优先级高于默认基座，但未开启 Dynamic 并经实机确认前，
-    //    下游覆盖与服务端策略限制仍可能将实际预算束缚于 currentClientLimitTokens
-    let maxAdjustableTokens = null;
-    if (runtimePolicy.policyKnown) {
-      if (runtimePolicy.runtimeMode === 'dynamic') {
-        maxAdjustableTokens = modelTheoreticalMaxTokens;
-      } else if ((runtimePolicy.runtimeMode === 'default' || runtimePolicy.runtimeMode === 'fixed') && currentClientLimitTokens !== null) {
-        const clientCap = Math.min(DEFAULT_MAX_TOKENS, currentClientLimitTokens);
-        maxAdjustableTokens = modelTheoreticalMaxTokens !== null
-          ? Math.min(modelTheoreticalMaxTokens, clientCap)
-          : clientCap;
-      }
-    }
-
-    let formulaNote = null;
-    if (maxTokens !== null && maxOutputTokens !== null && maxTokens > maxOutputTokens) {
-      formulaNote = '模型理论输入上限 = maxTokens - maxOutputTokens（动态默认按 max(maxOutputTokens, 40,000) 预留）';
-    } else if (maxTokens !== null && maxOutputTokens === null) {
-      formulaNote = 'IDE 仅返回总窗口但缺少 maxOutputTokens，无法推导模型理论输入上限';
-    }
-
-    let policyNote = null;
-    if (runtimePolicy.runtimeState === 'pending_restart') {
-      policyNote = '磁盘配置已变更但运行中的客户端尚未重启，当前运行策略与可采纳上限待确认';
-    } else if (runtimePolicy.runtimeState === 'runtime_unconfirmed') {
-      policyNote = '仅检测到磁盘配置，尚未确认运行中进程已加载该策略';
-    } else if (runtimePolicy.runtimeState === 'partial') {
-      policyNote = '检测到当前环境处于部分异常状态，运行策略上限未知';
-    } else if (runtimePolicy.runtimeState === 'unknown') {
-      policyNote = '尚未获取或无法确认当前客户端运行策略，默认预算及目标采纳范围标为未知';
-    } else if (runtimePolicy.runtimeMode === 'fixed' && currentClientLimitTokens !== null) {
-      policyNote = `当前客户端运行于固定限制 ${currentClientLimitTokens.toLocaleString('en-US')} tokens`;
-    } else if (runtimePolicy.runtimeMode === 'default') {
-      policyNote = '当前客户端运行于官方默认策略（底层本地钳位 256,000 tokens）';
-    } else if (runtimePolicy.runtimeMode === 'dynamic') {
-      policyNote = '当前客户端已开启 Dynamic 动态跟随，按模型自身上限裁剪';
-    }
-
-    const rangeMin = maxAdjustableTokens !== null
-      ? Math.min(DEFAULT_MIN_TOKENS, maxAdjustableTokens)
-      : DEFAULT_MIN_TOKENS;
-    const rangeMax = maxAdjustableTokens;
-
-    return {
-      productKey: product?.productKey || null,
-      productLabel: product?.productLabel || null,
-      maxTokens,
-      maxOutputTokens,
-      modelTheoreticalMaxTokens,
-      dynamicDefaultBudget,
-      currentClientLimitTokens,
-      currentStrategyDefaultBudget,
-      effectiveDefaultBudget,
-      maxAdjustableTokens,
-      rangeMin,
-      rangeMax,
-      hasMetadata: maxTokens !== null && maxOutputTokens !== null,
-      hasPartialMetadata: (maxTokens !== null) !== (maxOutputTokens !== null),
-      hasTierVariance,
-      tierDetails,
-      sources,
-      runtimePolicy,
-      isDynamicUnlocked,
-      formulaNote,
-      policyNote
-    };
-  }
-
-  /**
-   * 评估当前输入/预设在对应模型能力与当前客户端运行策略下的合法性及可采纳值
-   * 绝不静默篡改用户数值并报成功，也不混淆模型能力上限与客户端策略上限
-   */
-  function evaluateLimitInput(rawVal, capSummary = null, unlockStatus = null, serviceLimit = null) {
-    const rawStr = typeof rawVal === 'number' ? String(rawVal) : String(rawVal ?? '').trim().replace(/[,\s_]/g, '');
-    if (!/^\d+$/.test(rawStr)) {
-      return { ok: false, reasonCode: 'not_integer', limitTokens: null };
-    }
-    const num = Number(rawStr);
-    if (!Number.isSafeInteger(num) || num <= 0) {
-      return { ok: false, reasonCode: 'not_integer', limitTokens: null };
-    }
-    if (num < DEFAULT_MIN_TOKENS || num > DEFAULT_MAX_TOKENS) {
-      return {
-        ok: false,
-        reasonCode: 'out_of_engineering_range',
-        limitTokens: num,
-        min: DEFAULT_MIN_TOKENS,
-        max: DEFAULT_MAX_TOKENS
-      };
-    }
-
-    const warnings = [];
-    const policy = arguments.length >= 3
-      ? resolveRuntimeUnlockPolicy(unlockStatus)
-      : (capSummary?.runtimePolicy || resolveRuntimeUnlockPolicy(null));
-    const modelMaxAllowed = capSummary?.modelTheoreticalMaxTokens ?? null;
-    const clientLimit = policy.policyKnown ? policy.currentClientLimitTokens : null;
-
-    let exceedsModelLimit = false;
-    const modelCapped = modelMaxAllowed !== null ? Math.min(num, modelMaxAllowed) : num;
-    if (modelMaxAllowed !== null && num > modelMaxAllowed) {
-      exceedsModelLimit = true;
-      warnings.push({
-        code: 'exceeds_model_limit',
-        limitTokens: num,
-        maxAllowed: modelMaxAllowed,
-        adoptableTokens: policy.policyKnown && clientLimit !== null
-          ? Math.min(modelCapped, clientLimit)
-          : (policy.policyKnown ? modelCapped : null)
-      });
-    }
-
-    let exceedsClientPolicy = false;
-    let requiresDynamicUnlock = false;
-    if (!policy.policyKnown) {
-      warnings.push({
-        code: 'unconfirmed_runtime_policy',
-        limitTokens: num,
-        runtimeState: policy.runtimeState,
-        diskMode: policy.diskMode,
-        diskLimitTokens: policy.diskLimitTokens
-      });
-    } else if (clientLimit !== null && num > clientLimit) {
-      exceedsClientPolicy = true;
-      if (policy.runtimeMode === 'default') {
-        requiresDynamicUnlock = true;
-        warnings.push({
-          code: 'requires_dynamic_unlock',
-          limitTokens: num,
-          stockCap: clientLimit
-        });
-      } else if (policy.runtimeMode === 'fixed') {
-        warnings.push({
-          code: 'exceeds_fixed_client_limit',
-          limitTokens: num,
-          fixedCap: clientLimit
-        });
-      }
-    }
-
-    let adoptableTokens = null;
-    if (policy.policyKnown) {
-      if (policy.runtimeMode === 'dynamic') {
-        adoptableTokens = modelCapped;
-      } else if (clientLimit !== null) {
-        adoptableTokens = Math.min(modelCapped, clientLimit);
-      }
-    }
-
-    const sLimit = Number(serviceLimit || 0);
-    if (sLimit > 0 && num > sLimit) {
-      warnings.push({
-        code: 'exceeds_service_limit',
-        limitTokens: num,
-        serviceLimit: sLimit
-      });
-    }
-
-    if (num < 65536) {
-      warnings.push({
-        code: 'below_recommended_floor',
-        limitTokens: num
-      });
-    }
-
-    return {
-      ok: true,
-      limitTokens: num,
-      exceedsModelLimit,
-      exceedsClientPolicy,
-      clientPolicyLimit: clientLimit,
-      runtimeState: policy.runtimeState,
-      policyKnown: policy.policyKnown,
-      adoptableTokens,
-      requiresDynamicUnlock,
-      warnings
-    };
-  }
-
-  /**
-   * 统一预算模式下，为每个模型预测当前运行策略下的可采纳结果
-   * 严格区分“预测值”与“运行已确认”，绝不把未知/待重启/default/fixed 错判为 exact
-   */
-  function projectUnifiedBudgetForProducts(unifiedPref, products = [], unlockStatus = null, modelCapabilitiesById = null) {
-    const mode = unifiedPref?.mode || 'default';
-    const rawLimit = mode === 'fixed' && Number.isSafeInteger(Number(unifiedPref?.limitTokens))
-      ? Number(unifiedPref.limitTokens)
-      : null;
-    const policy = resolveRuntimeUnlockPolicy(unlockStatus);
-    const unresolvedOutcome = policy.runtimeState === 'pending_restart'
-      ? 'pending_restart_unconfirmed'
-      : (policy.runtimeState === 'partial'
-        ? 'partial_policy_unconfirmed'
-        : (policy.runtimeState === 'runtime_unconfirmed' ? 'runtime_unconfirmed' : 'unknown_policy'));
-
-    return (Array.isArray(products) ? products : []).map(prod => {
-      const cap = deriveModelCapabilitySummary(prod, unlockStatus, modelCapabilitiesById);
-      const modelCap = cap.modelTheoreticalMaxTokens;
-      const clientCap = policy.policyKnown ? policy.currentClientLimitTokens : null;
-
-      if (mode === 'default') {
-        if (!policy.policyKnown) {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: unresolvedOutcome,
-            projectedTokens: null
-          };
-        }
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'client_default',
-          projectedTokens: cap.effectiveDefaultBudget
-        };
-      }
-
-      if (mode === 'dynamic') {
-        if (!policy.policyKnown) {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: unresolvedOutcome,
-            projectedTokens: null
-          };
-        }
-        if (policy.runtimeMode === 'default' || policy.runtimeMode === 'fixed') {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: 'clamped_by_client_policy',
-            clientLimitTokens: clientCap,
-            projectedTokens: cap.effectiveDefaultBudget
-          };
-        }
-        if (cap.dynamicDefaultBudget === null) {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: 'unknown_cap',
-            projectedTokens: null
-          };
-        }
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'dynamic_follow',
-          projectedTokens: cap.dynamicDefaultBudget
-        };
-      }
-
-      if (!rawLimit) {
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'invalid_target',
-          projectedTokens: null
-        };
-      }
-
-      if (!policy.policyKnown) {
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: unresolvedOutcome,
-          targetTokens: rawLimit,
-          exceedsModelLimit: modelCap !== null && rawLimit > modelCap,
-          projectedTokens: null
-        };
-      }
-
-      if (policy.runtimeMode === 'dynamic') {
-        if (modelCap === null) {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: 'unknown_cap',
-            targetTokens: rawLimit,
-            projectedTokens: null
-          };
-        }
-        if (rawLimit > modelCap) {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: 'clamped_to_model_max',
-            targetTokens: rawLimit,
-            projectedTokens: modelCap
-          };
-        }
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'exact',
-          targetTokens: rawLimit,
-          projectedTokens: rawLimit
-        };
-      }
-
-      // runtimeMode === 'default' (256,000) 或 'fixed' (N)
-      if (modelCap !== null && rawLimit > modelCap) {
-        if (clientCap !== null && clientCap < modelCap && rawLimit > clientCap) {
-          return {
-            productKey: prod.productKey,
-            productLabel: prod.productLabel,
-            vendor: prod.vendor,
-            capability: cap,
-            outcome: 'clamped_by_client_policy',
-            targetTokens: rawLimit,
-            clientLimitTokens: clientCap,
-            modelTheoreticalMaxTokens: modelCap,
-            projectedTokens: clientCap
-          };
-        }
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'clamped_to_model_max',
-          targetTokens: rawLimit,
-          clientLimitTokens: clientCap,
-          projectedTokens: modelCap
-        };
-      }
-
-      if (clientCap !== null && rawLimit > clientCap) {
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'exceeds_client_policy',
-          targetTokens: rawLimit,
-          clientLimitTokens: clientCap,
-          modelTheoreticalMaxTokens: modelCap,
-          projectedTokens: modelCap !== null ? Math.min(modelCap, clientCap) : clientCap
-        };
-      }
-
-      if (modelCap === null) {
-        return {
-          productKey: prod.productKey,
-          productLabel: prod.productLabel,
-          vendor: prod.vendor,
-          capability: cap,
-          outcome: 'unknown_cap',
-          targetTokens: rawLimit,
-          clientLimitTokens: clientCap,
-          projectedTokens: null
-        };
-      }
-
-      return {
-        productKey: prod.productKey,
-        productLabel: prod.productLabel,
-        vendor: prod.vendor,
-        capability: cap,
-        outcome: 'exact',
-        targetTokens: rawLimit,
-        clientLimitTokens: clientCap,
-        projectedTokens: rawLimit
-      };
-    });
-  }
-
-  // =========================================================================
-  // 3. 请求模型提取（严禁回退至插件配置面板选中项或全局历史快照）
-  // =========================================================================
-
-  function matchConfigByCandidate(candidate, knownConfigs) {
-    if (!Array.isArray(knownConfigs) || !knownConfigs.length || candidate === null || candidate === undefined) {
-      return null;
-    }
-    if (typeof candidate === 'number') {
-      const byValue = knownConfigs.find(c => Number(c?.value) === candidate);
-      if (byValue) return byValue;
-      const enumName = modelEnumNumberToName(candidate);
-      if (enumName) {
-        return matchConfigByCandidate(enumName, knownConfigs);
-      }
-      return null;
-    }
-    const rawStr = String(candidate).trim();
-    if (!rawStr) return null;
-    const rawLower = rawStr.toLowerCase();
-    const strippedLower = stripModelEnumPrefix(rawStr).toLowerCase();
-    return knownConfigs.find(c => {
-      const fields = [c?.modelId, c?.model, c?.modelOrAlias?.model, c?.modelOrAlias?.alias, c?.modelAlias, c?.label];
-      for (const f of fields) {
-        if (f === null || f === undefined) continue;
-        const fl = String(f).trim().toLowerCase();
-        if (!fl) continue;
-        if (fl === rawLower || stripModelEnumPrefix(fl) === strippedLower) return true;
-      }
-      if (/^\d+$/.test(rawStr) && Number(c?.value) === Number(rawStr)) return true;
-      return false;
-    }) || null;
-  }
-
-  function normalizeResolvedCandidate(rawCandidate, knownConfigs, groupFn, resolveStableFn) {
-    if (rawCandidate === null || rawCandidate === undefined) return null;
-    const matchedCfg = matchConfigByCandidate(rawCandidate, knownConfigs);
-    if (matchedCfg) {
-      const mId = matchedCfg.modelId || matchedCfg.model || matchedCfg.modelOrAlias?.model || matchedCfg.label;
-      const lbl = matchedCfg.label || matchedCfg.modelDisplayName || mId;
-      const g = groupFn({ modelId: mId, label: lbl, modelOrAlias: matchedCfg.modelOrAlias, effort: matchedCfg.effort });
-      if (g?.productKey) {
-        return {
-          productKey: g.productKey,
-          productLabel: g.productLabel,
-          modelId: (resolveStableFn ? resolveStableFn(matchedCfg, knownConfigs) : null) || String(mId || '').toLowerCase(),
-          rawCandidate
-        };
-      }
-    }
-
-    let strVal = null;
-    if (typeof rawCandidate === 'number') {
-      strVal = modelEnumNumberToName(rawCandidate);
-    } else if (typeof rawCandidate === 'string') {
-      strVal = rawCandidate.trim();
-    }
-    if (!strVal) return null;
-
-    // 去除 Protobuf enum 前缀并美化可读名称用于分组兜底
-    const stripped = stripModelEnumPrefix(strVal);
-    if (/^PLACEHOLDER_M\d+$/i.test(stripped)) {
-      // 未能在已知目录中找到具体产品名时，按准确占位 ID 分组而不是跨模型猜测
-      const g = groupFn({ modelId: stripped.toLowerCase(), label: stripped.toLowerCase() });
-      return {
-        productKey: g?.productKey || `product:other:${stripped.toLowerCase()}`,
-        productLabel: g?.productLabel || stripped.toLowerCase(),
-        modelId: stripped.toLowerCase(),
-        rawCandidate
-      };
-    }
-
-    const readable = stripped.includes('_') && stripped === stripped.toUpperCase()
-      ? stripped.toLowerCase().replace(/_/g, '-')
-      : stripped;
-    const g = groupFn({ modelId: readable, label: readable });
-    if (!g?.productKey) return null;
-    return {
-      productKey: g.productKey,
-      productLabel: g.productLabel,
-      modelId: (resolveStableFn ? resolveStableFn(readable, knownConfigs) : null) || readable.toLowerCase(),
-      rawCandidate
-    };
-  }
-
-  /**
-   * 从出站请求对象 / 二进制元数据提取实际模型产品键
-   * @param {object} requestOrProtoMeta
-   * @param {{
-   *   isProtoMeta?: boolean,
-   *   knownConfigs?: Array,
-   *   verifiedConversationBindings?: Record<string, { productKey: string, modelId?: string }>,
-   *   groupProduct?: Function,
-   *   resolveStableModelId?: Function
-   * }} [options]
-   */
-  function resolveRequestModel(requestOrProtoMeta, options = {}) {
-    if (!requestOrProtoMeta || typeof requestOrProtoMeta !== 'object') {
-      return { resolved: false, reason: 'invalid_payload', cascadeId: null };
-    }
-
-    const knownConfigs = Array.isArray(options.knownConfigs) ? options.knownConfigs : [];
-    const bindings = options.verifiedConversationBindings || {};
-    const groupFn = typeof options.groupProduct === 'function'
-      ? options.groupProduct
-      : (input) => {
-        const s = String(input?.label || input?.modelId || 'unknown').trim();
-        const low = s.toLowerCase().replace(/[^a-z0-9.\u4e00-\u9fa5]+/g, '-').replace(/^-+|-+$/g, '');
-        return { productKey: `product:other:${low || 'unknown'}`, productLabel: s, vendor: '其他', effort: null };
-      };
-    const resolveStableFn = typeof options.resolveStableModelId === 'function' ? options.resolveStableModelId : null;
-
-    if (options.isProtoMeta) {
-      const cascadeId = requestOrProtoMeta.cascadeId || null;
-      const candidates = [
-        { source: 'customModelInfoOverride', value: requestOrProtoMeta.customModelOverrideRaw },
-        { source: 'modelName', value: requestOrProtoMeta.modelName },
-        { source: 'requestedModel', value: requestOrProtoMeta.requestedModelEnum },
-        { source: 'planModel', value: requestOrProtoMeta.planModelEnum }
-      ];
-      for (const c of candidates) {
-        if (c.value === null || c.value === undefined || c.value === 0 || c.value === '') continue;
-        const norm = normalizeResolvedCandidate(c.value, knownConfigs, groupFn, resolveStableFn);
-        if (norm) return { resolved: true, source: `proto_${c.source}`, cascadeId, ...norm };
-      }
-      if (cascadeId && bindings[cascadeId]?.productKey) {
-        return {
-          resolved: true,
-          source: 'verified_conversation_binding',
-          cascadeId,
-          productKey: bindings[cascadeId].productKey,
-          productLabel: bindings[cascadeId].productLabel || bindings[cascadeId].productKey,
-          modelId: bindings[cascadeId].modelId || bindings[cascadeId].productKey
-        };
-      }
-      return { resolved: false, reason: 'unidentifiable_request_model', cascadeId };
-    }
-
-    const payload = requestOrProtoMeta;
-    const cascadeId = payload.cascadeId || payload.cascade_id || null;
-    const cfg = payload.cascadeConfig || payload.cascade_config || {};
-    const planner = cfg.plannerConfig || cfg.planner_config || payload.plannerConfig || payload.planner_config || {};
-
-    const override = planner.customModelInfoOverride || planner.custom_model_info_override || {};
-    const reqModelObj = planner.requestedModel || planner.requested_model || {};
-    const candidates = [
-      { source: 'customModelInfoOverride', value: override.model || override.modelId || override.label },
-      { source: 'modelName', value: planner.modelName || planner.model_name },
-      { source: 'requestedModel', value: reqModelObj.model || reqModelObj.alias || (reqModelObj.choice?.case ? reqModelObj.choice.value : null) },
-      { source: 'planModel', value: planner.planModel ?? planner.plan_model }
-    ];
-
-    for (const c of candidates) {
-      if (c.value === null || c.value === undefined || c.value === 0 || c.value === '') continue;
-      const norm = normalizeResolvedCandidate(c.value, knownConfigs, groupFn, resolveStableFn);
-      if (norm) return { resolved: true, source: c.source, cascadeId, ...norm };
-    }
-
-    if (cascadeId && bindings[cascadeId]?.productKey) {
-      return {
-        resolved: true,
-        source: 'verified_conversation_binding',
-        cascadeId,
-        productKey: bindings[cascadeId].productKey,
-        productLabel: bindings[cascadeId].productLabel || bindings[cascadeId].productKey,
-        modelId: bindings[cascadeId].modelId || bindings[cascadeId].productKey
-      };
-    }
-
-    return { resolved: false, reason: 'unidentifiable_request_model', cascadeId };
-  }
-
-  // =========================================================================
-  // 4. 预算偏好查询与请求篡改（支持对象/JSON/Protobuf、保护 $typeName 与默认清理）
-  // =========================================================================
-
-  function findPreferenceForProduct(productKey, contextPreferencesMap) {
-    if (!productKey || !contextPreferencesMap || typeof contextPreferencesMap !== 'object') return null;
-    if (contextPreferencesMap[productKey]) return contextPreferencesMap[productKey];
-    const pSlug = String(productKey).replace(/^product:[^:]+:/, '').toLowerCase();
-    for (const [k, pref] of Object.entries(contextPreferencesMap)) {
-      if (!pref) continue;
-      const kSlug = String(k).replace(/^product:[^:]+:/, '').toLowerCase();
-      if (kSlug && kSlug === pSlug) return pref;
-    }
-    return null;
-  }
-
-  function resolveBudgetPolicy(options = {}) {
-    const scopeMode = options.scopeMode === 'per_model' ? 'per_model' : 'unified';
-    const pref = scopeMode === 'unified'
-      ? (options.unifiedPreference || { mode: 'default', limitTokens: null })
-      : findPreferenceForProduct(options.productKey, options.contextPreferencesMap);
-    if (!pref) {
-      return { mode: 'default', limitTokens: null, hasExplicitPref: false };
-    }
-    const mode = pref.mode === 'fixed' || pref.mode === 'dynamic' ? pref.mode : 'default';
-    if (mode === 'fixed') {
-      const limit = Number(pref.limitTokens);
-      const minTokens = Number(options.minTokens || DEFAULT_MIN_TOKENS);
-      const maxTokens = Number(options.maxTokens || DEFAULT_MAX_TOKENS);
-      if (Number.isSafeInteger(limit) && limit >= minTokens && limit <= maxTokens) {
-        return { mode: 'fixed', limitTokens: limit, hasExplicitPref: true };
-      }
-      return { mode: 'invalid_fixed', limitTokens: limit, hasExplicitPref: true };
-    }
-    return { mode, limitTokens: null, hasExplicitPref: true };
-  }
-
-  /**
-   * 在 JS 请求对象上注入/清理 CheckpointConfig.maxTokenLimit（支持 Snake/Camel 单套与 @bufbuild/protobuf v2 $typeName）
-   */
-  function applyBudgetPolicyToObject(payload, policy) {
-    if (!payload || typeof payload !== 'object' || !policy) {
-      return { modified: false, appliedMode: 'passthrough', sentLimitTokens: null };
-    }
-
-    const usesProtoBufTypeName = Boolean(
-      payload.$typeName
-      || payload.cascadeConfig?.$typeName
-      || payload.cascadeConfig?.plannerConfig?.$typeName
-      || payload.cascadeConfig?.checkpointConfig?.$typeName
-    );
-    const isSnake = Boolean(payload.cascade_config && !payload.cascadeConfig);
-
-    if (policy.mode === 'fixed' && Number.isSafeInteger(policy.limitTokens)) {
-      if (isSnake) {
-        payload.cascade_config = payload.cascade_config || {};
-        payload.cascade_config.checkpoint_config = payload.cascade_config.checkpoint_config || {};
-        payload.cascade_config.checkpoint_config.max_token_limit = policy.limitTokens;
-      } else {
-        if (!payload.cascadeConfig) {
-          payload.cascadeConfig = usesProtoBufTypeName ? { $typeName: 'exa.cortex_pb.CascadeConfig' } : {};
-        }
-        if (!payload.cascadeConfig.checkpointConfig) {
-          payload.cascadeConfig.checkpointConfig = usesProtoBufTypeName ? { $typeName: 'exa.cortex_pb.CheckpointConfig' } : {};
-        } else if (usesProtoBufTypeName && !payload.cascadeConfig.checkpointConfig.$typeName) {
-          payload.cascadeConfig.checkpointConfig.$typeName = 'exa.cortex_pb.CheckpointConfig';
-        }
-        payload.cascadeConfig.checkpointConfig.maxTokenLimit = policy.limitTokens;
-      }
-      return { modified: true, appliedMode: 'fixed', sentLimitTokens: policy.limitTokens };
-    }
-
-    // dynamic 或 default：必须清除任何残留固定阈值，绝不保留上一次遗留的 fixed 值
-    let cleared = false;
-    if (payload.cascadeConfig?.checkpointConfig && payload.cascadeConfig.checkpointConfig.maxTokenLimit !== undefined) {
-      delete payload.cascadeConfig.checkpointConfig.maxTokenLimit;
-      cleared = true;
-    }
-    if (payload.cascade_config?.checkpoint_config && payload.cascade_config.checkpoint_config.max_token_limit !== undefined) {
-      delete payload.cascade_config.checkpoint_config.max_token_limit;
-      cleared = true;
-    }
-    return {
-      modified: cleared,
-      appliedMode: policy.mode === 'dynamic' ? 'dynamic' : 'default',
-      sentLimitTokens: null
-    };
-  }
-
-  /**
-   * 一体化拦截变换（支持 client_object / HTTP JSON / WebSocket Lcc / Envelope / Protobuf Binary）
-   */
-  function transformOutgoingSendRequest(input, context = {}) {
-    const channel = context.channel || 'http';
-    const urlOrProcedure = context.urlOrProcedure || '';
-
-    // 1. 先检查 RPC 通道目标
-    if (channel !== 'ws_frame' && urlOrProcedure && !isTargetBudgetRpc(urlOrProcedure)) {
-      return { handled: false, passthrough: true, reason: 'non_target_rpc' };
-    }
-
-    // 2. 如果是客户端装饰器直传对象
-    if (channel === 'client_object') {
-      if (!input || typeof input !== 'object') {
-        return { handled: false, passthrough: true, reason: 'invalid_client_request' };
-      }
-      const resolved = resolveRequestModel(input, context);
-      const scopeMode = context.scopeMode === 'per_model' ? 'per_model' : 'unified';
-      if (!resolved.resolved && scopeMode !== 'unified') {
-        return {
-          handled: true,
-          passthrough: true,
-          modified: false,
-          uninjectable: true,
-          reason: resolved.reason || 'unidentifiable_request_model',
-          cascadeId: resolved.cascadeId || null,
-          productKey: null
-        };
-      }
-      const policy = resolveBudgetPolicy({
-        scopeMode,
-        unifiedPreference: context.unifiedPreference,
-        contextPreferencesMap: context.contextPreferencesMap,
-        productKey: resolved.productKey,
-        minTokens: context.minTokens,
-        maxTokens: context.maxTokens
-      });
-      if (policy.mode === 'invalid_fixed') {
-        return {
-          handled: true,
-          passthrough: true,
-          modified: false,
-          uninjectable: true,
-          reason: 'invalid_fixed_limit',
-          cascadeId: resolved.cascadeId || null,
-          productKey: resolved.productKey || null
-        };
-      }
-      const applied = applyBudgetPolicyToObject(input, policy);
-      return {
-        handled: true,
-        passthrough: policy.mode === 'default' && !applied.modified,
-        modified: applied.modified,
-        uninjectable: false,
-        channel,
-        cascadeId: resolved.cascadeId || input.cascadeId || input.cascade_id || null,
-        productKey: resolved.productKey || (scopeMode === 'unified' ? '__unified__' : null),
-        productLabel: resolved.productLabel || null,
-        modelId: resolved.modelId || null,
-        modelSource: resolved.source || null,
-        scopeMode,
-        targetMode: policy.mode,
-        targetLimitTokens: policy.limitTokens,
-        sentMode: applied.appliedMode,
-        sentLimitTokens: applied.sentLimitTokens,
-        output: input
-      };
-    }
-
-    // 3. 传输层帧/请求体（WebSocket / Fetch / XHR）
-    const unpacked = unpackTransportPayload(input, { channel, urlOrProcedure, contentType: context.contentType });
-    if (!unpacked) {
-      return { handled: false, passthrough: true, reason: 'unrecognized_body' };
-    }
-
-    // WebSocket Lcc 帧需在解包后检验 procedure
-    if (channel === 'ws_frame') {
-      if (!unpacked.procedure || !isTargetBudgetRpc(unpacked.procedure)) {
-        return { handled: false, passthrough: true, reason: 'non_target_ws_procedure' };
-      }
-    }
-
-    if (unpacked.uninjectableReason) {
-      return {
-        handled: true,
-        passthrough: true,
-        modified: false,
-        uninjectable: true,
-        reason: unpacked.uninjectableReason,
-        channel,
-        cascadeId: null,
-        productKey: null
-      };
-    }
-
-    const isProto = unpacked.format === 'connect_proto_envelope' || unpacked.format === 'raw_binary_proto';
-    const resolved = isProto
-      ? resolveRequestModel(unpacked.protoMeta, { ...context, isProtoMeta: true })
-      : resolveRequestModel(unpacked.payload, { ...context, isProtoMeta: false });
-
-    const scopeMode = context.scopeMode === 'per_model' ? 'per_model' : 'unified';
-    if (!resolved.resolved && scopeMode !== 'unified') {
-      return {
-        handled: true,
-        passthrough: true,
-        modified: false,
-        uninjectable: true,
-        reason: resolved.reason || 'unidentifiable_request_model',
-        channel,
-        cascadeId: resolved.cascadeId || null,
-        productKey: null
-      };
-    }
-
-    const policy = resolveBudgetPolicy({
-      scopeMode,
-      unifiedPreference: context.unifiedPreference,
-      contextPreferencesMap: context.contextPreferencesMap,
-      productKey: resolved.productKey,
-      minTokens: context.minTokens,
-      maxTokens: context.maxTokens
-    });
-    if (policy.mode === 'invalid_fixed') {
-      return {
-        handled: true,
-        passthrough: true,
-        modified: false,
-        uninjectable: true,
-        reason: 'invalid_fixed_limit',
-        channel,
-        cascadeId: resolved.cascadeId || null,
-        productKey: resolved.productKey || null
-      };
-    }
-
-    if (isProto) {
-      const srcBytes = unpacked.format === 'connect_proto_envelope' ? unpacked.rawInner : unpacked.rawBytes;
-      const hadExisting = unpacked.protoMeta?.existingMaxTokenLimit !== null && unpacked.protoMeta?.existingMaxTokenLimit !== undefined;
-      let nextProtoBytes = srcBytes;
-      let modified = false;
-      if (policy.mode === 'fixed') {
-        nextProtoBytes = rewriteProtoSendMessageCheckpointLimit(srcBytes, { mode: 'fixed', limitTokens: policy.limitTokens });
-        modified = true;
-      } else if (hadExisting) {
-        nextProtoBytes = rewriteProtoSendMessageCheckpointLimit(srcBytes, { mode: policy.mode, limitTokens: null });
-        modified = true;
-      }
-      const packed = modified ? packTransportPayload(unpacked, nextProtoBytes) : input;
-      return {
-        handled: true,
-        passthrough: !modified,
-        modified,
-        uninjectable: false,
-        channel,
-        format: unpacked.format,
-        cascadeId: resolved.cascadeId || null,
-        productKey: resolved.productKey || (scopeMode === 'unified' ? '__unified__' : null),
-        productLabel: resolved.productLabel || null,
-        modelId: resolved.modelId || null,
-        modelSource: resolved.source || null,
-        scopeMode,
-        targetMode: policy.mode,
-        targetLimitTokens: policy.limitTokens,
-        sentMode: policy.mode === 'fixed' ? 'fixed' : (policy.mode === 'dynamic' ? 'dynamic' : 'default'),
-        sentLimitTokens: policy.mode === 'fixed' ? policy.limitTokens : null,
-        output: packed || input
-      };
-    }
-
-    const applied = applyBudgetPolicyToObject(unpacked.payload, policy);
-    const packed = applied.modified ? packTransportPayload(unpacked, unpacked.payload) : input;
-    return {
-      handled: true,
-      passthrough: !applied.modified,
-      modified: Boolean(applied.modified && packed),
-      uninjectable: false,
-      channel,
-      format: unpacked.format,
-      cascadeId: resolved.cascadeId || unpacked.payload?.cascadeId || unpacked.payload?.cascade_id || null,
-      productKey: resolved.productKey || (scopeMode === 'unified' ? '__unified__' : null),
-      productLabel: resolved.productLabel || null,
-      modelId: resolved.modelId || null,
-      modelSource: resolved.source || null,
-      scopeMode,
-      targetMode: policy.mode,
-      targetLimitTokens: policy.limitTokens,
-      sentMode: applied.appliedMode,
-      sentLimitTokens: applied.sentLimitTokens,
-      output: packed || input
-    };
-  }
-
-  // =========================================================================
-  // 5. 发送追踪、因果观测与严格状态机 (杜绝时间戳造假与假确认)
-  // =========================================================================
-
-  function makeScopeKey(convoId, productKey) {
-    return `${convoId || '__no_conv__'}::${productKey || '__no_product__'}`;
-  }
-
-  function createContextBudgetTracker(options = {}) {
-    const confirmTimeoutMs = Number(options.confirmTimeoutMs || DEFAULT_CONFIRM_TIMEOUT_MS);
-    const nowFn = typeof options.now === 'function' ? options.now : () => Date.now();
-    let seqCounter = 0;
-
-    // 按 (convoId, productKey) 隔离保存最近发送记录，防止并发会话/快速切换互相覆盖
-    const dispatchesByScope = new Map();
-    const dispatchesById = new Map();
-    // 仅在无活跃会话上下文时辅助查询按产品的最近发送，不跨会话冒用确认
-    const dispatchesByProduct = new Map();
-    // 按 (convoId, productKey) 隔离保存真实观测快照
-    const observationsByScope = new Map();
-    // 已验证的会话->模型绑定（仅来自明确请求的响应或该会话真实 metadata）
-    const verifiedConversationBindings = Object.create(null);
-
-    function recordConversationBinding(convoId, binding) {
-      if (!convoId || !binding?.productKey) return;
-      verifiedConversationBindings[convoId] = {
-        productKey: binding.productKey,
-        productLabel: binding.productLabel || binding.productKey,
-        modelId: binding.modelId || binding.productKey,
-        updatedAt: nowFn()
-      };
-    }
-
-    function getBaselineForScope(convoId, productKey) {
-      const obs = observationsByScope.get(makeScopeKey(convoId, productKey));
-      if (!obs) return { callId: null, stepCount: -1, obsTs: 0 };
-      return {
-        callId: obs.callId || null,
-        stepCount: Number.isFinite(obs.stepCount) ? obs.stepCount : -1,
-        obsTs: Number(obs.ts || 0)
-      };
-    }
-
-    function beginDispatch(info = {}) {
-      const seq = ++seqCounter;
-      const timestamp = Number(info.timestamp || nowFn());
-      const convoId = info.cascadeId || info.convoId || null;
-      const productKey = info.productKey || null;
-      const dispatchId = `disp_${seq}_${timestamp}`;
-
-      if (convoId && productKey && productKey !== '__unified__') {
-        recordConversationBinding(convoId, {
-          productKey,
-          productLabel: info.productLabel,
-          modelId: info.modelId
-        });
-      }
-
-      const baseline = getBaselineForScope(convoId, productKey);
-      // 严禁在诊断追踪中落盘任何用户对话内容或凭证信息，仅保留结构化预算追踪字段
-      const sanitizedPrefSnapshot = info.prefSnapshot && typeof info.prefSnapshot === 'object'
-        ? {
-          mode: info.prefSnapshot.mode || 'default',
-          limitTokens: info.prefSnapshot.mode === 'fixed' && Number.isSafeInteger(Number(info.prefSnapshot.limitTokens))
-            ? Number(info.prefSnapshot.limitTokens)
-            : null
-        }
-        : {
-          mode: info.targetMode || 'default',
-          limitTokens: info.targetLimitTokens ?? null
-        };
-      const record = {
-        dispatchId,
-        seq,
-        cascadeId: convoId,
-        convoId,
-        productKey,
-        modelId: info.modelId || null,
-        scopeMode: info.scopeMode || 'per_model',
-        prefSnapshot: sanitizedPrefSnapshot,
-        targetMode: info.targetMode || 'default',
-        targetLimitTokens: info.targetLimitTokens ?? null,
-        sentMode: info.sentMode || info.targetMode || 'default',
-        sentLimitTokens: info.sentLimitTokens ?? null,
-        channel: info.channel || 'http',
-        transport: info.channel || 'http',
-        status: info.status || 'dispatched',
-        errorMessage: info.errorMessage ? String(info.errorMessage).slice(0, 160) : null,
-        reason: info.reason || null,
-        baselineCallId: baseline.callId,
-        baselineStepCount: baseline.stepCount,
-        baselineObsTs: baseline.obsTs,
-        timestamp
-      };
-
-      const sKey = makeScopeKey(convoId, productKey);
-      dispatchesByScope.set(sKey, record);
-      dispatchesById.set(dispatchId, record);
-      if (dispatchesById.size > 200) {
-        const oldestKey = dispatchesById.keys().next().value;
-        if (oldestKey) dispatchesById.delete(oldestKey);
-      }
-      if (productKey && productKey !== '__unified__') {
-        dispatchesByProduct.set(productKey, record);
-      }
-      return record;
-    }
-
-    function updateDispatchStatus(dispatchId, patch = {}) {
-      const rec = dispatchesById.get(dispatchId);
-      if (!rec) return null;
-      Object.assign(rec, patch);
-      return rec;
-    }
-
-    /**
-     * 记录后端真实观测，绝不在旧快照上用 Date.now() 刷新 ts
-     */
-    function recordObservation(obsInput = {}) {
-      const convoId = obsInput.convoId || obsInput.cascadeId || null;
-      const productKey = obsInput.productKey || null;
-      if (!productKey) return null;
-
-      const sKey = makeScopeKey(convoId, productKey);
-      const prev = observationsByScope.get(sKey);
-      const budget = Number(obsInput.budget || 0);
-      const serviceLimit = Number(obsInput.serviceLimit || 0);
-      const modelHardLimit = Number(obsInput.modelHardLimit || 0);
-      const callId = obsInput.callId || null;
-      const stepCount = Number.isFinite(Number(obsInput.stepCount)) ? Number(obsInput.stepCount) : -1;
-      const explicitTs = Number(obsInput.ts || 0);
-
-      // 判定是否为“新步骤 / 新响应”，而非同一快照反复轮询（绝不因 poll 时间戳增加而推进旧快照 ts）
-      const sameCall = callId ? prev?.callId === callId : prev?.callId === null;
-      const sameStep = stepCount === prev?.stepCount;
-      const downgradedMissingCall = Boolean(
-        prev &&
-        !callId &&
-        prev.callId &&
-        (stepCount < 0 || prev.stepCount < 0 || stepCount <= prev.stepCount)
-      );
-      const isSameSnapshot = Boolean(
-        prev &&
-        prev.budget === budget &&
-        prev.serviceLimit === serviceLimit &&
-        prev.modelHardLimit === modelHardLimit &&
-        (
-          (sameCall && sameStep && (!explicitTs || callId !== null || stepCount >= 0 || explicitTs <= prev.ts)) ||
-          downgradedMissingCall
-        )
-      );
-
-      if (isSameSnapshot) {
-        return prev;
-      }
-
-      const nextTs = explicitTs > 0 ? explicitTs : nowFn();
-      const next = {
-        convoId,
-        productKey,
-        modelId: obsInput.modelId || prev?.modelId || null,
-        modelLabel: obsInput.modelLabel || prev?.modelLabel || null,
-        effort: obsInput.effort || prev?.effort || null,
-        budget,
-        serviceLimit,
-        modelHardLimit,
-        callId,
-        stepCount,
-        ts: nextTs
-      };
-      observationsByScope.set(sKey, next);
-
-      if (convoId && productKey !== '__unified__') {
-        recordConversationBinding(convoId, {
-          productKey,
-          productLabel: next.modelLabel,
-          modelId: next.modelId
-        });
-      }
-      return next;
-    }
-
-    function getScopedObservation(convoId, productKey) {
-      if (!productKey) return null;
-      if (convoId) {
-        return observationsByScope.get(makeScopeKey(convoId, productKey)) || null;
-      }
-      // 无活跃会话时不臆测，可按最新 matching scope 返回但标注 convoId
-      let latest = null;
-      for (const obs of observationsByScope.values()) {
-        if (obs.productKey === productKey && (!latest || obs.ts > latest.ts)) {
-          latest = obs;
-        }
-      }
-      return latest;
-    }
-
-    function getScopedDispatch(convoId, productKey, scopeMode = 'per_model') {
-      if (convoId) {
-        const direct = dispatchesByScope.get(makeScopeKey(convoId, productKey));
-        if (direct) return direct;
-        if (scopeMode === 'unified') {
-          const unifiedRec = dispatchesByScope.get(makeScopeKey(convoId, '__unified__'));
-          if (unifiedRec) return unifiedRec;
-        }
-        return null;
-      }
-      if (productKey && dispatchesByProduct.has(productKey)) {
-        return dispatchesByProduct.get(productKey);
-      }
-      return null;
-    }
-
-    function isPostDispatchObservation(dispatch, obs) {
-      if (!dispatch || !obs) return false;
-      if (dispatch.convoId && obs.convoId && dispatch.convoId !== obs.convoId) return false;
-      if (obs.ts < dispatch.timestamp) return false;
-      const changedCall = Boolean(obs.callId && obs.callId !== dispatch.baselineCallId);
-      const advancedStep = obs.stepCount >= 0 && obs.stepCount > dispatch.baselineStepCount;
-      if (changedCall || advancedStep) return true;
-      // 若 callId 与发送前基线完全相同且步骤未增长，说明仍是旧快照（即便 scannedAt/ts 更新也绝非新响应）
-      if (obs.callId && dispatch.baselineCallId && obs.callId === dispatch.baselineCallId) {
-        return false;
-      }
-      // 若双方均有明确步数基线且未前进，同样禁止仅靠轮询时间戳伪确认
-      if (dispatch.baselineStepCount >= 0 && obs.stepCount >= 0 && obs.stepCount <= dispatch.baselineStepCount) {
-        return false;
-      }
-      return obs.ts > dispatch.baselineObsTs;
-    }
-
-    function evaluateStatus(params = {}) {
-      const product = params.product || null;
-      const scopeMode = params.scopeMode === 'per_model' ? 'per_model' : 'unified';
-      const activePref = params.pref || { mode: 'default', limitTokens: null };
-      const activeConvId = params.activeConvId || null;
-      const now = Number(params.now || nowFn());
-
-      if (!product) {
-        return {
-          status: 'unconfirmed',
-          convoId: activeConvId || '—',
-          targetMode: activePref?.mode || 'default',
-          targetLimit: activePref?.mode === 'fixed' ? Number(activePref?.limitTokens) : null,
-          dispatched: null,
-          observation: null,
-          diagnosisCode: 'missing_product'
-        };
-      }
-
-      const targetMode = activePref?.mode || 'default';
-      const targetLimit = targetMode === 'fixed' && Number.isSafeInteger(Number(activePref?.limitTokens))
-        ? Number(activePref.limitTokens)
-        : null;
-
-      const rawDispatched = getScopedDispatch(activeConvId, product.productKey, scopeMode);
-      const obs = getScopedObservation(activeConvId || rawDispatched?.convoId || null, product.productKey);
-      const obsBudget = Number(obs?.budget || 0);
-      const serviceLimit = Number(obs?.serviceLimit || 0);
-      const modelHardLimit = Number(params.modelHardLimit || obs?.modelHardLimit || 0);
-
-      // 先校验最近发送记录是否匹配“当前保存的新目标”（含从固定改默认、从失败目标改新值），不匹配则不误报旧结果
-      const matchesCurrentTarget = Boolean(
-        rawDispatched &&
-        rawDispatched.targetMode === targetMode &&
-        (targetMode !== 'fixed' || rawDispatched.targetLimitTokens === targetLimit)
-      );
-      const dispatched = matchesCurrentTarget ? rawDispatched : null;
-      const effectiveConvoId = dispatched?.convoId || obs?.convoId || activeConvId || '—';
-
-      if (!dispatched) {
-        if (targetMode === 'default') {
-          return {
-            status: 'default',
-            convoId: effectiveConvoId,
-            targetMode,
-            targetLimit: null,
-            dispatched: null,
-            observation: obs,
-            diagnosisCode: 'default_pending_dispatch'
-          };
-        }
-        return {
-          status: 'saved_pending_dispatch',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          dispatched: null,
-          observation: obs,
-          diagnosisCode: 'awaiting_next_send'
-        };
-      }
-
-      if (dispatched.status === 'send_failed') {
-        return {
-          status: 'send_failed',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'dispatch_failed',
-          errorMessage: dispatched.errorMessage || '请求发送失败'
-        };
-      }
-      if (dispatched.status === 'aborted') {
-        return {
-          status: 'aborted',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'dispatch_aborted'
-        };
-      }
-      if (dispatched.status === 'uninjectable') {
-        return {
-          status: 'uninjectable',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          dispatched,
-          observation: obs,
-          diagnosisCode: dispatched.reason || 'uninjectable'
-        };
-      }
-
-      const hasPostObs = isPostDispatchObservation(dispatched, obs);
-      if (!hasPostObs || obsBudget <= 0) {
-        if (now - dispatched.timestamp > confirmTimeoutMs) {
-          return {
-            status: 'timeout_unconfirmed',
-            convoId: effectiveConvoId,
-            targetMode,
-            targetLimit,
-            dispatched,
-            observation: obs,
-            diagnosisCode: 'confirm_timeout'
-          };
-        }
-        return {
-          status: 'dispatched_pending_confirm',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'awaiting_backend_obs'
-        };
-      }
-
-      if (targetMode === 'default') {
-        return {
-          status: 'default',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit: null,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'default_confirmed'
-        };
-      }
-
-      if (targetMode === 'dynamic') {
-        return {
-          status: 'confirmed',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit: null,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'dynamic_observed'
-        };
-      }
-
-      // 精确整数比对，不随便放宽到 ±5% 或 ±64 掩盖差值
-      if (obsBudget === targetLimit) {
-        return {
-          status: 'confirmed',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'exact_match'
-        };
-      }
-
-      // 仅当存在明确的服务端或 ModelInfo 硬上限证据且目标超出该上限时，才判定为受模型上限限制
-      const knownCap = (serviceLimit > 0 ? serviceLimit : 0) || (modelHardLimit > 0 ? modelHardLimit : 0);
-      if (knownCap > 0 && targetLimit > knownCap && obsBudget <= knownCap) {
-        return {
-          status: 'clamped_by_model_limit',
-          convoId: effectiveConvoId,
-          targetMode,
-          targetLimit,
-          knownCap,
-          dispatched,
-          observation: obs,
-          diagnosisCode: 'server_or_model_cap'
-        };
-      }
-
-      return {
-        status: 'mismatch',
-        convoId: effectiveConvoId,
-        targetMode,
-        targetLimit,
-        dispatched,
-        observation: obs,
-        diagnosisCode: 'budget_mismatch_unknown_reason'
-      };
-    }
-
-    function clearConversation(convoId) {
-      if (!convoId) return;
-      for (const k of Array.from(dispatchesByScope.keys())) {
-        if (k.startsWith(`${convoId}::`)) dispatchesByScope.delete(k);
-      }
-      for (const k of Array.from(observationsByScope.keys())) {
-        if (k.startsWith(`${convoId}::`)) observationsByScope.delete(k);
-      }
-      delete verifiedConversationBindings[convoId];
-    }
-
-    function exportAllObservationsByProduct() {
-      const out = {};
-      for (const obs of observationsByScope.values()) {
-        if (!obs.productKey) continue;
-        const prev = out[obs.productKey];
-        if (!prev || obs.ts > prev.ts) out[obs.productKey] = obs;
-      }
-      return out;
-    }
-
-    function exportDiagnosticTraces() {
-      return Array.from(dispatchesById.values()).map(rec => {
-        const obs = getScopedObservation(rec.convoId, rec.productKey);
-        const postMatched = obs && isPostDispatchObservation(rec, obs);
-        return {
-          dispatchSeq: rec.seq,
-          dispatchId: rec.dispatchId,
-          convoId: rec.convoId || null,
-          productKey: rec.productKey || null,
-          modelId: rec.modelId || null,
-          scopeMode: rec.scopeMode,
-          prefSnapshot: rec.prefSnapshot || null,
-          sentMode: rec.sentMode,
-          sentLimitTokens: rec.sentLimitTokens,
-          transport: rec.transport || rec.channel || null,
-          status: rec.status,
-          observedBudget: postMatched ? (obs.budget || null) : null,
-          observedAt: postMatched ? (obs.ts || null) : null,
-          timestamp: rec.timestamp
-        };
-      });
-    }
-
-    return {
-      beginDispatch,
-      updateDispatchStatus,
-      recordObservation,
-      recordConversationBinding,
-      getScopedDispatch,
-      getScopedObservation,
-      evaluateStatus,
-      clearConversation,
-      exportAllObservationsByProduct,
-      exportDiagnosticTraces,
-      verifiedConversationBindings
-    };
-  }
-
-  const api = {
-    DEFAULT_MIN_TOKENS,
-    DEFAULT_MAX_TOKENS,
-    STOCK_DEFAULT_CLAMP_TOKENS,
-    DEFAULT_CONFIRM_TIMEOUT_MS,
-    STATIC_MODEL_ENUM_MAP,
-    stripModelEnumPrefix,
-    modelEnumNumberToName,
-    isTargetBudgetRpc,
-    readVarint,
-    writeVarint,
-    encodeVarintField,
-    encodeLengthDelimitedField,
-    parseProtoFields,
-    extractProtoSendMessageMetadata,
-    rewriteProtoSendMessageCheckpointLimit,
-    unpackTransportPayload,
-    packTransportPayload,
-    resolveRuntimeUnlockPolicy,
-    deriveModelCapabilitySummary,
-    evaluateLimitInput,
-    projectUnifiedBudgetForProducts,
-    resolveRequestModel,
-    findPreferenceForProduct,
-    resolveBudgetPolicy,
-    applyBudgetPolicyToObject,
-    transformOutgoingSendRequest,
-    createContextBudgetTracker
-  };
-
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = api;
-  }
-  if (root && typeof root === 'object') {
-    root.__AGContextBudgetEngine = api;
-  }
-})(globalThis);
-
-  const budgetEngine = globalThis.__AGContextBudgetEngine || {};
   const fmt = v => v == null ? '—' : Math.round(v).toLocaleString('en-US');
   const short = v => {
     if (v == null) return '—';
@@ -7239,12 +4765,8 @@
   }
 
   function getTopbarVisibleQuickWidth() {
-    let count = 0;
     const btnCompact = el('btn-topbar-compact');
-    const btnWindow = el('btn-topbar-window');
-    if (btnCompact && !btnCompact.hidden) count++;
-    if (btnWindow && !btnWindow.hidden) count++;
-    return count * 28;
+    return (btnCompact && !btnCompact.hidden) ? 28 : 0;
   }
 
   function updateResponsiveLayout() {
@@ -7255,12 +4777,10 @@
     applyLayoutMode(nextMode);
     if (state.tooltipOpen) positionContextTooltip();
     if (el('topbar-action-tooltip')?.getAttribute('data-visible') === 'true') {
-      const anchor = activeTopbarTipKind === 'window'
-        ? el('btn-topbar-window')
-        : (activeTopbarTipKind === 'cache' ? el('badge-cache') : el('btn-topbar-compact'));
+      const anchor = activeTopbarTipKind === 'cache' ? el('badge-cache') : el('btn-topbar-compact');
       positionTopbarActionTooltip(anchor);
     }
-    if (isAnyPanelOpen() || !el('overflow-menu')?.hidden || !el('topbar-window-popover')?.hidden) positionFloatingPanels();
+    if (isAnyPanelOpen() || !el('overflow-menu')?.hidden) positionFloatingPanels();
   }
 
   function scheduleLayoutSync() {
@@ -7333,9 +4853,7 @@
 
   function positionTopbarActionTooltip(anchorEl) {
     const tip = el('topbar-action-tooltip');
-    const target = (anchorEl && !anchorEl.hidden)
-      ? anchorEl
-      : (el('btn-topbar-window') && !el('btn-topbar-window').hidden ? el('btn-topbar-window') : el('badge'));
+    const target = (anchorEl && !anchorEl.hidden) ? anchorEl : el('badge');
     if (!tip || !target || !target.getBoundingClientRect) return;
     try {
       const bRect = target.getBoundingClientRect();
@@ -7416,17 +4934,6 @@
         descEl.textContent = lines.join('\n');
         descEl.hidden = false;
       }
-    } else if (kind === 'window') {
-      const info = typeof resolveQuickContextTarget === 'function' ? resolveQuickContextTarget() : { scopeMode: 'unified', ready: true, currentShortLabel: '—' };
-      const curLbl = info.currentShortLabel || t('status.savedShortDefault');
-      titleEl.textContent = t('twp.tipTitle', { cur: curLbl });
-      if (info.scopeMode === 'unified') {
-        descEl.textContent = t('twp.tipDescUnified');
-      } else {
-        const modelLbl = info.prod?.productLabel || t('models.summary.unconfirmed');
-        descEl.textContent = t('twp.tipDescModel', { model: modelLbl });
-      }
-      descEl.hidden = false;
     }
   }
 
@@ -7547,7 +5054,6 @@
       placePanel(el('panel'), 472, el('badge'));
       placePanel(el('panel-tokens'), 730, el('badge-tokens'));
       placePanel(el('overflow-menu'), 220, el('badge-overflow'));
-      placePanel(el('topbar-window-popover'), 232, el('btn-topbar-window'));
       positionColorPickerPopover();
     } catch {}
   }
@@ -7617,33 +5123,6 @@
     return !el('panel').hidden || !el('panel-tokens').hidden;
   }
 
-  function closeTopbarWindowPopover() {
-    const pop = el('topbar-window-popover');
-    if (pop) pop.hidden = true;
-    el('btn-topbar-window')?.setAttribute('aria-expanded', 'false');
-    if (!isAnyPanelOpen() && el('overflow-menu')?.hidden !== false) {
-      syncHostStackingElevation(false);
-    }
-  }
-
-  function toggleTopbarWindowPopover() {
-    const pop = el('topbar-window-popover');
-    if (!pop) return;
-    const willOpen = Boolean(pop.hidden);
-    showPanel('none');
-    hideContextTooltip();
-    hideTopbarActionTooltip(true);
-    if (willOpen) {
-      pop.hidden = false;
-      el('btn-topbar-window')?.setAttribute('aria-expanded', 'true');
-      if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-      syncHostStackingElevation(true);
-      positionFloatingPanels();
-    } else {
-      closeTopbarWindowPopover();
-    }
-  }
-
   function showPanel(target) {
     const pContext = el('panel');
     const pTokens = el('panel-tokens');
@@ -7658,7 +5137,6 @@
     bOverflow?.setAttribute('aria-expanded', 'false');
 
     if (target === 'tokens') {
-      closeTopbarWindowPopover();
       hideContextTooltip();
       hideTopbarActionTooltip(true);
       closeColorPicker();
@@ -7673,7 +5151,6 @@
       void syncTokenHistoryFromHost(false);
       renderActiveHeatView(true);
     } else if (target === 'context') {
-      closeTopbarWindowPopover();
       hideContextTooltip();
       hideTopbarActionTooltip(true);
       closeColorPicker();
@@ -7687,12 +5164,11 @@
       syncHostStackingElevation(true);
       positionFloatingPanels();
       applyContextViewVisibility?.();
-      if (activeContextTab === 'models' && !isContextSettingsView) {
-        void refreshUnlockStatus();
-      } else if (activeContextTab === 'speed' && !isContextSettingsView) {
+      if (activeContextTab === 'speed' && !isContextSettingsView) {
         renderSpeedComparisonTab?.();
       }
       if (isContextSettingsView) {
+        renderSshRemoteContextBanners();
         void refreshModulesDisplay();
         void refreshCliUnlockDisplay();
       }
@@ -7733,7 +5209,6 @@
     if (!pOverflow) return;
     const willOpen = pOverflow.hidden;
     showPanel('none');
-    closeTopbarWindowPopover();
     hideContextTooltip();
     hideTopbarActionTooltip(true);
     pOverflow.hidden = !willOpen;
@@ -10863,13 +8338,13 @@
   });
   el('overflow-tokens-btn')?.addEventListener('click', () => showPanel('tokens'));
   el('badge-cache')?.addEventListener('mouseenter', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('cache', el('badge-cache'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('cache', el('badge-cache'));
   });
   el('badge-cache')?.addEventListener('mouseleave', () => {
     hideTopbarActionTooltip(false);
   });
   el('badge-cache')?.addEventListener('focus', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('cache', el('badge-cache'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('cache', el('badge-cache'));
   });
   el('badge-cache')?.addEventListener('blur', () => {
     hideTopbarActionTooltip(false);
@@ -10893,199 +8368,47 @@
     hideContextTooltip();
   });
 
-  // 顶部快捷操作（仅图标）：悬停/聚焦展示说明气泡，点击直接触发动作或弹出快速调节浮层
+  // 顶部快捷操作（仅图标）：悬停/聚焦展示说明气泡，点击直接触发动作
   el('btn-topbar-compact')?.addEventListener('mouseenter', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
   });
   el('btn-topbar-compact')?.addEventListener('mouseleave', () => {
     hideTopbarActionTooltip(false);
   });
   el('btn-topbar-compact')?.addEventListener('focus', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
+    if (!isAnyPanelOpen()) showTopbarActionTooltip('compact', el('btn-topbar-compact'));
   });
   el('btn-topbar-compact')?.addEventListener('blur', () => {
     hideTopbarActionTooltip(false);
   });
   el('btn-topbar-compact')?.addEventListener('click', () => {
-    closeTopbarWindowPopover();
     void triggerSessionCompact('topbar');
-  });
-
-  el('btn-topbar-window')?.addEventListener('mouseenter', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('window', el('btn-topbar-window'));
-  });
-  el('btn-topbar-window')?.addEventListener('mouseleave', () => {
-    hideTopbarActionTooltip(false);
-  });
-  el('btn-topbar-window')?.addEventListener('focus', () => {
-    if (!isAnyPanelOpen() && el('topbar-window-popover')?.hidden !== false) showTopbarActionTooltip('window', el('btn-topbar-window'));
-  });
-  el('btn-topbar-window')?.addEventListener('blur', () => {
-    hideTopbarActionTooltip(false);
-  });
-  el('btn-topbar-window')?.addEventListener('click', () => {
-    toggleTopbarWindowPopover();
-  });
-
-  el('btn-twp-toggle-scope')?.addEventListener('click', () => {
-    setScopeMode(getContextScopeMode() === 'unified' ? 'per_model' : 'unified');
-  });
-
-  el('btn-twp-open-models')?.addEventListener('click', () => {
-    closeTopbarWindowPopover();
-    isContextSettingsView = false;
-    if (activeSessionProductKey) {
-      selectedProductKey = activeSessionProductKey;
-      selectedEditModelKey = activeSessionModelKey || activeSessionProductKey;
-      manualModelSelection = false;
-      ctxDraftDirty = false;
-    }
-    showPanel('context');
-    switchContextTab('models');
-  });
-
-  el('twp-preset-grid')?.addEventListener('click', (e) => {
-    const btn = e?.target?.closest?.('.twp-preset-btn');
-    if (!btn || btn.disabled) return;
-    const mode = btn.getAttribute('data-qctx-mode') || 'fixed';
-    const rawLim = btn.getAttribute('data-qctx-limit');
-    const lim = rawLim ? Number(rawLim) : null;
-    void applyQuickContextPreset(mode, lim, { source: 'popover' });
-  });
-
-  el('session-ctx-preset-bar')?.addEventListener('click', (e) => {
-    const btn = e?.target?.closest?.('.twp-preset-btn');
-    if (!btn || btn.disabled) return;
-    const mode = btn.getAttribute('data-qctx-mode') || 'fixed';
-    const rawLim = btn.getAttribute('data-qctx-limit');
-    const lim = rawLim ? Number(rawLim) : null;
-    void applyQuickContextPreset(mode, lim, { source: 'session_card' });
   });
 
   el('theme-toggle')?.addEventListener('click', cycleTheme);
   el('theme-toggle-tokens')?.addEventListener('click', cycleTheme);
   el('badge').addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('btn-topbar-compact')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
-  el('btn-topbar-window')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('badge-tokens').addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('badge-speed')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
   el('badge-cache')?.addEventListener('contextmenu', e => { e.preventDefault(); cycleTheme(); });
 
   // =========================================================================
-  // 模块 3: 上下文面板分页、设置视图、模型产品偏好、重启验证与速度对比
+  // 模块 3: 上下文面板分页、配置视图、重启确认与速度对比
   // =========================================================================
   const btnTabSession = el('tab-ctx-session');
-  const btnTabModels = el('tab-ctx-models');
   const btnTabSpeed = el('tab-ctx-speed');
   const btnTabSettings = el('tab-ctx-settings');
   const paneSession = el('pane-ctx-session');
-  const paneModels = el('pane-ctx-models');
   const paneSpeed = el('pane-ctx-speed');
   const paneSettings = el('pane-ctx-settings');
   const ctxTabsBar = el('ctx-tabs-bar');
-  const btnCtxSettings = el('btn-ctx-settings');
-  const btnCtxSettingsBack = el('btn-ctx-settings-back');
-  const btnGotoModelSettings = el('btn-goto-model-settings');
-  const btnCardGotoSpeed = el('btn-card-goto-speed');
-  const btnCtxBackCurrent = el('btn-ctx-back-current');
-  const ctxCompactSavedEl = el('ctx-compact-saved');
-  const ctxCompactClientEl = el('ctx-compact-client');
-
-  const btnToggleUnlockDetails = el('btn-toggle-unlock-details');
-  const unlockDrawerBody = el('unlock-drawer-body');
-  const unlockDrawerArrow = el('unlock-drawer-arrow');
-  const unlockBadge = el('unlock-badge');
-  const unlockStatusDesc = el('unlock-status-desc');
-  const ctxClientStatusText = el('ctx-client-status-text');
-  const ctxRestartMismatchNote = el('ctx-restart-mismatch-note');
-  const btnRestartHost = el('btn-restart-host');
-  const ctxManualRestartNote = el('ctx-manual-restart-note');
-  const ctxRestartConfirm = el('ctx-restart-confirm');
-  const btnRestartCancel = el('btn-restart-cancel');
-  const btnRestartConfirmGo = el('btn-restart-confirm-go');
-  const ctxRestartFeedback = el('ctx-restart-feedback');
   const globalRestartModal = el('global-restart-modal');
-  const modalRestartTitle = el('modal-restart-title');
-  const modalRestartText = el('modal-restart-text');
   const modalRestartFeedback = el('modal-restart-feedback');
   const btnModalRestartCancel = el('btn-modal-restart-cancel');
   const btnModalRestartConfirm = el('btn-modal-restart-confirm');
 
-  const btnApplyUnlock = el('btn-apply-unlock');
-  const btnRestoreUnlock = el('btn-restore-unlock');
-  const btnRefreshUnlock = el('btn-refresh-unlock');
-  const unlockResultBox = el('unlock-result-box');
-  const unlockResultText = el('unlock-result-text');
-  const unlockResultActions = el('unlock-result-actions');
-  const btnUnlockResultRestart = el('btn-unlock-result-restart');
-  const btnUnlockResultRetry = el('btn-unlock-result-retry');
-  const unlockResultManual = el('unlock-result-manual');
-  const unlockMetaMode = el('unlock-meta-mode');
-  const unlockMetaTarget = el('unlock-meta-target');
-  const unlockMetaArch = el('unlock-meta-arch');
-  const unlockMetaBackup = el('unlock-meta-backup');
-  const linkUnlockAuthor = el('link-unlock-author');
-  const btnCopyUnlockLink = el('btn-copy-unlock-link');
-  const unlockLinkToast = el('unlock-link-toast');
-
-  const ctxModelSelect = el('ctx-model-select');
-  const ctxModelSelectorRoleEl = el('ctx-model-selector-role');
-  const ctxModelDropdownLabelEl = el('ctx-model-dropdown-label');
-  const ctxModelListEl = el('ctx-model-list');
-  const ctxConflictBanner = el('ctx-conflict-banner');
-  const ctxConflictRows = el('ctx-conflict-rows');
-  const ctxCardVendorDot = el('ctx-card-vendor-dot');
-  const ctxCardVendorName = el('ctx-card-vendor-name');
-  const ctxCardProductName = el('ctx-card-product-name');
-  const ctxCardEffortsList = el('ctx-card-efforts-list');
-  const ctxCardSessionEffort = el('ctx-card-session-effort');
-  const ctxCardSavedEl = el('ctx-card-saved');
-  const ctxCardRequestEl = el('ctx-card-request');
-  const ctxCardClientEl = el('ctx-card-client');
-  const ctxCardClientTagEl = el('ctx-card-client-tag');
-  const ctxCardObservedBudgetEl = el('ctx-card-observed-budget');
-  const ctxCardPreRestartBudgetEl = el('ctx-card-pre-restart-budget');
-  const ctxCardServiceLimitEl = el('ctx-card-service-limit');
-  const ctxCardConvoEl = el('ctx-card-convo');
-  const ctxCardDiagnosisEl = el('ctx-card-diagnosis');
-  const ctxCardObservedSpeedEl = el('ctx-card-observed-speed');
-  const ctxCardHintsEl = el('ctx-card-hints');
-  const ctxCapWindowEl = el('ctx-cap-window');
-  const ctxCapOutputEl = el('ctx-cap-output');
-  const ctxCapModelMaxEl = el('ctx-cap-model-max');
-  const ctxCapClientPolicyEl = el('ctx-cap-client-policy');
-  const ctxCapDefaultEl = el('ctx-cap-default');
-  const ctxCapRangeEl = el('ctx-cap-range');
-  const ctxCapFormulaEl = el('ctx-cap-formula');
-  const ctxRefSavedEl = el('ctx-ref-saved');
-  const ctxRefSentEl = el('ctx-ref-sent');
-  const ctxRefAdoptedEl = el('ctx-ref-adopted');
-  const ctxUnifiedProjEl = el('ctx-unified-projection');
-  const ctxCardTierCapsRowEl = el('ctx-card-tier-caps-row');
-  const ctxCardTierCapsEl = el('ctx-card-tier-caps');
-  const ctxPresetModelMaxSubEl = el('ctx-preset-modelmax-sub');
-
-  const ctxPresetGrid = el('ctx-preset-grid');
-  const ctxCustomInput = el('ctx-custom-limit-input');
-  const ctxValidationEl = el('ctx-limit-validation');
-  const btnSaveModelCtx = el('btn-save-model-ctx');
-  const btnResetModelCtx = el('btn-reset-model-ctx');
-  const ctxResetNoticeEl = el('ctx-reset-notice');
-
-  // 双模式控件与精简展示元素
-  const btnModeUnified = el('btn-ctx-mode-unified');
-  const btnModePerModel = el('btn-ctx-mode-per-model');
-  const ctxModelsToolbar = el('ctx-models-toolbar');
-  const ctxSummaryModeEl = el('ctx-summary-mode');
-  const ctxSummaryModelEl = el('ctx-summary-model');
-  const ctxSummaryLengthEl = el('ctx-summary-length');
-  const ctxSummaryStatusPillEl = el('ctx-summary-status-pill');
-
-  const CTX_DEFAULT_TOKENS = 256000;
-  const CTX_MIN_ENGINEERING_TOKENS = 16384;
-  const CTX_MAX_ENGINEERING_TOKENS = 2097152;
   const CTX_ACTIVE_TAB_KEY = 'ag_ctx_active_tab';
-  const CTX_PRE_RESTART_OBS_KEY = 'ag_ctx_pre_restart_obs_v1';
 
   const VENDOR_ORDER = ['Google', 'Anthropic', 'OpenAI', '其他'];
   const VENDOR_DOT_COLORS = {
@@ -11098,98 +8421,20 @@
   let activeContextTab = 'session';
   try {
     const savedTab = localStorage?.getItem(CTX_ACTIVE_TAB_KEY);
-    if (savedTab === 'session' || savedTab === 'models' || savedTab === 'speed') {
+    if (savedTab === 'session' || savedTab === 'speed' || savedTab === 'settings') {
       activeContextTab = savedTab;
     }
   } catch {}
-  let isContextSettingsView = false;
-
-  let currentUnlockStatus = null;
-  let unlockStatusFetchError = false;
-  let isUnlocking = false;
-  let lastPartialReason = '';
-  let unlockReqSeq = 0;
-  let contextPrefSaveSeq = 0;
-  let contextPreferencesMap = {};
-  let contextScopeMode = 'unified'; // 'unified' | 'per_model'
-  let contextUnifiedPreference = { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-  try {
-    if (typeof window !== 'undefined' && window.__AGContextPreferences && typeof window.__AGContextPreferences === 'object') {
-      contextPreferencesMap = { ...window.__AGContextPreferences };
-    } else if (typeof localStorage !== 'undefined' && localStorage?.getItem) {
-      const rawPrefs = localStorage.getItem('ag-context-preferences');
-      if (rawPrefs) contextPreferencesMap = JSON.parse(rawPrefs) || {};
-    }
-    const initMode = (typeof window !== 'undefined' && window.__AGContextScopeMode)
-      || (typeof localStorage !== 'undefined' && localStorage?.getItem?.('ag-context-scope-mode'))
-      || '';
-    if (initMode === 'unified' || initMode === 'per_model') {
-      contextScopeMode = initMode;
-    }
-    if (typeof window !== 'undefined' && window.__AGContextUnifiedPreference && typeof window.__AGContextUnifiedPreference === 'object') {
-      contextUnifiedPreference = { ...window.__AGContextUnifiedPreference };
-    } else if (typeof localStorage !== 'undefined' && localStorage?.getItem) {
-      const rawUni = localStorage.getItem('ag-context-unified-preference');
-      if (rawUni) contextUnifiedPreference = JSON.parse(rawUni) || contextUnifiedPreference;
-    }
-  } catch {}
-
-  function getContextScopeMode() {
-    return contextScopeMode || 'unified';
-  }
-
-  function getContextUnifiedPreference() {
-    return contextUnifiedPreference || { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-  }
-
-  function syncContextPreferencesCache(map) {
-    try {
-      if (typeof window !== 'undefined') {
-        window.__AGContextPreferences = { ...(map || {}) };
-        window.__AGContextScopeMode = contextScopeMode;
-        window.__AGContextUnifiedPreference = { ...(contextUnifiedPreference || {}) };
-        localStorage?.setItem('ag-context-preferences', JSON.stringify(map || {}));
-        localStorage?.setItem('ag-context-scope-mode', contextScopeMode);
-        localStorage?.setItem('ag-context-unified-preference', JSON.stringify(contextUnifiedPreference || {}));
-      }
-    } catch {}
-  }
-  let activeSessionModelKey = null;
-  let activeSessionProductKey = null;
-  let activeSessionEffort = null;
-  let activeSessionModelConfirmed = false;
-  let selectedEditModelKey = null;
-  let selectedProductKey = null;
-  let manualModelSelection = false;
-  let ctxDraft = { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-  let ctxDraftDirty = false;
-  let lastAutoObservedBudget = 0;
+  let isContextSettingsView = activeContextTab === 'settings';
   let needsRestartAfterApply = false;
-  let pendingRestartVerification = null;
   let restartTimeoutTimer = null;
   let hostSupportsRestart = true;
-  let restartMismatchNotice = '';
-
-  const observedByModelId = new Map();
-  let preRestartSnapshot = null;
-  try {
-    const rawPre = localStorage?.getItem(CTX_PRE_RESTART_OBS_KEY);
-    if (rawPre) preRestartSnapshot = JSON.parse(rawPre);
-  } catch {}
 
   let speedRangeDays = '7';
   let speedOriginFilter = 'all';
   let speedMetric = 'tps';
   let selectedSpeedExactModelId = null;
-  let ctxHeaderDropdownCtrl = null;
   let speedModelDropdownCtrl = null;
-
-  function formatKShort(tokens) {
-    const n = Number(tokens);
-    if (!Number.isFinite(n) || n <= 0) return '—';
-    if (typeof formatTokensK === 'function') return formatTokensK(n);
-    return short(n);
-  }
 
   function formatMonthDayTime(ts) {
     if (!ts) return '';
@@ -11231,44 +8476,7 @@
     return str || null;
   }
 
-  // =========================================================================
-  // ELV-41 / ELV-43: 官方模型选择器识别与多通道请求拦截注入器
-  // 支持：主世界 LS 客户端装饰器、WebSocket (Lcc JSON)、Fetch/XHR (JSON / Envelope / Protobuf)
-  // 严格过滤 StartCascade，仅拦截 SendUserCascadeMessage；不从面板配置卡猜测模型
-  // =========================================================================
-  const CTX_CONFIRM_TIMEOUT_MS = budgetEngine.DEFAULT_CONFIRM_TIMEOUT_MS || 45000;
-  const budgetTracker = typeof budgetEngine.createContextBudgetTracker === 'function'
-    ? budgetEngine.createContextBudgetTracker({ confirmTimeoutMs: CTX_CONFIRM_TIMEOUT_MS })
-    : null;
-  let lastDecoratorDispatchHint = null;
-  const pendingConfirmTimers = new Set();
-
-  function scheduleConfirmTimeoutCheck(delayMs = CTX_CONFIRM_TIMEOUT_MS + 100) {
-    if (typeof setTimeout !== 'function' || state.disposed) return;
-    const tId = setTimeout(() => {
-      pendingConfirmTimers.delete(tId);
-      if (state.disposed) return;
-      try {
-        renderCompactSessionCard();
-        if (!isContextSettingsView && activeContextTab === 'models') {
-          renderModelSettingsTab();
-        }
-      } catch {}
-    }, delayMs);
-    pendingConfirmTimers.add(tId);
-  }
-
-  function refreshBudgetUiAfterDispatch() {
-    try {
-      renderCompactSessionCard();
-      const prod = getSelectedProductObj();
-      if (prod) renderModelDetailCard(prod);
-    } catch {}
-  }
-
-  /**
-   * 仅从宿主真实输入框选择器读取当前选中模型（严格排除插件自身 #ag-context-meter DOM）
-   */
+  /** 读取宿主输入框模型选择器中的当前模型（只读 DOM 查询，排除插件自身 DOM） */
   function extractHostSelectedModel() {
     if (typeof document === 'undefined') return null;
     const triggers = typeof document.querySelectorAll === 'function'
@@ -11326,504 +8534,10 @@
     };
   }
 
-  function buildInterceptorContext(channel, urlOrProcedure = '', contentType = '') {
-    return {
-      channel,
-      urlOrProcedure,
-      contentType,
-      scopeMode: getContextScopeMode(),
-      unifiedPreference: getContextUnifiedPreference(),
-      contextPreferencesMap: contextPreferencesMap || (typeof window !== 'undefined' ? window.__AGContextPreferences : null) || {},
-      knownConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [],
-      verifiedConversationBindings: budgetTracker?.verifiedConversationBindings || {},
-      groupProduct: groupProductSafe,
-      resolveStableModelId: resolveStableModelKeyClient,
-      minTokens: CTX_MIN_ENGINEERING_TOKENS,
-      maxTokens: CTX_MAX_ENGINEERING_TOKENS
-    };
-  }
-
-  function recordBudgetTransformDispatch(txResult) {
-    if (!txResult || !txResult.handled || !budgetTracker) return null;
-    if (txResult.uninjectable) {
-      const rec = budgetTracker.beginDispatch({
-        cascadeId: txResult.cascadeId || null,
-        productKey: txResult.productKey || null,
-        modelId: txResult.modelId || null,
-        scopeMode: txResult.scopeMode,
-        targetMode: txResult.targetMode || 'default',
-        targetLimitTokens: txResult.targetLimitTokens ?? null,
-        sentMode: 'passthrough',
-        sentLimitTokens: null,
-        channel: txResult.channel || 'http',
-        status: 'uninjectable',
-        reason: txResult.reason || 'uninjectable'
-      });
-      refreshBudgetUiAfterDispatch();
-      return rec;
-    }
-
-    const rec = budgetTracker.beginDispatch({
-      cascadeId: txResult.cascadeId || null,
-      productKey: txResult.productKey || null,
-      productLabel: txResult.productLabel || null,
-      modelId: txResult.modelId || null,
-      scopeMode: txResult.scopeMode,
-      prefSnapshot: {
-        mode: txResult.targetMode || 'default',
-        limitTokens: txResult.targetLimitTokens ?? null
-      },
-      targetMode: txResult.targetMode,
-      targetLimitTokens: txResult.targetLimitTokens,
-      sentMode: txResult.sentMode,
-      sentLimitTokens: txResult.sentLimitTokens,
-      channel: txResult.channel || 'http',
-      status: 'dispatched'
-    });
-    if (txResult.targetMode === 'fixed' || txResult.targetMode === 'dynamic' || txResult.targetMode === 'default') {
-      scheduleConfirmTimeoutCheck();
-    }
-    refreshBudgetUiAfterDispatch();
-    return rec;
-  }
-
-  function finishDispatchOutcome(dispatchId, ok, err) {
-    if (!dispatchId || !budgetTracker) return;
-    if (!ok) {
-      const errMsg = String(err?.message || err || '');
-      const isAbort = err?.name === 'AbortError' || /abort|cancel/i.test(errMsg);
-      budgetTracker.updateDispatchStatus(dispatchId, {
-        status: isAbort ? 'aborted' : 'send_failed',
-        errorMessage: errMsg || (isAbort ? '请求已取消' : '发送失败')
-      });
-      refreshBudgetUiAfterDispatch();
-    }
-  }
-
-  const lastCascadeConfigByConv = new Map();
-
-  function captureSendCascadeContext(rawInput) {
-    try {
-      if (!rawInput) return;
-      if (typeof Uint8Array !== 'undefined' && (rawInput instanceof Uint8Array || ArrayBuffer.isView?.(rawInput) || rawInput instanceof ArrayBuffer)) {
-        return;
-      }
-      let obj = null;
-      if (typeof rawInput === 'string') {
-        const trimmed = rawInput.trim();
-        if (!trimmed.startsWith('{')) return;
-        obj = JSON.parse(trimmed);
-      } else if (typeof rawInput === 'object') {
-        obj = rawInput;
-      }
-      if (!obj || typeof obj !== 'object') return;
-      const cid = obj.cascadeId || obj.cascade_id;
-      if (!cid || typeof cid !== 'string') return;
-      const cfg = obj.cascadeConfig || obj.cascade_config || null;
-      const meta = obj.metadata || null;
-      if (!cfg && !meta) return;
-      const snap = {};
-      if (cfg) snap.cascadeConfig = JSON.parse(JSON.stringify(cfg));
-      if (meta) snap.metadata = JSON.parse(JSON.stringify(meta));
-      if (lastCascadeConfigByConv.size >= 30 && !lastCascadeConfigByConv.has(cid)) {
-        const oldest = lastCascadeConfigByConv.keys().next().value;
-        if (oldest !== undefined) lastCascadeConfigByConv.delete(oldest);
-      }
-      lastCascadeConfigByConv.set(cid, snap);
-    } catch {}
-  }
-
-  function installRequestInterceptor() {
-    if (typeof window === 'undefined') return;
-    if (window.__agRequestInterceptorInstalled) return;
-
-    // 0. 绑定主世界冷启动客户端装饰器回调（序列化前修改真实请求对象）
-    globalThis.__AG_METER_ON_SEND_MESSAGE__ = function(req, channel = 'client_object') {
-      try {
-        if (!req || typeof req !== 'object' || typeof budgetEngine.transformOutgoingSendRequest !== 'function') return null;
-        captureSendCascadeContext(req);
-        const tx = budgetEngine.transformOutgoingSendRequest(req, buildInterceptorContext(channel, 'SendUserCascadeMessage'));
-        if (!tx || !tx.handled) return null;
-        const rec = recordBudgetTransformDispatch(tx);
-        lastDecoratorDispatchHint = {
-          ts: Date.now(),
-          cascadeId: tx.cascadeId || null,
-          productKey: tx.productKey || null,
-          sentMode: tx.sentMode,
-          sentLimitTokens: tx.sentLimitTokens ?? null,
-          dispatchId: rec?.dispatchId || null
-        };
-        return rec ? { dispatchId: rec.dispatchId } : null;
-      } catch (err) {
-        console.warn('[ContextMeter] Client decorator hook error:', err);
-        return null;
-      }
-    };
-    globalThis.__AG_METER_ON_SEND_RESULT__ = function(dispatchId, ok, err) {
-      finishDispatchOutcome(dispatchId, ok, err);
-    };
-
-    const isCoveredByRecentDecorator = (tx) => {
-      if (!lastDecoratorDispatchHint) return false;
-      const age = Date.now() - lastDecoratorDispatchHint.ts;
-      if (age < 0 || age > 400) return false;
-      const sameConv = (lastDecoratorDispatchHint.cascadeId || null) === (tx.cascadeId || null);
-      const sameMode = lastDecoratorDispatchHint.sentMode === tx.sentMode
-        && (lastDecoratorDispatchHint.sentLimitTokens ?? null) === (tx.sentLimitTokens ?? null);
-      return sameConv && sameMode;
-    };
-
-    // 1. WebSocket.prototype.send interceptor (覆盖 Lcc ws://<host>/connect-websocket JSON 帧)
-    if (typeof window.WebSocket === 'function' && window.WebSocket.prototype && typeof window.WebSocket.prototype.send === 'function') {
-      const origWsSend = window.WebSocket.prototype.send;
-      window.__agOrigWsSend = origWsSend;
-      window.WebSocket.prototype.send = function(data) {
-        let nextData = data;
-        let rec = null;
-        try {
-          if (typeof budgetEngine.transformOutgoingSendRequest === 'function') {
-            const tx = budgetEngine.transformOutgoingSendRequest(data, buildInterceptorContext('ws_frame', this?.url || ''));
-            if (tx && tx.handled) {
-              if (tx.modified && tx.output !== undefined) {
-                nextData = tx.output;
-              }
-              captureSendCascadeContext(nextData);
-              if (!isCoveredByRecentDecorator(tx)) {
-                rec = recordBudgetTransformDispatch(tx);
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('[ContextMeter] WebSocket interceptor error:', err);
-        }
-        try {
-          return origWsSend.call(this, nextData);
-        } catch (wsErr) {
-          if (rec) finishDispatchOutcome(rec.dispatchId, false, wsErr);
-          throw wsErr;
-        }
-      };
-    }
-
-    function observeHostCsrfFromHeaders(headersObj, reqUrl) {
-      try {
-        if (!headersObj) return;
-        let tok = '';
-        if (typeof headersObj.get === 'function') {
-          tok = headersObj.get('x-codeium-csrf-token') || headersObj.get('X-Codeium-Csrf-Token') || '';
-        } else if (typeof headersObj === 'object') {
-          tok = headersObj['x-codeium-csrf-token'] || headersObj['X-Codeium-Csrf-Token'] || '';
-        }
-        tok = String(tok || '').trim();
-        if (!tok) return;
-        if (reqUrl && typeof window !== 'undefined' && window.location?.origin) {
-          const parsed = new URL(reqUrl, window.location.origin);
-          if (parsed.origin !== window.location.origin) return;
-        }
-        if (typeof state === 'object' && state) state.observedCsrfToken = tok;
-      } catch {}
-    }
-
-    // 2. window.fetch interceptor (仅处理 SendUserCascadeMessage；严禁猜测 StartCascade)
-    const origFetch = window.fetch;
-    if (typeof origFetch === 'function') {
-      window.__agOrigFetch = origFetch;
-      window.fetch = async function(resource, init) {
-        let rec = null;
-        try {
-          const urlStr = typeof resource === 'string'
-            ? resource
-            : (resource && resource.url ? resource.url : String(resource || ''));
-          observeHostCsrfFromHeaders(init?.headers || resource?.headers, urlStr);
-          if (typeof budgetEngine.isTargetBudgetRpc === 'function' && budgetEngine.isTargetBudgetRpc(urlStr) && init?.body) {
-            captureSendCascadeContext(init.body);
-            const headersObj = init?.headers;
-            let contentType = '';
-            if (headersObj) {
-              if (typeof headersObj.get === 'function') {
-                contentType = headersObj.get('content-type') || headersObj.get('Content-Type') || '';
-              } else if (typeof headersObj === 'object') {
-                contentType = headersObj['content-type'] || headersObj['Content-Type'] || '';
-              }
-            }
-            const tx = budgetEngine.transformOutgoingSendRequest(init.body, buildInterceptorContext('fetch', urlStr, contentType));
-            if (tx && tx.handled) {
-              if (tx.modified && tx.output !== undefined) {
-                init = { ...init, body: tx.output };
-              }
-              if (!isCoveredByRecentDecorator(tx)) {
-                rec = recordBudgetTransformDispatch(tx);
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('[ContextMeter] Fetch request interceptor error:', err);
-        }
-        try {
-          const response = await origFetch.call(this, resource, init);
-          if (rec && response && response.ok === false) {
-            finishDispatchOutcome(rec.dispatchId, false, new Error(`HTTP ${response.status || 'error'}`));
-          }
-          return response;
-        } catch (fetchErr) {
-          if (rec) finishDispatchOutcome(rec.dispatchId, false, fetchErr);
-          throw fetchErr;
-        }
-      };
-    }
-
-    // 3. window.XMLHttpRequest interceptor
-    if (typeof window.XMLHttpRequest === 'function') {
-      const origOpen = window.XMLHttpRequest.prototype.open;
-      const origSetHdr = window.XMLHttpRequest.prototype.setRequestHeader;
-      const origSend = window.XMLHttpRequest.prototype.send;
-      window.__agOrigXhrOpen = origOpen;
-      window.__agOrigXhrSetHdr = origSetHdr;
-      window.__agOrigXhrSend = origSend;
-
-      window.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-        try {
-          this.__agRequestUrl = typeof url === 'string' ? url : String(url || '');
-          this.__agRequestHeaders = {};
-        } catch {}
-        return origOpen.call(this, method, url, ...rest);
-      };
-
-      if (typeof origSetHdr === 'function') {
-        window.XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
-          try {
-            if (this.__agRequestHeaders && typeof name === 'string') {
-              this.__agRequestHeaders[name.toLowerCase()] = String(value || '');
-            }
-          } catch {}
-          return origSetHdr.call(this, name, value);
-        };
-      }
-
-      window.XMLHttpRequest.prototype.send = function(body) {
-        let rec = null;
-        try {
-          const urlStr = this.__agRequestUrl || '';
-          if (body && typeof budgetEngine.isTargetBudgetRpc === 'function' && budgetEngine.isTargetBudgetRpc(urlStr)) {
-            captureSendCascadeContext(body);
-            const contentType = this.__agRequestHeaders?.['content-type'] || '';
-            const tx = budgetEngine.transformOutgoingSendRequest(body, buildInterceptorContext('xhr', urlStr, contentType));
-            if (tx && tx.handled) {
-              if (tx.modified && tx.output !== undefined) {
-                body = tx.output;
-              }
-              if (!isCoveredByRecentDecorator(tx)) {
-                rec = recordBudgetTransformDispatch(tx);
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('[ContextMeter] XHR request interceptor error:', err);
-        }
-        if (rec && typeof this.addEventListener === 'function') {
-          const dId = rec.dispatchId;
-          this.addEventListener('error', () => finishDispatchOutcome(dId, false, new Error('XHR network error')), { once: true });
-          this.addEventListener('abort', () => finishDispatchOutcome(dId, false, Object.assign(new Error('XHR aborted'), { name: 'AbortError' })), { once: true });
-          this.addEventListener('load', () => {
-            if (typeof this.status === 'number' && this.status >= 400) {
-              finishDispatchOutcome(dId, false, new Error(`HTTP ${this.status}`));
-            }
-          }, { once: true });
-        }
-        try {
-          return origSend.call(this, body);
-        } catch (xhrErr) {
-          if (rec) finishDispatchOutcome(rec.dispatchId, false, xhrErr);
-          throw xhrErr;
-        }
-      };
-    }
-
-    window.__agRequestInterceptorInstalled = true;
-  }
-
-  function uninstallRequestInterceptor() {
-    if (typeof window === 'undefined') return;
-    delete globalThis.__AG_METER_ON_SEND_MESSAGE__;
-    delete globalThis.__AG_METER_ON_SEND_RESULT__;
-    for (const tId of pendingConfirmTimers) clearTimeout(tId);
-    pendingConfirmTimers.clear();
-    if (window.__agOrigWsSend && window.WebSocket?.prototype) {
-      window.WebSocket.prototype.send = window.__agOrigWsSend;
-      delete window.__agOrigWsSend;
-    }
-    if (window.__agOrigFetch) {
-      window.fetch = window.__agOrigFetch;
-      delete window.__agOrigFetch;
-    }
-    if (window.__agOrigXhrOpen && window.XMLHttpRequest?.prototype) {
-      window.XMLHttpRequest.prototype.open = window.__agOrigXhrOpen;
-      delete window.__agOrigXhrOpen;
-    }
-    if (window.__agOrigXhrSetHdr && window.XMLHttpRequest?.prototype) {
-      window.XMLHttpRequest.prototype.setRequestHeader = window.__agOrigXhrSetHdr;
-      delete window.__agOrigXhrSetHdr;
-    }
-    if (window.__agOrigXhrSend && window.XMLHttpRequest?.prototype) {
-      window.XMLHttpRequest.prototype.send = window.__agOrigXhrSend;
-      delete window.__agOrigXhrSend;
-    }
-    window.__agRequestInterceptorInstalled = false;
-  }
-
-  function resolveRuntimeUnlockPolicyClient() {
-    if (typeof budgetEngine.resolveRuntimeUnlockPolicy === 'function') {
-      return budgetEngine.resolveRuntimeUnlockPolicy(currentUnlockStatus);
-    }
-    return null;
-  }
-
-  function formatDiskPolicyText(policy) {
-    if (!policy) return '未知';
-    if (policy.diskMode === 'dynamic') return 'Dynamic 动态跟随';
-    if (policy.diskMode === 'fixed' && policy.diskLimitTokens) return `固定 ${fmt(policy.diskLimitTokens)} tokens`;
-    if (policy.diskMode === 'default') return '官方默认策略';
-    if (policy.diskMode === 'partial') return '部分异常';
-    return '未知';
-  }
-
-  function getProductCapabilitySummary(product) {
-    if (!product) return null;
-    if (typeof budgetEngine.deriveModelCapabilitySummary === 'function') {
-      return budgetEngine.deriveModelCapabilitySummary(product, currentUnlockStatus, state.modelCapabilitiesById || null);
-    }
-    return null;
-  }
-
-  function mergeCapabilitiesMapClient(incomingMap) {
-    if (!incomingMap || typeof incomingMap !== 'object') return;
-    if (!state.modelCapabilitiesById || typeof state.modelCapabilitiesById !== 'object') {
-      state.modelCapabilitiesById = {};
-    }
-    for (const [rawKey, rawVal] of Object.entries(incomingMap)) {
-      if (!rawVal || typeof rawVal !== 'object') continue;
-      const k = String(rawKey).trim().toLowerCase().replace(/^model_/, '');
-      if (!k) continue;
-      state.modelCapabilitiesById[k] = {
-        ...(state.modelCapabilitiesById[k] || {}),
-        ...rawVal
-      };
-    }
-  }
-
-  function validateCustomLimitClient(rawInput, modeOverride = ctxDraft.mode, productOverride = null) {
-    if (modeOverride === 'dynamic') {
-      return { ok: true, mode: 'dynamic', limitTokens: null, warnings: [] };
-    }
-    if (modeOverride === 'default') {
-      return { ok: true, mode: 'default', limitTokens: CTX_DEFAULT_TOKENS, warnings: [] };
-    }
-    const targetProd = productOverride || (contextScopeMode === 'per_model' ? getSelectedProductObj() : null);
-    const capSummary = targetProd ? getProductCapabilitySummary(targetProd) : null;
-    if (modeOverride === 'model_max') {
-      if (contextScopeMode === 'unified') {
-        return { ok: false, error: '统一模式下各模型容量不同，请改为具体整数或切回“按模型分别设置”后选择最大可用。' };
-      }
-      if (!capSummary || capSummary.modelTheoreticalMaxTokens == null) {
-        return { ok: false, error: '尚未获取到当前模型的上下文窗口与最大输出元数据，暂无法自动计算最大可用预算。' };
-      }
-      if (!capSummary.runtimePolicy?.policyKnown || capSummary.maxAdjustableTokens == null) {
-        return {
-          ok: false,
-          error: `当前客户端运行策略未知或待重启确认，暂无法计算当前环境最大可用上限（模型理论输入上限 ${fmt(capSummary.modelTheoreticalMaxTokens)} tokens）。`
-        };
-      }
-      rawInput = capSummary.maxAdjustableTokens;
-    }
-
-    if (typeof budgetEngine.evaluateLimitInput === 'function') {
-      const ev = budgetEngine.evaluateLimitInput(rawInput, capSummary, currentUnlockStatus, state.latest?.serviceLimit);
-      if (!ev.ok) {
-        if (ev.reasonCode === 'out_of_engineering_range') {
-          return {
-            ok: false,
-            error: t('models.validation.outOfRange', { min: fmt(CTX_MIN_ENGINEERING_TOKENS), max: fmt(CTX_MAX_ENGINEERING_TOKENS) })
-          };
-        }
-        return { ok: false, error: t('models.custom.placeholder') };
-      }
-      const warnings = [];
-      for (const w of ev.warnings) {
-        if (w.code === 'exceeds_model_limit') {
-          if (capSummary?.maxTokens && w.limitTokens <= capSummary.maxTokens) {
-            const adoptTxt = fmt(w.adoptableTokens ?? w.maxAllowed);
-            warnings.push(`当前模型总窗口为 ${fmt(capSummary.maxTokens)} tokens，扣除最大输出预留后实际最高输入上限为 ${fmt(w.maxAllowed)} tokens；保存 ${fmt(w.limitTokens)} 后将自动按 ${adoptTxt} tokens 满血采用。`);
-          } else if (w.adoptableTokens != null) {
-            warnings.push(`超出当前模型理论输入上限 ${fmt(w.maxAllowed)} tokens（依据元数据：总窗口 - 最大输出）；若仍保存 ${fmt(w.limitTokens)}，当前环境预计最高仅可采用 ${fmt(w.adoptableTokens)} tokens。`);
-          } else {
-            warnings.push(`超出当前模型理论输入上限 ${fmt(w.maxAllowed)} tokens（依据元数据：总窗口 - 最大输出）；当前客户端运行策略未确认，实际可采用上限未知。`);
-          }
-        } else if (w.code === 'requires_dynamic_unlock') {
-          const cap = w.stockCap || 256000;
-          warnings.push(`目标 ${fmt(w.limitTokens)} 超过语言服务底层默认钳位 ${fmt(cap)}：未开启 Dynamic 动态模式且未实机证实前，本地回落仍可能将其限制在 ${fmt(cap)} tokens（请点击“保存并应用”）。`);
-        } else if (w.code === 'exceeds_fixed_client_limit') {
-          warnings.push(`目标 ${fmt(w.limitTokens)} 超过当前客户端固定限制 ${fmt(w.fixedCap)} tokens：未调整为更高固定值或启用 Dynamic 动态模式前，预计仍将被限制在 ${fmt(w.fixedCap)} tokens。`);
-        } else if (w.code === 'unconfirmed_runtime_policy') {
-          if (w.runtimeState === 'pending_restart') {
-            warnings.push(`磁盘配置（${formatDiskPolicyText({ diskMode: w.diskMode, diskLimitTokens: w.diskLimitTokens })}）已变更但客户端尚未重启，运行中实际策略待确认，无法预测 ${fmt(w.limitTokens)} 是否会被采用。`);
-          } else if (w.runtimeState === 'runtime_unconfirmed') {
-            warnings.push(`仅读取到磁盘配置，尚未确认运行中进程已加载该策略；${fmt(w.limitTokens)} 实际能否采用需等待进程验证或实机请求确认。`);
-          } else if (w.runtimeState === 'partial') {
-            warnings.push(`检测到客户端处于部分异常状态，运行限制未知，无法预测 ${fmt(w.limitTokens)} 的实际采用结果。`);
-          } else {
-            warnings.push(`当前客户端运行策略未知，暂无法预测 ${fmt(w.limitTokens)} 在本机的实际采用上限（需先读取运行策略或实机发送验证）。`);
-          }
-        } else if (w.code === 'exceeds_service_limit') {
-          warnings.push(t('models.validation.aboveService', { val: formatKShort(w.serviceLimit) }));
-        } else if (w.code === 'below_recommended_floor') {
-          warnings.push(t('models.validation.tooSmall', { val: fmt(w.limitTokens) }));
-        }
-      }
-      return {
-        ok: true,
-        mode: 'fixed',
-        limitTokens: ev.limitTokens,
-        exceedsModelLimit: ev.exceedsModelLimit,
-        exceedsClientPolicy: ev.exceedsClientPolicy,
-        clientPolicyLimit: ev.clientPolicyLimit,
-        runtimeState: ev.runtimeState,
-        policyKnown: ev.policyKnown,
-        adoptableTokens: ev.adoptableTokens,
-        requiresDynamicUnlock: ev.requiresDynamicUnlock,
-        warnings
-      };
-    }
-
-    const rawStr = typeof rawInput === 'number' ? String(rawInput) : String(rawInput || '').trim().replace(/[,\s_]/g, '');
-    if (!/^\d+$/.test(rawStr)) {
-      return { ok: false, error: t('models.custom.placeholder') };
-    }
-    const num = Number(rawStr);
-    if (!Number.isSafeInteger(num) || num <= 0) {
-      return { ok: false, error: t('models.custom.placeholder') };
-    }
-    if (num < CTX_MIN_ENGINEERING_TOKENS || num > CTX_MAX_ENGINEERING_TOKENS) {
-      return {
-        ok: false,
-        error: t('models.validation.outOfRange', { min: fmt(CTX_MIN_ENGINEERING_TOKENS), max: fmt(CTX_MAX_ENGINEERING_TOKENS) })
-      };
-    }
-    const warnings = [];
-    if (num < 65536) {
-      warnings.push(t('models.validation.tooSmall', { val: fmt(num) }));
-    }
-    const sLimit = Number(state.latest?.serviceLimit || 0);
-    if (sLimit > 0 && num > sLimit) {
-      warnings.push(t('models.validation.aboveService', { val: formatKShort(sLimit) }));
-    }
-    return { ok: true, mode: 'fixed', limitTokens: num, warnings };
-  }
-
-  /** 将所有已知模型、当前会话和历史调用按产品维度分组 */
+  /** 将已知模型目录、当前会话和历史调用按产品维度分组（只读） */
   function getKnownModelProducts() {
     const productMap = new Map();
     const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
-
     const slugToKey = new Map();
     const ensureProduct = (meta, fromAccountCatalog = false) => {
       const g = groupProductSafe(meta);
@@ -11831,7 +8545,6 @@
       const keyParts = g.productKey.split(':');
       const keySlug = keyParts.length >= 3 ? keyParts.slice(2).join(':') : '';
       let targetKey = g.productKey;
-      // 若同一产品 slug 在列表里既有明确厂商又有"其他"厂商，合并到明确厂商条目下（不合并不同前缀或代际）
       if (keySlug && !productMap.has(targetKey) && slugToKey.has(keySlug)) {
         const existingKey = slugToKey.get(keySlug);
         const existingProd = productMap.get(existingKey);
@@ -11872,20 +8585,10 @@
       if (meta.modelId) {
         const mid = String(meta.modelId).trim().toLowerCase();
         const prev = prod.members.get(mid);
-        const capEntry = state.modelCapabilitiesById?.[mid.replace(/^model_/, '')]
-          || state.modelCapabilitiesById?.[String(meta.modelOrAlias?.model || '').trim().toLowerCase().replace(/^model_/, '')]
-          || null;
         prod.members.set(mid, {
           modelId: mid,
           label: meta.label || prev?.label || mid,
           effort: g.effort || prev?.effort || null,
-          maxTokens: meta.maxTokens ?? capEntry?.maxTokens ?? prev?.maxTokens ?? null,
-          maxOutputTokens: meta.maxOutputTokens ?? capEntry?.maxOutputTokens ?? prev?.maxOutputTokens ?? null,
-          thinkingBudget: meta.thinkingBudget ?? capEntry?.thinkingBudget ?? prev?.thinkingBudget ?? null,
-          minThinkingBudget: meta.minThinkingBudget ?? capEntry?.minThinkingBudget ?? prev?.minThinkingBudget ?? null,
-          thinkingLevel: meta.thinkingLevel || capEntry?.thinkingLevel || prev?.thinkingLevel || null,
-          supportsModelInfoOverride: meta.supportsModelInfoOverride ?? capEntry?.supportsModelInfoOverride ?? prev?.supportsModelInfoOverride ?? null,
-          capabilitySource: meta.capabilitySource || capEntry?.capabilitySource || prev?.capabilitySource || null,
           unavailable: meta.unavailable !== undefined ? Boolean(meta.unavailable) : (prev?.unavailable || false),
           unavailabilityReason: meta.unavailabilityReason || prev?.unavailabilityReason || null,
           notice: meta.notice || prev?.notice || null,
@@ -11903,13 +8606,6 @@
           label: c?.label || c?.modelId || stableId,
           modelOrAlias: c?.modelOrAlias,
           effort: c?.effort,
-          maxTokens: c?.maxTokens,
-          maxOutputTokens: c?.maxOutputTokens,
-          thinkingBudget: c?.thinkingBudget,
-          minThinkingBudget: c?.minThinkingBudget,
-          thinkingLevel: c?.thinkingLevel,
-          supportsModelInfoOverride: c?.supportsModelInfoOverride,
-          capabilitySource: c?.capabilitySource,
           unavailable: c?.unavailable,
           unavailabilityReason: c?.unavailabilityReason,
           notice: c?.notice,
@@ -11938,25 +8634,6 @@
         label: c.modelLabel || c.model || mid,
         effort: c.effort
       }, false);
-    }
-
-    for (const [k, pref] of Object.entries(contextPreferencesMap || {})) {
-      if (!pref) continue;
-      const g = groupProductSafe({
-        modelId: pref.productKey || k,
-        label: pref.label || k
-      });
-      if (pref.scope === 'product' || k === g.productKey) {
-        ensureProduct({
-          modelId: pref.productKey || k,
-          label: pref.label || g.productLabel
-        }, false);
-      } else {
-        ensureProduct({
-          modelId: k,
-          label: pref.label || k
-        }, false);
-      }
     }
 
     const rankEffort = { Minimal: 1, Low: 2, Medium: 3, High: 4, XHigh: 5, Extra: 6, 'Extra High': 7, Max: 8 };
@@ -11992,488 +8669,12 @@
     return result;
   }
 
-  function formatSavedPrefLabel(pref) {
-    if (!pref || pref.mode === 'default') return t('status.savedDefault');
-    if (pref.mode === 'dynamic') return t('models.preset.dynamic');
-    if (pref.mode === 'fixed' && pref.limitTokens) {
-      const num = Number(pref.limitTokens);
-      if (num === 512000) return '512K';
-      if (num === 1000000) return '1M';
-      return t('models.card.savedCustom', { val: `${formatKShort(num)}（${fmt(num)}）` });
-    }
-    return t('status.savedDefault');
-  }
-
-  function formatPrefShortPill(pref) {
-    if (!pref || pref.mode === 'default') return t('status.savedShortDefault');
-    if (pref.mode === 'dynamic') return t('models.preset.dynamic');
-    if (pref.mode === 'fixed' && pref.limitTokens) return formatKShort(pref.limitTokens);
-    return t('status.savedShortDefault');
-  }
-
-  /** 解析当前产品的设置状态与旧档位迁移/冲突检测 */
-  function resolveProductPreferenceState(product) {
-    if (!product) {
-      return { status: 'none', pref: null, displayText: t('status.savedDefault'), shortText: t('status.savedShortDefault'), legacyKeys: [], conflictEntries: [] };
-    }
-    const pKey = product.productKey;
-    const direct = contextPreferencesMap?.[pKey];
-    if (direct && (direct.scope === 'product' || (direct.productKey && direct.productKey === pKey))) {
-      return {
-        status: 'product',
-        pref: direct,
-        displayText: formatSavedPrefLabel(direct),
-        shortText: formatPrefShortPill(direct),
-        legacyKeys: [],
-        conflictEntries: []
-      };
-    }
-
-    const legacyEntries = [];
-    const seenKeys = new Set();
-    const memberIds = new Set((product.members || []).map(m => m.modelId));
-    for (const [k, rawPref] of Object.entries(contextPreferencesMap || {})) {
-      if (!rawPref) continue;
-      if (k === pKey && rawPref.scope === 'product') continue;
-      const belonged = memberIds.has(k) || groupProductSafe({ modelId: k, label: rawPref.label || k }).productKey === pKey;
-      if (!belonged) continue;
-      if (seenKeys.has(k)) continue;
-      seenKeys.add(k);
-      const memberMeta = (product.members || []).find(m => m.modelId === k);
-      const effortName = memberMeta?.effort || groupProductSafe({ modelId: k, label: rawPref.label || k }).effort;
-      legacyEntries.push({
-        legacyKey: k,
-        effort: effortName,
-        effortLabel: effortName ? formatEffortZh(effortName) : (rawPref.label || k),
-        mode: rawPref.mode || 'default',
-        limitTokens: rawPref.mode === 'fixed' ? Number(rawPref.limitTokens) : null,
-        updatedAt: rawPref.updatedAt || null,
-        label: rawPref.label || product.productLabel
-      });
-    }
-
-    if (legacyEntries.length === 0) {
-      if (direct) {
-        return {
-          status: 'product',
-          pref: direct,
-          displayText: formatSavedPrefLabel(direct),
-          shortText: formatPrefShortPill(direct),
-          legacyKeys: [],
-          conflictEntries: []
-        };
-      }
-      return { status: 'none', pref: null, displayText: t('models.pref.none'), shortText: t('models.pref.noneShort'), legacyKeys: [], conflictEntries: [] };
-    }
-
-    const sigs = new Map();
-    for (const entry of legacyEntries) {
-      const sig = `${entry.mode}:${entry.mode === 'fixed' ? (entry.limitTokens || 0) : ''}`;
-      if (!sigs.has(sig)) sigs.set(sig, entry);
-    }
-
-    if (sigs.size === 1) {
-      const unified = legacyEntries[0];
-      const syntheticPref = {
-        scope: 'product',
-        productKey: pKey,
-        modelId: pKey,
-        label: product.productLabel,
-        mode: unified.mode,
-        limitTokens: unified.limitTokens,
-        updatedAt: unified.updatedAt
-      };
-      return {
-        status: 'legacy_uniform',
-        pref: syntheticPref,
-        displayText: formatSavedPrefLabel(syntheticPref),
-        shortText: formatPrefShortPill(syntheticPref),
-        legacyKeys: legacyEntries.map(e => e.legacyKey),
-        conflictEntries: []
-      };
-    }
-
-    return {
-      status: 'conflict',
-      pref: null,
-      displayText: t('models.pref.inconsistent'),
-      shortText: t('models.pref.inconsistent'),
-      legacyKeys: legacyEntries.map(e => e.legacyKey),
-      conflictEntries: legacyEntries
-    };
-  }
-
-  function describeClientModeValue(data) {
-    if (!data) return t('models.preset.default');
-    if (data.configuredMode === 'dynamic') return t('models.preset.dynamic');
-    if (data.configuredMode === 'fixed' && data.configuredLimitTokens) {
-      return formatKShort(data.configuredLimitTokens);
-    }
-    return t('models.preset.default');
-  }
-
-  function doesClientMatchVerification(data, ver) {
-    if (!data || !ver) return false;
-    const mode = data.configuredMode || 'unknown';
-    if (ver.mode === 'dynamic') return mode === 'dynamic';
-    if (ver.mode === 'default') return mode === 'default' || data.status === 'not_patched';
-    if (ver.mode === 'fixed') return mode === 'fixed' && Number(data.configuredLimitTokens) === Number(ver.limitTokens);
-    return false;
-  }
-
-  /** 将状态 strictly 映射为规定的 5 个普通视图标签之一 */
-  function mapUnlockDisplayStatus(data) {
-    if (unlockStatusFetchError) {
-      return { badge: t('status.badge.unavailable'), pillClass: 'pill-danger', effectiveLoaded: false };
-    }
-    if (!data) {
-      return { badge: t('status.badge.reading'), pillClass: 'pill-muted', effectiveLoaded: false };
-    }
-    const raw = data.status;
-    const restarted = data.runtimeEvidence?.restartDetected === true;
-
-    if (raw === 'patched_pending_restart') {
-      return { badge: t('status.badge.pendingRestart'), pillClass: 'pill-warn', effectiveLoaded: false };
-    }
-    if (raw === 'not_patched') {
-      return { badge: t('status.badge.notPatched'), pillClass: 'pill-muted', effectiveLoaded: false };
-    }
-    if (raw === 'patched_loaded') {
-      if (!restarted) {
-        return { badge: t('status.badge.unconfirmed'), pillClass: 'pill-info', effectiveLoaded: false };
-      }
-      if ((pendingRestartVerification && !doesClientMatchVerification(data, pendingRestartVerification)) || restartMismatchNotice) {
-        return { badge: t('status.badge.unconfirmed'), pillClass: 'pill-warn', effectiveLoaded: false };
-      }
-      return { badge: t('status.badge.loaded'), pillClass: 'pill-ok', effectiveLoaded: true };
-    }
-    if (raw === 'patched_runtime_unconfirmed') {
-      return { badge: t('status.badge.unconfirmed'), pillClass: 'pill-info', effectiveLoaded: false };
-    }
-    if (raw === 'partial_match') {
-      return { badge: t('status.badge.partialMatch'), pillClass: 'pill-danger', effectiveLoaded: false };
-    }
-    return { badge: t('status.badge.failed'), pillClass: 'pill-danger', effectiveLoaded: false };
-  }
-
   function buildFriendlyWriteError(rawErr) {
     const msg = String(rawErr || '');
     if (/EBUSY|EPERM|EACCES|占用|lock|locked|in use/i.test(msg)) {
       return t('msg.writeBusy');
     }
     return t('msg.writeFail', { err: translateBackendText(msg) || t('msg.unknownErr') });
-  }
-
-  function applyContextViewVisibility() {
-    if (ctxTabsBar) ctxTabsBar.hidden = false;
-    if (paneSettings) paneSettings.hidden = activeContextTab !== 'settings';
-    if (paneSession) paneSession.hidden = activeContextTab !== 'session';
-    if (paneModels) paneModels.hidden = activeContextTab !== 'models';
-    if (paneSpeed) paneSpeed.hidden = activeContextTab !== 'speed';
-
-    setPillActive(btnTabSession, activeContextTab === 'session');
-    setPillActive(btnTabModels, activeContextTab === 'models');
-    setPillActive(btnTabSpeed, activeContextTab === 'speed');
-    setPillActive(btnTabSettings, activeContextTab === 'settings');
-    btnTabSession?.setAttribute('aria-selected', String(activeContextTab === 'session'));
-    btnTabModels?.setAttribute('aria-selected', String(activeContextTab === 'models'));
-    btnTabSpeed?.setAttribute('aria-selected', String(activeContextTab === 'speed'));
-    btnTabSettings?.setAttribute('aria-selected', String(activeContextTab === 'settings'));
-    if (!el('panel')?.hidden) {
-      el('badge-cache')?.setAttribute('aria-expanded', String(activeContextTab === 'session'));
-    }
-  }
-
-  let prevTabBeforeSettings = 'models';
-
-  function switchContextTab(tabName) {
-    if (tabName !== 'session' && tabName !== 'models' && tabName !== 'speed' && tabName !== 'settings') return;
-    if (activeContextTab !== 'settings') {
-      prevTabBeforeSettings = activeContextTab;
-    }
-    activeContextTab = tabName;
-    isContextSettingsView = tabName === 'settings';
-    try { localStorage?.setItem(CTX_ACTIVE_TAB_KEY, tabName); } catch {}
-    applyContextViewVisibility();
-    if (tabName === 'models') {
-      renderModelSettingsTab();
-      if (!currentUnlockStatus && !unlockStatusFetchError) {
-        void refreshUnlockStatus();
-      }
-    } else if (tabName === 'speed') {
-      // 速度对比页只读取已有本地记录，绝不发起任何请求或 IPC
-      renderSpeedComparisonTab();
-    } else if (tabName === 'settings') {
-      void refreshModulesDisplay();
-      void refreshCliUnlockDisplay();
-      if (typeof refreshEnhanceStatus === 'function') void refreshEnhanceStatus();
-    }
-    positionFloatingPanels();
-  }
-
-  function openContextSettings(opts = {}) {
-    if (el('panel')?.hidden) showPanel('context');
-    switchContextTab('settings');
-    if (opts.openColors) {
-      toggleColorsDrawer(true);
-    }
-    positionFloatingPanels();
-  }
-
-  function closeContextSettings() {
-    switchContextTab(prevTabBeforeSettings || 'models');
-    positionFloatingPanels();
-  }
-
-  btnTabSession?.addEventListener('click', () => switchContextTab('session'));
-  btnTabModels?.addEventListener('click', () => switchContextTab('models'));
-  btnTabSpeed?.addEventListener('click', () => switchContextTab('speed'));
-  btnTabSettings?.addEventListener('click', () => switchContextTab('settings'));
-  btnCtxSettings?.addEventListener('click', () => switchContextTab('settings'));
-  btnCtxSettingsBack?.addEventListener('click', () => closeContextSettings());
-
-  btnGotoModelSettings?.addEventListener('click', () => {
-    if (activeSessionProductKey) {
-      selectedProductKey = activeSessionProductKey;
-      selectedEditModelKey = activeSessionModelKey || activeSessionProductKey;
-      manualModelSelection = false;
-      ctxDraftDirty = false;
-    }
-    switchContextTab('models');
-  });
-
-  btnCardGotoSpeed?.addEventListener('click', () => {
-    const products = getKnownModelProducts();
-    const curProd = products.find(p => p.productKey === selectedProductKey) || products[0];
-    if (curProd) {
-      const mergedCalls = mergeAvailableSpeedCalls();
-      const targetMember = curProd.members.find(m => m.modelId === activeSessionModelKey)
-        || curProd.members.find(m => mergedCalls.some(c => c.modelExactId === m.modelId && isValidSpeedSampleSafe(c)))
-        || curProd.members[0];
-      if (targetMember) selectedSpeedExactModelId = targetMember.modelId;
-    }
-    switchContextTab('speed');
-  });
-
-  btnCtxBackCurrent?.addEventListener('click', () => {
-    const hostSelected = extractHostSelectedModel();
-    if (hostSelected && hostSelected.productKey) {
-      activeSessionModelKey = hostSelected.modelId;
-      activeSessionProductKey = hostSelected.productKey;
-      activeSessionEffort = hostSelected.effort;
-      activeSessionModelConfirmed = true;
-    } else if (activeSessionProductKey) {
-      const curProd = getKnownModelProducts().find(p => p.productKey === activeSessionProductKey);
-      if (curProd && curProd.isHistorical) {
-        activeSessionModelConfirmed = false;
-        activeSessionProductKey = null;
-        activeSessionModelKey = null;
-      }
-    }
-    if (!activeSessionModelConfirmed || !activeSessionProductKey) {
-      if (typeof showToastNotification === 'function') {
-        showToastNotification(t('panel.ctx.currentModelUnconfirmed') || '当前会话模型待确认，未获取到可靠选择');
-      } else {
-        showUnlockResultBox(false, t('panel.ctx.currentModelUnconfirmed') || '当前会话模型待确认，未获取到可靠选择');
-      }
-      return;
-    }
-    manualModelSelection = false;
-    selectedProductKey = activeSessionProductKey;
-    selectedEditModelKey = activeSessionModelKey || activeSessionProductKey;
-    ctxDraftDirty = false;
-    loadDraftFromSelectedModel(true);
-    renderHeaderModelDropdown();
-    renderModelSettingsTab();
-  });
-
-  function toggleUnlockDrawer(forceOpen) {
-    if (!unlockDrawerBody) return;
-    const isHidden = unlockDrawerBody.style.display === 'none' || !unlockDrawerBody.style.display;
-    const nextOpen = forceOpen === undefined ? isHidden : Boolean(forceOpen);
-    unlockDrawerBody.style.display = nextOpen ? 'block' : 'none';
-    if (unlockDrawerArrow) unlockDrawerArrow.textContent = nextOpen ? t('drawer.shortCollapse') : t('drawer.shortExpand');
-    btnToggleUnlockDetails?.setAttribute('aria-expanded', String(nextOpen));
-    if (nextOpen && !currentUnlockStatus) void refreshUnlockStatus();
-  }
-
-  btnToggleUnlockDetails?.addEventListener('click', () => toggleUnlockDrawer());
-
-  function getSelectedProductObj() {
-    const products = getKnownModelProducts();
-    if (!products.length) return null;
-    if (selectedProductKey) {
-      const found = products.find(p => p.productKey === selectedProductKey);
-      if (found) return found;
-    }
-    if (activeSessionProductKey) {
-      const activeFound = products.find(p => p.productKey === activeSessionProductKey);
-      if (activeFound) return activeFound;
-    }
-    return products[0];
-  }
-
-  function renderHeaderModelDropdown() {
-    const products = getKnownModelProducts();
-    if (!selectedProductKey && products.length) {
-      selectedProductKey = activeSessionProductKey || products[0].productKey;
-    }
-    const currentProd = products.find(p => p.productKey === selectedProductKey) || products[0] || null;
-    if (currentProd) {
-      selectedProductKey = currentProd.productKey;
-      selectedEditModelKey = (activeSessionProductKey === currentProd.productKey && activeSessionModelKey)
-        ? activeSessionModelKey
-        : (currentProd.members[0]?.modelId || currentProd.productKey);
-    }
-
-    if (ctxModelSelectorRoleEl) {
-      ctxModelSelectorRoleEl.textContent = t('panel.ctx.viewModel');
-    }
-    if (btnCtxBackCurrent) {
-      btnCtxBackCurrent.hidden = !(manualModelSelection && activeSessionModelConfirmed && activeSessionProductKey && selectedProductKey && selectedProductKey !== activeSessionProductKey);
-    }
-
-    if (ctxModelSelect && typeof document !== 'undefined' && typeof document.createElement === 'function') {
-      if (typeof ctxModelSelect.replaceChildren === 'function') {
-        const opts = [];
-        for (const p of products) {
-          const opt = document.createElement('option');
-          opt.value = p.productKey;
-          const pState = resolveProductPreferenceState(p);
-          opt.textContent = `${p.productLabel} (${pState.shortText})${p.productKey === activeSessionProductKey ? ` [${t('models.list.currentTag')}]` : ''}`;
-          opts.push(opt);
-        }
-        ctxModelSelect.replaceChildren(...opts);
-        if (selectedProductKey) ctxModelSelect.value = selectedProductKey;
-      }
-    }
-
-    if (ctxModelDropdownLabelEl) {
-      ctxModelDropdownLabelEl.textContent = currentProd ? currentProd.productLabel : t('models.dropdown.empty');
-    }
-
-    if (!ctxHeaderDropdownCtrl && typeof initDropdownController === 'function' && el('ctx-model-dropdown-wrap')) {
-      ctxHeaderDropdownCtrl = initDropdownController({
-        wrapId: 'ctx-model-dropdown-wrap',
-        triggerId: 'ctx-model-dropdown-trigger',
-        labelId: 'ctx-model-dropdown-label',
-        menuId: 'ctx-model-dropdown-menu',
-        selectId: 'ctx-model-select',
-        emptyLabel: () => t('models.dropdown.empty'),
-        searchPlaceholder: () => t('dropdown.modelSearch'),
-        emptyText: () => t('dropdown.modelEmpty'),
-        getSelectedValue: () => selectedProductKey || '',
-        onSelect: (opt) => {
-          const val = opt?.value || '';
-          if (!val) return;
-          manualModelSelection = Boolean(activeSessionProductKey && val !== activeSessionProductKey);
-          selectedProductKey = val;
-          ctxDraftDirty = false;
-          loadDraftFromSelectedModel(true);
-          renderHeaderModelDropdown();
-          renderModelSettingsTab();
-        },
-        getOptions: () => {
-          const list = getKnownModelProducts();
-          const items = [];
-          const activeList = list.filter(p => p.inAccountCatalog);
-          const historyList = list.filter(p => !p.inAccountCatalog);
-          let lastVendor = '';
-          for (const p of activeList) {
-            if (p.vendor !== lastVendor) {
-              lastVendor = p.vendor;
-              items.push({
-                value: `__group_${p.vendor}`,
-                label: formatVendorLabel(p.vendor),
-                isGroupHeader: true,
-                dotColor: VENDOR_DOT_COLORS[p.vendor] || VENDOR_DOT_COLORS['其他']
-              });
-            }
-            const pState = resolveProductPreferenceState(p);
-            items.push({
-              value: p.productKey,
-              label: p.productLabel,
-              displayRight: pState.shortText,
-              badgeText: p.productKey === activeSessionProductKey ? t('models.list.currentTag') : '',
-              aliases: [p.vendor, p.productKey]
-            });
-          }
-          if (historyList.length) {
-            items.push({
-              value: '__group_history',
-              label: t('models.list.historyGroup'),
-              isGroupHeader: true,
-              dotColor: VENDOR_DOT_COLORS['其他']
-            });
-            for (const p of historyList) {
-              const pState = resolveProductPreferenceState(p);
-              items.push({
-                value: p.productKey,
-                label: p.productLabel,
-                displayRight: pState.shortText,
-                badgeText: p.productKey === activeSessionProductKey ? t('models.list.currentTag') : t('models.list.historyTag'),
-                aliases: [p.vendor, p.productKey]
-              });
-            }
-          }
-          return items;
-        }
-      });
-    } else if (ctxHeaderDropdownCtrl && typeof ctxHeaderDropdownCtrl.refresh === 'function') {
-      ctxHeaderDropdownCtrl.refresh();
-    }
-  }
-
-  ctxModelSelect?.addEventListener('change', (e) => {
-    const val = e?.target?.value || '';
-    if (!val) return;
-    manualModelSelection = Boolean(activeSessionProductKey && val !== activeSessionProductKey);
-    selectedProductKey = val;
-    ctxDraftDirty = false;
-    loadDraftFromSelectedModel(true);
-    renderHeaderModelDropdown();
-    renderModelSettingsTab();
-  });
-
-  function renderCompactSessionCard() {
-    const scopeMode = getContextScopeMode();
-    const scopeTitleEl = el('ctx-compact-scope-title');
-    if (scopeTitleEl) {
-      if (scopeMode === 'unified') {
-        scopeTitleEl.textContent = t('session.compact.scopeUnified');
-      } else if (activeSessionModelConfirmed && activeSessionProductKey) {
-        const products = getKnownModelProducts();
-        const targetProd = products.find(p => p.productKey === activeSessionProductKey) || null;
-        scopeTitleEl.textContent = t('session.compact.scopeModel', { model: targetProd?.productLabel || activeSessionProductKey });
-      } else {
-        scopeTitleEl.textContent = t('session.compact.title');
-      }
-    }
-    if (ctxCompactSavedEl) {
-      if (scopeMode === 'unified') {
-        ctxCompactSavedEl.textContent = formatPrefShortPill(contextUnifiedPreference);
-      } else if (!activeSessionModelConfirmed || !activeSessionProductKey) {
-        ctxCompactSavedEl.textContent = t('models.summary.unconfirmed');
-      } else {
-        const products = getKnownModelProducts();
-        const targetProd = products.find(p => p.productKey === activeSessionProductKey) || null;
-        const pState = resolveProductPreferenceState(targetProd);
-        ctxCompactSavedEl.textContent = pState.pref == null && pState.status === 'none' ? t('status.savedShortDefault') : pState.shortText;
-      }
-    }
-    const statusInfo = mapUnlockDisplayStatus(currentUnlockStatus);
-    if (ctxCompactClientEl) {
-      if (unlockStatusFetchError) {
-        ctxCompactClientEl.textContent = t('status.badge.unavailable');
-      } else if (!currentUnlockStatus) {
-        ctxCompactClientEl.textContent = t('status.badge.reading');
-      } else if (currentUnlockStatus.status === 'patched_pending_restart' || needsRestartAfterApply) {
-        ctxCompactClientEl.textContent = `${describeClientModeValue(currentUnlockStatus)}（${t('models.status.pendingRestart') || statusInfo.badge}）`;
-      } else {
-        ctxCompactClientEl.textContent = `${describeClientModeValue(currentUnlockStatus)}（${statusInfo.badge}）`;
-      }
-    }
-    if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
   }
 
   function getRemoteSshMeta() {
@@ -12489,1299 +8690,67 @@
 
   function renderSshRemoteContextBanners() {
     const remote = getRemoteSshMeta();
-    const bannerPairs = [
-      [el('ctx-ssh-remote-banner'), el('ctx-ssh-remote-banner-text')],
-      [el('enhance-ssh-remote-banner'), el('enhance-ssh-remote-banner-text')]
-    ];
-    for (const [box, textEl] of bannerPairs) {
-      if (!box || !textEl) continue;
-      if (remote) {
-        textEl.textContent = t('ssh.remote.contextBanner', { host: remote.label });
-        box.hidden = false;
-      } else {
-        box.hidden = true;
-      }
-    }
-    const restartLsBtn = el('btn-enhance-restart-ls');
-    if (restartLsBtn) {
-      if (remote) {
-        restartLsBtn.title = t('ssh.remote.localRestartLsTitle');
-      } else {
-        restartLsBtn.removeAttribute('title');
-      }
-    }
-  }
-
-  function renderClientStatusBar() {
-    renderSshRemoteContextBanners();
-    const statusInfo = mapUnlockDisplayStatus(currentUnlockStatus);
-    if (unlockBadge) {
-      unlockBadge.textContent = statusInfo.badge;
-      unlockBadge.className = `key-pill ${statusInfo.pillClass}`;
-    }
-
-    if (ctxClientStatusText) {
-      if (unlockStatusFetchError) {
-        ctxClientStatusText.textContent = t('status.badge.unavailable');
-      } else if (!currentUnlockStatus) {
-        ctxClientStatusText.textContent = t('status.client.reading');
-      } else if (currentUnlockStatus.status === 'patched_pending_restart' || needsRestartAfterApply) {
-        ctxClientStatusText.textContent = t('status.client.pendingRestart', { val: describeClientModeValue(currentUnlockStatus) });
-      } else if (currentUnlockStatus.configuredMode === 'dynamic') {
-        ctxClientStatusText.textContent = t('status.client.loadedDynamic');
-      } else if (currentUnlockStatus.configuredMode === 'fixed' || currentUnlockStatus.limitTokens) {
-        ctxClientStatusText.textContent = t('status.client.loadedFixed', { val: describeClientModeValue(currentUnlockStatus) });
-      } else if (currentUnlockStatus.configuredMode === 'default' || currentUnlockStatus.status === 'unpatched_official') {
-        ctxClientStatusText.textContent = t('status.client.loadedDefault');
-      } else {
-        ctxClientStatusText.textContent = t('status.client.loadedFixed', { val: describeClientModeValue(currentUnlockStatus) });
-      }
-    }
-
-    if (ctxRestartMismatchNote) {
-      if (restartMismatchNotice) {
-        ctxRestartMismatchNote.textContent = restartMismatchNotice;
-        ctxRestartMismatchNote.hidden = false;
-      } else {
-        ctxRestartMismatchNote.hidden = true;
-      }
-    }
-
-    const showRestart = needsRestartAfterApply || currentUnlockStatus?.status === 'patched_pending_restart';
-    const isErrorStatus = currentUnlockStatus?.status === 'partial_match' || currentUnlockStatus?.status === 'failed';
-    if (btnRestartHost) {
-      btnRestartHost.hidden = !showRestart || !hostSupportsRestart;
-    }
-    if (ctxManualRestartNote) {
-      ctxManualRestartNote.hidden = hostSupportsRestart || !showRestart;
-    }
-    if (btnUnlockResultRestart) {
-      btnUnlockResultRestart.hidden = !showRestart || !hostSupportsRestart;
-    }
-    if (btnUnlockResultRetry) {
-      btnUnlockResultRetry.hidden = !isErrorStatus;
-    }
-    if (unlockResultManual) {
-      unlockResultManual.hidden = !(showRestart && !hostSupportsRestart);
-    }
-    if (unlockResultActions) {
-      const hasAction = (showRestart && hostSupportsRestart) || isErrorStatus;
-      unlockResultActions.hidden = !hasAction;
-    }
-    const btnEnhanceRestart = el('btn-enhance-restart-host');
-    if (btnEnhanceRestart) {
-      btnEnhanceRestart.hidden = !(showRestart && hostSupportsRestart);
-    }
-  }
-
-  function renderModelListGroup(products) {
-    if (!ctxModelListEl || typeof document === 'undefined' || typeof document.createElement !== 'function') return;
-    if (!products.length) {
-      ctxModelListEl.textContent = t('models.list.empty');
-      return;
-    }
-    const catalogConfigs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
-    const hasAccountCatalog = Array.isArray(catalogConfigs) && catalogConfigs.length > 0;
-    const accountProducts = hasAccountCatalog ? products.filter(p => p.inAccountCatalog) : products;
-    const historyProducts = hasAccountCatalog ? products.filter(p => !p.inAccountCatalog) : [];
-
-    const appendGroupRows = (fragNodes, vendor, list, isHistoryGroup = false) => {
-      const grp = document.createElement('div');
-      grp.className = 'ctx-model-group';
-
-      const hdr = document.createElement('div');
-      hdr.className = isHistoryGroup ? 'ctx-model-group-hdr is-history-hdr' : 'ctx-model-group-hdr';
-      const dot = document.createElement('span');
-      dot.className = 'ag-vendor-dot';
-      if (dot.style) dot.style.background = VENDOR_DOT_COLORS[vendor] || VENDOR_DOT_COLORS['其他'];
-      const vTxt = document.createElement('span');
-      vTxt.textContent = isHistoryGroup ? t('models.list.historyGroup') : formatVendorLabel(vendor);
-      hdr.appendChild(dot);
-      hdr.appendChild(vTxt);
-      grp.appendChild(hdr);
-
-      for (const prod of list) {
-        const pState = resolveProductPreferenceState(prod);
-        const row = document.createElement('button');
-        row.type = 'button';
-        row.className = `ctx-product-row${prod.productKey === selectedProductKey ? ' is-active' : ''}${prod.unavailable ? ' is-unavailable' : ''}`;
-        row.setAttribute('data-product-key', prod.productKey);
-
-        const left = document.createElement('span');
-        left.className = 'ctx-product-row-left';
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'ctx-product-row-name';
-        nameSpan.textContent = prod.productLabel;
-        left.appendChild(nameSpan);
-
-        if (prod.unavailable) {
-          const unavailTag = document.createElement('span');
-          unavailTag.className = 'ctx-product-row-unavailable-tag';
-          unavailTag.textContent = t('models.card.modelUnavailable') || '不可用';
-          if (prod.unavailabilityReason) unavailTag.title = prod.unavailabilityReason;
-          left.appendChild(unavailTag);
-        } else if (prod.notice) {
-          const noticeTag = document.createElement('span');
-          noticeTag.className = 'ctx-product-row-notice-tag';
-          noticeTag.textContent = 'Notice';
-          noticeTag.title = typeof prod.notice === 'string' ? prod.notice : JSON.stringify(prod.notice);
-          left.appendChild(noticeTag);
-        }
-
-        if (prod.productKey === activeSessionProductKey) {
-          const curTag = document.createElement('span');
-          curTag.className = 'ag-dropdown-badge';
-          curTag.textContent = t('models.list.currentTag');
-          left.appendChild(curTag);
-        } else if (isHistoryGroup || prod.isHistorical) {
-          const histTag = document.createElement('span');
-          histTag.className = 'ctx-product-row-history-tag';
-          histTag.textContent = t('models.list.historyTag');
-          left.appendChild(histTag);
-        }
-
-        const right = document.createElement('span');
-        right.className = 'ctx-product-row-right';
-        const valSpan = document.createElement('span');
-        valSpan.className = `ctx-product-row-val${pState.status === 'conflict' ? ' is-conflict' : ''}`;
-        valSpan.textContent = pState.shortText;
-        right.appendChild(valSpan);
-
-        row.appendChild(left);
-        row.appendChild(right);
-        row.addEventListener('click', () => {
-          manualModelSelection = Boolean(activeSessionProductKey && prod.productKey !== activeSessionProductKey);
-          selectedProductKey = prod.productKey;
-          ctxDraftDirty = false;
-          loadDraftFromSelectedModel(true);
-          renderHeaderModelDropdown();
-          renderModelSettingsTab();
-        });
-        grp.appendChild(row);
-      }
-      fragNodes.push(grp);
-    };
-
-    const groups = new Map();
-    for (const p of accountProducts) {
-      if (!groups.has(p.vendor)) groups.set(p.vendor, []);
-      groups.get(p.vendor).push(p);
-    }
-    const fragNodes = [];
-    for (const [vendor, list] of groups.entries()) {
-      appendGroupRows(fragNodes, vendor, list, false);
-    }
-    if (historyProducts.length > 0) {
-      appendGroupRows(fragNodes, '其他', historyProducts, true);
-    }
-    if (typeof ctxModelListEl.replaceChildren === 'function') {
-      ctxModelListEl.replaceChildren(...fragNodes);
-    }
-  }
-
-  function findLatestProductObservation(product, activeConvId = null) {
-    if (!product) return { latestBudgetObs: null, latestServiceLimitObs: null };
-    const scoped = budgetTracker ? budgetTracker.getScopedObservation(activeConvId, product.productKey) : null;
-    if (scoped) {
-      return {
-        latestBudgetObs: scoped.budget > 0 ? scoped : null,
-        latestServiceLimitObs: scoped.serviceLimit > 0 ? scoped : null
-      };
-    }
-    const memberIds = new Set((product.members || []).map(m => m.modelId));
-    if (product.productKey) memberIds.add(product.productKey);
-    let latestBudgetObs = null;
-    let latestServiceLimitObs = null;
-
-    for (const mid of memberIds) {
-      const obs = observedByModelId.get(mid);
-      if (!obs) continue;
-      if (activeConvId && obs.convoId && obs.convoId !== activeConvId) continue;
-      if (obs.budget > 0 && (!latestBudgetObs || obs.ts > latestBudgetObs.ts)) {
-        latestBudgetObs = obs;
-      }
-      if (obs.serviceLimit > 0 && (!latestServiceLimitObs || obs.ts > latestServiceLimitObs.ts)) {
-        latestServiceLimitObs = obs;
-      }
-    }
-    return { latestBudgetObs, latestServiceLimitObs };
-  }
-
-  function findPreRestartBudgetForProduct(product) {
-    if (!product || !preRestartSnapshot?.observations) return null;
-    const memberIds = new Set((product.members || []).map(m => m.modelId));
-    if (product.productKey) memberIds.add(product.productKey);
-    let best = null;
-    for (const mid of memberIds) {
-      const obs = preRestartSnapshot.observations[mid];
-      if (obs && obs.budget > 0 && (!best || obs.ts > best.ts)) best = obs;
-    }
-    return best;
-  }
-
-  async function resolveProductConflict(product, chosenEntry) {
-    if (!product || !chosenEntry) return;
-    const legacyKeys = resolveProductPreferenceState(product).legacyKeys;
-    const res = await saveSettingsPayloadBridge({
-      contextPreference: {
-        scope: 'product',
-        productKey: product.productKey,
-        modelId: product.productKey,
-        label: product.productLabel,
-        mode: chosenEntry.mode,
-        limitTokens: chosenEntry.limitTokens,
-        clearLegacyKeys: legacyKeys
-      }
-    });
-    if (!res || !res.ok) {
-      showUnlockResultBox(false, t('models.toast.saveFailed', { err: translateBackendText(res?.error) || t('models.err.saveFailed') }));
-      return;
-    }
-    if (res.contextPreferences && typeof res.contextPreferences === 'object') {
-      contextPreferencesMap = { ...res.contextPreferences };
+    const box = el('enhance-ssh-remote-banner');
+    const textEl = el('enhance-ssh-remote-banner-text');
+    if (!box || !textEl) return;
+    if (remote) {
+      textEl.textContent = t('ssh.remote.contextBanner', { host: remote.label });
+      box.hidden = false;
     } else {
-      for (const lk of legacyKeys) delete contextPreferencesMap[lk];
-      contextPreferencesMap[product.productKey] = {
-        scope: 'product',
-        productKey: product.productKey,
-        modelId: product.productKey,
-        label: product.productLabel,
-        mode: chosenEntry.mode,
-        limitTokens: chosenEntry.limitTokens,
-        updatedAt: new Date().toISOString()
-      };
-    }
-    syncContextPreferencesCache(contextPreferencesMap);
-    ctxDraftDirty = false;
-    loadDraftFromSelectedModel(true);
-    renderHeaderModelDropdown();
-    renderModelSettingsTab();
-    showUnlockResultBox(true, t('models.toast.savedUniform'));
-  }
-
-  function evaluateModelContextStatus(product) {
-    if (!product) {
-      return {
-        status: 'unconfirmed',
-        badge: t('panel.ctx.currentModelUnconfirmed') || '待确认',
-        pillClass: 'pill-muted',
-        diagnosis: '未获取到模型信息',
-        targetText: '—',
-        requestText: '—',
-        observedText: '—',
-        convoId: '—'
-      };
-    }
-
-    const pState = resolveProductPreferenceState(product);
-    const scopeMode = getContextScopeMode();
-    const activePref = (scopeMode === 'unified') ? contextUnifiedPreference : pState.pref;
-    const targetMode = activePref?.mode || 'default';
-    const targetLimit = (targetMode === 'fixed') ? Number(activePref?.limitTokens) : null;
-    const capSummary = getProductCapabilitySummary(product);
-
-    let targetText = t('status.savedDefault') || '恢复客户端默认';
-    if (targetMode === 'dynamic') {
-      targetText = t('models.preset.dynamic') || '动态跟随';
-    } else if (targetMode === 'fixed' && targetLimit) {
-      targetText = targetLimit === 1000000
-        ? '1M（1,000,000 tokens）'
-        : targetLimit === 512000
-          ? '512K（512,000 tokens）'
-          : targetLimit === 256000
-            ? '256K（256,000 tokens）'
-            : `${formatKShort(targetLimit)}（${fmt(targetLimit)} tokens）`;
-    }
-
-    const activeConvId = state.activeConversationId || state.conversationId || state.route || null;
-    const evalCore = budgetTracker
-      ? budgetTracker.evaluateStatus({
-        product,
-        scopeMode,
-        pref: activePref,
-        activeConvId,
-        modelHardLimit: capSummary?.modelTheoreticalMaxTokens || null
-      })
-      : {
-        status: 'saved_pending_dispatch',
-        convoId: activeConvId || '—',
-        targetMode,
-        targetLimit,
-        dispatched: null,
-        observation: findLatestProductObservation(product, activeConvId).latestBudgetObs
-      };
-
-    const dispatched = evalCore.dispatched;
-    const obs = evalCore.observation;
-    const obsBudget = Number(obs?.budget || 0);
-
-    let requestText = dispatched ? '默认透传（未附加自定义参数）' : '尚无本次验证';
-    if (dispatched) {
-      if (dispatched.status === 'send_failed') {
-        requestText = `发送失败（${dispatched.errorMessage || '请求未完成'}）`;
-      } else if (dispatched.status === 'aborted') {
-        requestText = '已取消发送';
-      } else if (dispatched.status === 'uninjectable') {
-        requestText = '透传未注入（缺少可靠模型/不支持帧）';
-      } else if (dispatched.sentMode === 'fixed' && dispatched.sentLimitTokens) {
-        requestText = `${formatKShort(dispatched.sentLimitTokens)}（${fmt(dispatched.sentLimitTokens)} tokens）`;
-      } else if (dispatched.sentMode === 'dynamic') {
-        requestText = '动态跟随（已清除固定数值）';
-      }
-      if (dispatched.timestamp) {
-        requestText += ` · ${formatMonthDayTime(dispatched.timestamp)}`;
-      }
-    }
-
-    function statusUsesExistingObs(st, diagCode) {
-      return st === 'confirmed'
-        || st === 'clamped_by_model_limit'
-        || st === 'mismatch'
-        || (st === 'default' && diagCode === 'default_confirmed');
-    }
-
-    let observedText = '尚无本次验证';
-    if (obsBudget > 0 && statusUsesExistingObs(evalCore.status, evalCore.diagnosisCode)) {
-      const effTxt = obs.effort ? ` · ${formatEffortZh(obs.effort)}` : '';
-      const tTxt = obs.ts ? ` · ${formatMonthDayTime(obs.ts)}` : '';
-      observedText = `${formatKShort(obsBudget)}（${fmt(obsBudget)} tokens）${effTxt}${tTxt}`;
-    } else if (obsBudget > 0) {
-      const effTxt = obs.effort ? ` · ${formatEffortZh(obs.effort)}` : '';
-      observedText = `仅见历史观测 ${fmt(obsBudget)} tokens${effTxt}（当前设置尚无本次验证）`;
-    }
-
-    const convoId = evalCore.convoId || activeConvId || '—';
-
-    let status = evalCore.status;
-    let badge = t('models.status.savedPendingDispatch') || '已保存，下一次发送时尝试应用';
-    let pillClass = 'pill-muted';
-    let diagnosis = '已保存目标参数，将在下次发起请求时自动注入并发送。';
-
-    if (status === 'default') {
-      if (evalCore.diagnosisCode === 'default_confirmed') {
-        badge = t('status.savedDefault') || '使用模型默认值';
-        pillClass = 'pill-good';
-        diagnosis = `本次请求已按客户端默认透传（未附加自定义覆盖），收到新回复确认实际采用 ${fmt(obsBudget)} tokens。`;
-      } else {
-        badge = t('status.savedDefault') || '使用模型默认值';
-        pillClass = 'pill-muted';
-        diagnosis = '已恢复/保持客户端默认（不附加覆盖参数），将在下一次发送时生效并验证实际采用值。';
-      }
-    } else if (status === 'send_failed') {
-      badge = '发送失败（未确认）';
-      pillClass = 'pill-bad';
-      diagnosis = `本次请求发送失败（${evalCore.errorMessage || '网络或传输错误'}），因此无法确认实际预算。`;
-    } else if (status === 'aborted') {
-      badge = '已取消（未确认）';
-      pillClass = 'pill-muted';
-      diagnosis = '本次请求在完成前被取消，未收到新回复。';
-    } else if (status === 'uninjectable') {
-      badge = '本次未注入（已透传）';
-      pillClass = 'pill-warn';
-      diagnosis = `未能向本次请求自动注入参数（${evalCore.diagnosisCode || '缺少可靠模型身份或协议格式不支持'}），已保持原样透传。`;
-    } else if (status === 'confirmed') {
-      badge = t('models.status.confirmed') || '实际预算已确认';
-      pillClass = 'pill-good';
-      diagnosis = targetMode === 'dynamic'
-        ? `已启用动态跟随模式，本次发送后实测返回预算 ${fmt(obsBudget)} tokens。`
-        : `请求实际携带 ${fmt(dispatched?.sentLimitTokens || targetLimit)}，本次发送后服务端返回预算 ${fmt(obsBudget)} tokens，完全吻合。`;
-    } else if (status === 'clamped_by_model_limit') {
-      badge = '受模型上限限制';
-      pillClass = 'pill-warn';
-      diagnosis = `请求携带 ${fmt(dispatched?.sentLimitTokens || targetLimit)} tokens，受已知模型/服务端上限（${fmt(evalCore.knownCap)} tokens）限制，实际采用 ${fmt(obsBudget)} tokens。`;
-    } else if (status === 'mismatch') {
-      badge = t('models.status.mismatch') || '未生效：目标值与观测值不一致';
-      pillClass = 'pill-bad';
-      let detail = `目标设置（${fmt(targetLimit)} tokens）与发送后实际观测预算（${fmt(obsBudget)} tokens）不一致，原因待确认。`;
-      if (product.unavailable && product.unavailabilityReason) {
-        detail += `（模型可用性说明：${product.unavailabilityReason}）`;
-      }
-      diagnosis = detail;
-    } else if (status === 'timeout_unconfirmed') {
-      badge = '确认超时（未观测到新回复）';
-      pillClass = 'pill-warn';
-      diagnosis = targetMode === 'default'
-        ? `已按客户端默认透传发送请求，但超过 ${Math.round(CTX_CONFIRM_TIMEOUT_MS / 1000)} 秒未观测到新回复中的预算回传。`
-        : `已在请求中携带设置（${dispatched?.sentLimitTokens ? `${fmt(dispatched.sentLimitTokens)} tokens` : '动态跟随'}），但超过 ${Math.round(CTX_CONFIRM_TIMEOUT_MS / 1000)} 秒未观测到新回复中的预算回传。`;
-    } else if (status === 'dispatched_pending_confirm') {
-      badge = targetMode === 'default' ? '已默认透传，等待确认' : (t('models.status.dispatchedPendingConfirm') || '已发送设置，等待确认');
-      pillClass = 'pill-warn';
-      diagnosis = targetMode === 'default'
-        ? '已按客户端默认透传发出请求（未附加覆盖参数），等待收到新回复以确认服务端实际预算。'
-        : `已在本次请求中成功注入参数（${dispatched?.sentLimitTokens ? `${fmt(dispatched.sentLimitTokens)} tokens` : '动态跟随'}），等待收到新回复以确认实际分配预算。`;
-    } else {
-      status = 'saved_pending_dispatch';
-      badge = t('models.status.savedPendingDispatch') || '已保存，下一次发送时尝试应用';
-      pillClass = 'pill-muted';
-      diagnosis = `已保存目标设置（${targetText}），下一次在对应模型发起发送时将自动注入。`;
-    }
-
-    return {
-      status,
-      badge,
-      pillClass,
-      diagnosis,
-      targetText,
-      requestText,
-      observedText,
-      convoId
-    };
-  }
-
-  function renderModelDetailCard(product) {
-    if (!product) {
-      if (ctxCardProductName) ctxCardProductName.textContent = t('models.card.waiting');
-      if (ctxCardVendorName) ctxCardVendorName.textContent = '—';
-      if (ctxCardEffortsList) ctxCardEffortsList.textContent = t('models.card.effortsEmpty');
-      if (ctxCardSessionEffort) ctxCardSessionEffort.hidden = true;
-      if (ctxConflictBanner) ctxConflictBanner.hidden = true;
-      if (ctxSummaryModelEl) ctxSummaryModelEl.textContent = '待确认';
-      if (ctxSummaryLengthEl) ctxSummaryLengthEl.textContent = '—';
-      if (ctxSummaryStatusPillEl) ctxSummaryStatusPillEl.hidden = true;
-      return;
-    }
-
-    const evalResult = evaluateModelContextStatus(product);
-    const pState = resolveProductPreferenceState(product);
-    if (ctxCardVendorDot?.style) {
-      ctxCardVendorDot.style.background = VENDOR_DOT_COLORS[product.vendor] || VENDOR_DOT_COLORS['其他'];
-    }
-    if (ctxCardVendorName) ctxCardVendorName.textContent = formatVendorLabel(product.vendor);
-    if (ctxCardProductName) {
-      if (product.unavailable) {
-        ctxCardProductName.textContent = `${product.productLabel} [${t('models.card.modelUnavailable') || '不可用'}]`;
-      } else {
-        ctxCardProductName.textContent = product.productLabel;
-      }
-    }
-
-    const efforts = product.members.map(m => m.effort).filter(Boolean);
-    if (ctxCardEffortsList) {
-      ctxCardEffortsList.textContent = efforts.length
-        ? t('models.card.effortsList', { list: efforts.map(formatEffortZh).join(' · ') })
-        : t('models.card.effortStandard');
-    }
-    if (ctxCardSessionEffort) {
-      if (activeSessionProductKey === product.productKey && activeSessionEffort) {
-        ctxCardSessionEffort.textContent = t('models.card.sessionEffort', { effort: formatEffortZh(activeSessionEffort) });
-        ctxCardSessionEffort.hidden = false;
-      } else {
-        ctxCardSessionEffort.hidden = true;
-      }
-    }
-
-    // 旧档位冲突横幅
-    if (ctxConflictBanner && ctxConflictRows) {
-      if (pState.status === 'conflict' && pState.conflictEntries.length > 0) {
-        ctxConflictBanner.hidden = false;
-        if (typeof document !== 'undefined' && typeof document.createElement === 'function' && typeof ctxConflictRows.replaceChildren === 'function') {
-          const rows = [];
-          for (const ce of pState.conflictEntries) {
-            const r = document.createElement('div');
-            r.className = 'ctx-conflict-row';
-            const lbl = document.createElement('span');
-            lbl.textContent = `${ce.effortLabel} · ${formatSavedPrefLabel(ce)}`;
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'ctx-conflict-btn';
-            btn.textContent = t('models.conflict.useThis');
-            btn.addEventListener('click', () => { void resolveProductConflict(product, ce); });
-            r.appendChild(lbl);
-            r.appendChild(btn);
-            rows.push(r);
-          }
-          const selfRow = document.createElement('div');
-          selfRow.className = 'ctx-conflict-row';
-          const selfHint = document.createElement('span');
-          selfHint.textContent = t('models.conflict.orCustom');
-          const selfBtn = document.createElement('button');
-          selfBtn.type = 'button';
-          selfBtn.className = 'ctx-conflict-btn';
-          selfBtn.textContent = t('models.conflict.selfSet');
-          selfBtn.addEventListener('click', () => {
-            ctxCustomInput?.focus?.();
-          });
-          selfRow.appendChild(selfHint);
-          selfRow.appendChild(selfBtn);
-          rows.push(selfRow);
-          ctxConflictRows.replaceChildren(...rows);
-        }
-      } else {
-        ctxConflictBanner.hidden = true;
-      }
-    }
-
-    // 0. 模型能力参考卡片渲染（紧邻预算设置区，不隐藏；严格区分模型上限 / 客户端限制 / 运行策略默认预算 / 可采纳范围）
-    const capSummary = getProductCapabilitySummary(product);
-    const runtimePolicy = capSummary?.runtimePolicy || resolveRuntimeUnlockPolicyClient();
-    if (ctxCapWindowEl) {
-      ctxCapWindowEl.textContent = capSummary?.maxTokens ? `${fmt(capSummary.maxTokens)} tokens` : '未知（待获取元数据）';
-    }
-    if (ctxCapOutputEl) {
-      ctxCapOutputEl.textContent = capSummary?.maxOutputTokens != null ? `${fmt(capSummary.maxOutputTokens)} tokens` : '未知';
-    }
-    if (ctxCapModelMaxEl) {
-      ctxCapModelMaxEl.textContent = capSummary?.modelTheoreticalMaxTokens != null
-        ? `${fmt(capSummary.modelTheoreticalMaxTokens)} tokens`
-        : '未知（待获取元数据）';
-    }
-    if (ctxCapClientPolicyEl) {
-      if (!runtimePolicy || runtimePolicy.runtimeState === 'unknown') {
-        ctxCapClientPolicyEl.textContent = '未知（待读取运行策略）';
-      } else if (runtimePolicy.runtimeState === 'pending_restart') {
-        ctxCapClientPolicyEl.textContent = `待重启（磁盘=${formatDiskPolicyText(runtimePolicy)}）`;
-      } else if (runtimePolicy.runtimeState === 'runtime_unconfirmed') {
-        ctxCapClientPolicyEl.textContent = `进程未确认（磁盘=${formatDiskPolicyText(runtimePolicy)}）`;
-      } else if (runtimePolicy.runtimeState === 'partial') {
-        ctxCapClientPolicyEl.textContent = '部分异常（运行限制未知）';
-      } else if (runtimePolicy.runtimeMode === 'dynamic') {
-        ctxCapClientPolicyEl.textContent = 'Dynamic 动态跟随（按模型上限）';
-      } else if (runtimePolicy.runtimeMode === 'fixed' && runtimePolicy.currentClientLimitTokens != null) {
-        ctxCapClientPolicyEl.textContent = `固定限制 ${fmt(runtimePolicy.currentClientLimitTokens)} tokens`;
-      } else {
-        ctxCapClientPolicyEl.textContent = '官方默认策略（底层回落 256K）';
-      }
-    }
-    if (ctxCapDefaultEl) {
-      if (capSummary?.currentStrategyDefaultBudget != null && runtimePolicy?.policyKnown) {
-        let stratNote = '';
-        if (runtimePolicy.runtimeMode === 'dynamic') {
-          stratNote = '（Dynamic 默认）';
-        } else if (runtimePolicy.runtimeMode === 'fixed') {
-          stratNote = `（受固定限制 ${fmt(runtimePolicy.currentClientLimitTokens)} 约束）`;
-        } else {
-          stratNote = '（受底层默认 256,000 钳位约束）';
-        }
-        ctxCapDefaultEl.textContent = `${fmt(capSummary.currentStrategyDefaultBudget)} tokens${stratNote}`;
-      } else if (runtimePolicy && !runtimePolicy.policyKnown) {
-        ctxCapDefaultEl.textContent = '未知（运行策略待确认）';
-      } else {
-        ctxCapDefaultEl.textContent = '未知';
-      }
-    }
-    if (ctxCapRangeEl) {
-      if (capSummary?.maxAdjustableTokens != null) {
-        ctxCapRangeEl.textContent = `${fmt(capSummary.rangeMin || CTX_MIN_ENGINEERING_TOKENS)} – ${fmt(capSummary.maxAdjustableTokens)} tokens`;
-      } else if (runtimePolicy && !runtimePolicy.policyKnown) {
-        ctxCapRangeEl.textContent = capSummary?.modelTheoreticalMaxTokens != null
-          ? `运行策略未知（模型理论上限 ${fmt(capSummary.modelTheoreticalMaxTokens)}）`
-          : `运行策略未知（工程范围 ${fmt(CTX_MIN_ENGINEERING_TOKENS)} – ${fmt(CTX_MAX_ENGINEERING_TOKENS)}）`;
-      } else {
-        ctxCapRangeEl.textContent = `${fmt(CTX_MIN_ENGINEERING_TOKENS)} – ${fmt(CTX_MAX_ENGINEERING_TOKENS)}（模型上限未知）`;
-      }
-    }
-    if (ctxCapFormulaEl) {
-      const parts = [];
-      if (capSummary?.sources?.length) {
-        const srcText = capSummary.sources.map(s => (s === 'get_available_models' ? 'GetAvailableModels 目录' : (s === 'step_model_info' ? '会话 Step ModelInfo' : s))).join(' + ');
-        parts.push(`来源：${srcText}`);
-      }
-      if (capSummary?.formulaNote) {
-        parts.push(capSummary.formulaNote);
-      } else {
-        parts.push('尚未获取到当前账号/步骤的模型窗口与最大输出元数据（不按模型名称推测上限）。');
-      }
-      if (capSummary?.policyNote) {
-        parts.push(capSummary.policyNote);
-      }
-      if (capSummary?.hasTierVariance) {
-        parts.push('注意：该模型不同力度档位报告了不同容量/最大输出，可调上限取安全交集，详情见下方「档位能力」。');
-      }
-      if (runtimePolicy?.diskVsRuntimeMismatch) {
-        parts.push('磁盘配置与运行中进程尚未确认一致：以下预测与默认预算均按未确认处理，请勿当作已实机生效。');
-      }
-      ctxCapFormulaEl.textContent = parts.join('；');
-    }
-    if (ctxRefSavedEl) {
-      const targetSavedLabel = getContextScopeMode() === 'unified'
-        ? formatSavedPrefLabel(contextUnifiedPreference)
-        : pState.displayText;
-      ctxRefSavedEl.textContent = targetSavedLabel;
-    }
-    if (ctxRefSentEl) {
-      ctxRefSentEl.textContent = evalResult.requestText || '尚无本次验证';
-    }
-    if (ctxRefAdoptedEl) {
-      ctxRefAdoptedEl.textContent = evalResult.observedText || '尚无本次验证';
-    }
-
-    if (ctxUnifiedProjEl) {
-      if (getContextScopeMode() === 'unified' && typeof budgetEngine.projectUnifiedBudgetForProducts === 'function') {
-        const allProducts = getKnownModelProducts().filter(p => p.inAccountCatalog);
-        const projections = budgetEngine.projectUnifiedBudgetForProducts(contextUnifiedPreference, allProducts, currentUnlockStatus, state.modelCapabilitiesById || null);
-        if (projections.length > 0 && typeof document !== 'undefined' && typeof document.createElement === 'function' && typeof ctxUnifiedProjEl.replaceChildren === 'function') {
-          const titleDiv = document.createElement('div');
-          titleDiv.className = 'ctx-unified-proj-title';
-          titleDiv.textContent = '统一模式各模型预计采用预算（预测值，非实机已确认）：';
-          const rowNodes = [titleDiv];
-          for (const pr of projections.slice(0, 8)) {
-            const row = document.createElement('div');
-            const isWarnRow = pr.outcome === 'clamped_to_model_max' || pr.outcome === 'exceeds_client_policy' || pr.outcome === 'clamped_by_client_policy' || pr.outcome === 'pending_restart_unconfirmed' || pr.outcome === 'partial_policy_unconfirmed' || pr.outcome === 'runtime_unconfirmed';
-            row.className = `ctx-unified-proj-row${isWarnRow ? ' is-clamped' : ''}`;
-            const lbl = document.createElement('span');
-            lbl.textContent = pr.productLabel;
-            const val = document.createElement('strong');
-            if (pr.outcome === 'clamped_to_model_max') {
-              val.textContent = `受模型上限限制 -> 预计 ${fmt(pr.projectedTokens)}（最大可用）`;
-            } else if (pr.outcome === 'exceeds_client_policy') {
-              val.textContent = `超出当前客户端限制 -> 预计仅保底 ${fmt(pr.projectedTokens)}（策略上限 ${fmt(pr.clientLimitTokens)}）`;
-            } else if (pr.outcome === 'clamped_by_client_policy') {
-              val.textContent = `受当前客户端限制 -> 预计 ${fmt(pr.projectedTokens)}（策略上限 ${fmt(pr.clientLimitTokens)}）`;
-            } else if (pr.outcome === 'pending_restart_unconfirmed') {
-              val.textContent = '待验证（磁盘已改，客户端未重启）';
-            } else if (pr.outcome === 'runtime_unconfirmed') {
-              val.textContent = '待验证（运行中进程未确认）';
-            } else if (pr.outcome === 'partial_policy_unconfirmed') {
-              val.textContent = '未知（客户端处于部分异常状态）';
-            } else if (pr.outcome === 'unknown_policy') {
-              val.textContent = '未知（运行策略待读取）';
-            } else if (pr.outcome === 'unknown_cap') {
-              val.textContent = '模型上限未知';
-            } else if (pr.outcome === 'client_default' && pr.projectedTokens != null) {
-              val.textContent = `预计 ${fmt(pr.projectedTokens)} tokens（当前策略默认）`;
-            } else if (pr.outcome === 'dynamic_follow' && pr.projectedTokens != null) {
-              val.textContent = `预计 ${fmt(pr.projectedTokens)} tokens（Dynamic 默认）`;
-            } else if (pr.projectedTokens != null) {
-              val.textContent = `预计 ${fmt(pr.projectedTokens)} tokens`;
-            } else {
-              val.textContent = '待验证';
-            }
-            row.appendChild(lbl);
-            row.appendChild(val);
-            rowNodes.push(row);
-          }
-          ctxUnifiedProjEl.replaceChildren(...rowNodes);
-          ctxUnifiedProjEl.hidden = false;
-        } else {
-          ctxUnifiedProjEl.hidden = true;
-        }
-      } else {
-        ctxUnifiedProjEl.hidden = true;
-      }
-    }
-
-    if (ctxCardTierCapsRowEl && ctxCardTierCapsEl) {
-      if (capSummary?.tierDetails?.length) {
-        ctxCardTierCapsRowEl.hidden = false;
-        const lines = capSummary.tierDetails.map(td => {
-          const tierName = td.effort ? formatEffortZh(td.effort) : (td.modelId || '标准');
-          const winTxt = td.maxTokens ? `窗口 ${fmt(td.maxTokens)}` : '窗口未知';
-          const outTxt = td.maxOutputTokens != null ? `最大输出 ${fmt(td.maxOutputTokens)}` : '输出未知';
-          const maxInTxt = (td.maxTokens && td.maxOutputTokens != null && td.maxTokens > td.maxOutputTokens)
-            ? `可调上限 ${fmt(td.maxTokens - td.maxOutputTokens)}`
-            : '上限未知';
-          return `${tierName}：${winTxt} / ${outTxt} / ${maxInTxt}`;
-        });
-        if (typeof document !== 'undefined' && typeof document.createElement === 'function' && typeof ctxCardTierCapsEl.replaceChildren === 'function') {
-          ctxCardTierCapsEl.replaceChildren(...lines.map(l => {
-            const d = document.createElement('div');
-            d.textContent = l;
-            return d;
-          }));
-        } else {
-          ctxCardTierCapsEl.textContent = lines.join(' | ');
-        }
-      } else {
-        ctxCardTierCapsRowEl.hidden = true;
-      }
-    }
-
-    // 1. 目标值（已保存）
-    if (ctxCardSavedEl) {
-      ctxCardSavedEl.textContent = pState.displayText;
-      ctxCardSavedEl.title = (pState.pref?.mode === 'fixed' && pState.pref.limitTokens)
-        ? `${fmt(pState.pref.limitTokens)} tokens`
-        : '';
-    }
-
-    // 2. 本次请求携带值
-    if (ctxCardRequestEl) {
-      ctxCardRequestEl.textContent = evalResult.requestText;
-      ctxCardRequestEl.title = evalResult.requestText;
-    }
-
-    // 3. 对应会话
-    if (ctxCardConvoEl) {
-      ctxCardConvoEl.textContent = evalResult.convoId;
-      ctxCardConvoEl.title = evalResult.convoId;
-    }
-
-    // 4. 生效诊断
-    if (ctxCardDiagnosisEl) {
-      ctxCardDiagnosisEl.textContent = evalResult.diagnosis;
-      ctxCardDiagnosisEl.title = evalResult.diagnosis;
-      ctxCardDiagnosisEl.className = `ctx-metric-value ctx-metric-diagnosis-val is-${evalResult.status}`;
-    }
-
-    // 5. 底座引擎（严格区分磁盘配置与当前运行进程已加载状态）
-    const statusInfo = mapUnlockDisplayStatus(currentUnlockStatus);
-    if (ctxCardClientEl) {
-      if (unlockStatusFetchError) {
-        ctxCardClientEl.textContent = t('status.badge.unavailable');
-      } else if (!currentUnlockStatus) {
-        ctxCardClientEl.textContent = t('status.badge.reading');
-      } else if (runtimePolicy?.runtimeState === 'pending_restart') {
-        ctxCardClientEl.textContent = `磁盘为 ${formatDiskPolicyText(runtimePolicy)}（待重启生效）`;
-      } else if (runtimePolicy?.runtimeState === 'runtime_unconfirmed') {
-        ctxCardClientEl.textContent = `磁盘为 ${formatDiskPolicyText(runtimePolicy)}（运行态未确认）`;
-      } else if (runtimePolicy?.runtimeState === 'partial') {
-        ctxCardClientEl.textContent = '部分异常（请核对客户端状态）';
-      } else if (runtimePolicy?.policyKnown && runtimePolicy.runtimeMode === 'dynamic') {
-        ctxCardClientEl.textContent = '动态跟随已确认运行（各模型独立）';
-      } else if (runtimePolicy?.policyKnown && runtimePolicy.runtimeMode === 'fixed' && runtimePolicy.currentClientLimitTokens != null) {
-        ctxCardClientEl.textContent = `固定单一上限模式 (${formatKShort(runtimePolicy.currentClientLimitTokens)}，建议升级为动态跟随)`;
-      } else {
-        ctxCardClientEl.textContent = describeClientModeValue(currentUnlockStatus);
-      }
-    }
-    if (ctxCardClientTagEl) {
-      if (unlockStatusFetchError || !currentUnlockStatus) {
-        ctxCardClientTagEl.hidden = true;
-      } else {
-        ctxCardClientTagEl.hidden = false;
-        ctxCardClientTagEl.textContent = statusInfo.badge;
-        ctxCardClientTagEl.className = `key-pill ${statusInfo.pillClass}`;
-      }
-    }
-
-    // 6. 实测预算 + 独立 serviceLimit
-    const { latestBudgetObs, latestServiceLimitObs } = findLatestProductObservation(product);
-    const preObs = findPreRestartBudgetForProduct(product);
-    if (ctxCardObservedBudgetEl) {
-      if (pendingRestartVerification && !latestBudgetObs && preObs) {
-        ctxCardObservedBudgetEl.textContent = t('models.card.observedWaitRestart');
-        ctxCardObservedBudgetEl.title = '';
-      } else if (latestBudgetObs?.budget > 0) {
-        const effTxt = latestBudgetObs.effort ? ` · ${formatEffortZh(latestBudgetObs.effort)}` : '';
-        const tTxt = latestBudgetObs.ts ? ` · ${formatMonthDayTime(latestBudgetObs.ts)}` : '';
-        ctxCardObservedBudgetEl.textContent = `${formatKShort(latestBudgetObs.budget)}${effTxt}${tTxt}`;
-        ctxCardObservedBudgetEl.title = t('models.card.observedTitle', { val: fmt(latestBudgetObs.budget) });
-      } else {
-        ctxCardObservedBudgetEl.textContent = t('models.card.observedBudgetNone');
-        ctxCardObservedBudgetEl.title = '';
-      }
-    }
-    if (ctxCardPreRestartBudgetEl) {
-      if (!latestBudgetObs && preObs?.budget > 0) {
-        const effTxt = preObs.effort ? ` · ${formatEffortZh(preObs.effort)}` : '';
-        const tTxt = preObs.ts ? ` · ${formatMonthDayTime(preObs.ts)}` : '';
-        ctxCardPreRestartBudgetEl.textContent = `${t('models.card.preRestartTitle', { val: formatKShort(preObs.budget) }).replace(/ tokens$/, '')}${effTxt}${tTxt}`;
-        ctxCardPreRestartBudgetEl.title = t('models.card.preRestartTitle', { val: fmt(preObs.budget) });
-        ctxCardPreRestartBudgetEl.hidden = false;
-      } else {
-        ctxCardPreRestartBudgetEl.title = '';
-        ctxCardPreRestartBudgetEl.hidden = true;
-      }
-    }
-    if (ctxCardServiceLimitEl) {
-      if (latestServiceLimitObs?.serviceLimit > 0) {
-        const tTxt = latestServiceLimitObs.ts ? `（${formatMonthDayTime(latestServiceLimitObs.ts)}）` : '';
-        ctxCardServiceLimitEl.textContent = `${t('models.card.serviceLimit', { val: formatKShort(latestServiceLimitObs.serviceLimit) })}${tTxt}`;
-        ctxCardServiceLimitEl.title = t('models.card.serviceLimitTitle', { val: fmt(latestServiceLimitObs.serviceLimit) });
-        ctxCardServiceLimitEl.hidden = false;
-      } else {
-        ctxCardServiceLimitEl.title = '';
-        ctxCardServiceLimitEl.hidden = true;
-      }
-    }
-
-    // 7. 实测速度（按档位逐行显示中位数、样本数、时间，不跨档位借用）
-    if (ctxCardObservedSpeedEl) {
-      const mergedCalls = mergeAvailableSpeedCalls();
-      const summaryRows = typeof summarizeSpeedByModel === 'function'
-        ? summarizeSpeedByModel(mergedCalls, { days: 'all', cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [] })
-        : [];
-      const summaryByExact = new Map(summaryRows.map(r => [r.modelExactId, r]));
-      const members = product.members?.length ? product.members : [{ modelId: product.productKey, label: product.productLabel, effort: null }];
-      const lines = [];
-      for (const m of members) {
-        const stat = summaryByExact.get(m.modelId);
-        const prefix = m.effort ? `${formatEffortZh(m.effort)} ` : '';
-        if (stat && stat.medianTps != null) {
-          const tStr = stat.maxTs ? ` · ${formatMonthDayTime(stat.maxTs)}` : '';
-          const lowNote = stat.lowSample ? t('models.card.lowSampleParen') : '';
-          lines.push(t('models.card.speedLineText', { prefix, tps: stat.medianTps, count: stat.count, low: lowNote, ts: tStr }));
-        } else {
-          lines.push(`${prefix}${t('models.card.observedSpeedNone')}`);
-        }
-      }
-      if (typeof document !== 'undefined' && typeof document.createElement === 'function' && typeof ctxCardObservedSpeedEl.replaceChildren === 'function') {
-        const lineNodes = lines.map(txt => {
-          const d = document.createElement('div');
-          d.textContent = txt;
-          return d;
-        });
-        ctxCardObservedSpeedEl.replaceChildren(...lineNodes);
-      } else {
-        ctxCardObservedSpeedEl.textContent = lines.join(' | ');
-      }
-    }
-
-    // 8. 提示规则与 Notice 说明
-    if (ctxCardHintsEl) {
-      const hints = [];
-      if (product.notice) {
-        const nText = typeof product.notice === 'string' ? product.notice : (product.notice.message || JSON.stringify(product.notice));
-        hints.push(`模型提示：${nText}`);
-      }
-      if (product.unavailable && product.unavailabilityReason) {
-        hints.push(`不可用原因：${product.unavailabilityReason}`);
-      } else if (product.partialUnavailable && product.unavailabilityReason) {
-        hints.push(`部分档位受限：${product.unavailabilityReason}`);
-      }
-      if (
-        currentUnlockStatus?.configuredMode === 'fixed' &&
-        currentUnlockStatus.configuredLimitTokens &&
-        pState.pref &&
-        !(pState.pref.mode === 'fixed' && Number(pState.pref.limitTokens) === Number(currentUnlockStatus.configuredLimitTokens))
-      ) {
-        hints.push(t('models.card.hintDiffClient'));
-      }
-      if (pState.pref?.mode === 'dynamic') {
-        hints.push(t('models.validation.dynamicDesc'));
-      }
-      if (
-        currentUnlockStatus?.configuredMode === 'fixed' &&
-        currentUnlockStatus.configuredLimitTokens > 0 &&
-        latestBudgetObs?.budget > 0 &&
-        latestBudgetObs.budget < currentUnlockStatus.configuredLimitTokens
-      ) {
-        hints.push(t('models.card.hintBelowSet'));
-      }
-      if (hints.length > 0) {
-        ctxCardHintsEl.hidden = false;
-        if (typeof document !== 'undefined' && typeof document.createElement === 'function' && typeof ctxCardHintsEl.replaceChildren === 'function') {
-          const nodes = hints.map(h => {
-            const div = document.createElement('div');
-            div.className = 'ctx-card-hint-item';
-            div.textContent = h;
-            return div;
-          });
-          ctxCardHintsEl.replaceChildren(...nodes);
-        } else {
-          ctxCardHintsEl.textContent = hints.join(' ');
-        }
-      } else {
-        ctxCardHintsEl.hidden = true;
-      }
-    }
-
-    // 9. 精简主界面展示：当前模式、当前模型、目标设置与状态
-    if (ctxSummaryModeEl) {
-      ctxSummaryModeEl.textContent = contextScopeMode === 'unified'
-        ? (t('models.mode.unifiedTitle') || '所有模型统一设置')
-        : (t('models.mode.perModelTitle') || '按模型分别设置');
-    }
-    if (ctxSummaryModelEl) {
-      if (contextScopeMode === 'unified') {
-        ctxSummaryModelEl.textContent = t('models.summary.unifiedTarget') || '所有模型（统一生效）';
-      } else if (activeSessionModelConfirmed && activeSessionProductKey === product.productKey) {
-        ctxSummaryModelEl.textContent = product.productLabel;
-      } else if (activeSessionModelConfirmed && activeSessionProductKey) {
-        const cur = getKnownModelProducts().find(p => p.productKey === activeSessionProductKey);
-        ctxSummaryModelEl.textContent = cur ? cur.productLabel : product.productLabel;
-      } else if (product) {
-        ctxSummaryModelEl.textContent = product.productLabel;
-      } else {
-        ctxSummaryModelEl.textContent = '待确认';
-      }
-    }
-    if (ctxSummaryLengthEl) {
-      ctxSummaryLengthEl.textContent = evalResult.targetText;
-    }
-    if (ctxSummaryStatusPillEl) {
-      if (needsRestartAfterApply) {
-        ctxSummaryStatusPillEl.hidden = false;
-        ctxSummaryStatusPillEl.textContent = t('models.summary.pendingRestart') || '待重启生效';
-        ctxSummaryStatusPillEl.className = 'key-pill pill-warn';
-      } else {
-        ctxSummaryStatusPillEl.hidden = false;
-        ctxSummaryStatusPillEl.textContent = evalResult.badge;
-        ctxSummaryStatusPillEl.className = `key-pill ${evalResult.pillClass}`;
-      }
-    }
-
-    if (btnSaveModelCtx) btnSaveModelCtx.disabled = (contextScopeMode === 'unified') ? false : !product;
-    if (btnResetModelCtx) btnResetModelCtx.disabled = (contextScopeMode === 'unified') ? false : !product;
-  }
-
-  function renderPresetSelectionUI() {
-    const targetMode = ctxDraft.mode;
-    const targetLimit = ctxDraft.limitTokens;
-    const isUnified = contextScopeMode === 'unified';
-    const currentProd = isUnified ? null : getSelectedProductObj();
-    const capSummary = currentProd ? getProductCapabilitySummary(currentProd) : null;
-    const knownEnvMax = (!isUnified && capSummary?.maxAdjustableTokens != null) ? capSummary.maxAdjustableTokens : null;
-    const knownModelMax = (!isUnified && capSummary?.modelTheoreticalMaxTokens != null) ? capSummary.modelTheoreticalMaxTokens : null;
-    const rawWindowMax = (!isUnified && capSummary?.maxTokens != null) ? capSummary.maxTokens : knownModelMax;
-    const rp = capSummary?.runtimePolicy || resolveRuntimeUnlockPolicyClient();
-    const policyKnown = Boolean(rp?.policyKnown);
-
-    if (ctxPresetModelMaxSubEl) {
-      if (isUnified) {
-        ctxPresetModelMaxSubEl.textContent = '统一模式下各模型不同（已禁用）';
-      } else if (knownEnvMax != null) {
-        ctxPresetModelMaxSubEl.textContent = `当前环境最大可采纳：${fmt(knownEnvMax)} tokens`;
-      } else if (!policyKnown && knownModelMax != null) {
-        ctxPresetModelMaxSubEl.textContent = `运行策略未确认（模型理论上限 ${fmt(knownModelMax)}，暂不可用）`;
-      } else {
-        ctxPresetModelMaxSubEl.textContent = '模型元数据待获取（暂不可用）';
-      }
-    }
-
-    const btns = ctxPresetGrid?.children || [];
-    const applyPresetState = btn => {
-      if (!btn) return;
-      const bMode = btn.getAttribute?.('data-ctx-mode') || btn.dataset?.ctxMode;
-      const bLimRaw = btn.getAttribute?.('data-ctx-limit') ?? btn.dataset?.ctxLimit;
-      const bLim = bLimRaw ? Number(bLimRaw) : null;
-
-      let disabled = false;
-      let disableReason = '';
-      if (bMode === 'model_max') {
-        if (isUnified) {
-          disabled = true;
-          disableReason = '统一模式下各模型最大可用上限不同，请切换到按模型分别设置或填写具体数值。';
-        } else if (knownModelMax == null) {
-          disabled = true;
-          disableReason = '尚未获取到该模型的上下文窗口与最大输出元数据，无法计算最大可用值。';
-        } else if (!policyKnown || knownEnvMax == null) {
-          disabled = true;
-          disableReason = '当前客户端运行策略未知或待重启确认，暂无法确定当前环境最大可用上限。';
-        }
-      } else if (bMode === 'fixed' && bLim && rawWindowMax != null && bLim > rawWindowMax) {
-        disabled = true;
-        disableReason = `预设 ${fmt(bLim)} 超出当前模型总上下文窗口 ${fmt(rawWindowMax)} tokens。`;
-      }
-
-      if ('disabled' in btn) btn.disabled = disabled;
-      if (btn.classList) {
-        if (disabled) btn.classList.add('is-disabled');
-        else btn.classList.remove('is-disabled');
-      }
-      if ('title' in btn) btn.title = disableReason;
-
-      const matched = !disabled && (
-        (bMode === 'model_max' && targetMode === 'fixed' && knownEnvMax != null && targetLimit === knownEnvMax) ||
-        (bMode === targetMode && (targetMode !== 'fixed' || bLim === targetLimit))
-      );
-      if (btn.classList) {
-        if (matched) btn.classList.add('active');
-        else btn.classList.remove('active');
-      }
-      btn.setAttribute?.('aria-pressed', String(Boolean(matched)));
-    };
-    if (typeof ctxPresetGrid?.querySelectorAll === 'function') {
-      const list = ctxPresetGrid.querySelectorAll('.ctx-preset-btn');
-      if (list && typeof list.length === 'number') {
-        for (let i = 0; i < list.length; i++) applyPresetState(list[i]);
-      }
-    } else if (Array.isArray(btns)) {
-      for (const b of btns) applyPresetState(b);
-    }
-
-    if (ctxCustomInput && 'value' in ctxCustomInput) {
-      if (targetMode === 'dynamic') {
-        ctxCustomInput.value = '';
-        ctxCustomInput.placeholder = t('models.input.phFollow');
-      } else if (targetMode === 'default') {
-        ctxCustomInput.value = '';
-        ctxCustomInput.placeholder = t('models.input.phDefault');
-      } else if (targetLimit != null) {
-        const cleanVal = String(targetLimit);
-        if (ctxCustomInput.value !== cleanVal && !ctxDraftDirty) {
-          ctxCustomInput.value = cleanVal;
-        }
-      }
-    }
-    updateValidationMessageUI();
-  }
-
-  function updateValidationMessageUI() {
-    if (!ctxValidationEl) return;
-    if (ctxDraft.mode === 'dynamic') {
-      ctxValidationEl.className = 'ctx-validation-msg';
-      ctxValidationEl.textContent = t('models.validation.dynamicDesc');
-      return;
-    }
-    if (ctxDraft.mode === 'default') {
-      ctxValidationEl.className = 'ctx-validation-msg';
-      ctxValidationEl.textContent = '恢复客户端默认：请求将清除 maxTokenLimit 覆盖，由当前语言服务全局模式决定（若已开 Dynamic 则按动态默认）。';
-      return;
-    }
-    const rawVal = ctxCustomInput && 'value' in ctxCustomInput && ctxCustomInput.value !== ''
-      ? ctxCustomInput.value
-      : ctxDraft.limitTokens;
-    const val = validateCustomLimitClient(rawVal, 'fixed');
-    if (!val.ok) {
-      ctxValidationEl.className = 'ctx-validation-msg is-error';
-      ctxValidationEl.textContent = val.error;
-      return;
-    }
-    if (val.warnings && val.warnings.length > 0) {
-      ctxValidationEl.className = 'ctx-validation-msg is-warn';
-      ctxValidationEl.textContent = val.warnings.join(' ');
-      return;
-    }
-    ctxValidationEl.className = 'ctx-validation-msg';
-    ctxValidationEl.textContent = t('models.input.validFixed', { short: formatKShort(val.limitTokens), full: fmt(val.limitTokens) });
-  }
-
-  function loadDraftFromSelectedModel(forceResetDraft = false) {
-    if (!ctxDraftDirty || forceResetDraft) {
-      if (contextScopeMode === 'unified') {
-        const pref = contextUnifiedPreference;
-        if (pref && pref.mode) {
-          ctxDraft = {
-            mode: pref.mode || 'default',
-            limitTokens: pref.mode === 'fixed' ? (pref.limitTokens || null) : null
-          };
-        } else {
-          ctxDraft = { mode: 'default', limitTokens: null };
-        }
-      } else {
-        const prod = getSelectedProductObj();
-        const pState = resolveProductPreferenceState(prod);
-        const pref = pState.pref;
-        if (pref) {
-          ctxDraft = {
-            mode: pref.mode || 'default',
-            limitTokens: pref.mode === 'fixed' ? (pref.limitTokens || null) : null
-          };
-        } else {
-          const rp = resolveRuntimeUnlockPolicyClient();
-          if (rp?.policyKnown && rp.runtimeMode !== 'unknown' && rp.runtimeMode !== 'partial') {
-            ctxDraft = {
-              mode: rp.runtimeMode,
-              limitTokens: rp.runtimeMode === 'fixed' ? (rp.currentClientLimitTokens ?? null) : null
-            };
-          } else {
-            ctxDraft = { mode: 'default', limitTokens: null };
-          }
-        }
-      }
-      ctxDraftDirty = false;
-      if (ctxCustomInput && 'value' in ctxCustomInput) {
-        ctxCustomInput.value = (ctxDraft.mode === 'fixed' && ctxDraft.limitTokens != null) ? String(ctxDraft.limitTokens) : '';
-      }
-    }
-    renderModelSettingsTab();
-    renderPresetSelectionUI();
-  }
-
-  function renderModelSettingsTab() {
-    const products = getKnownModelProducts();
-    const currentProd = getSelectedProductObj();
-    if (btnModeUnified) {
-      if (contextScopeMode === 'unified') addClass(btnModeUnified, 'is-active');
-      else removeClass(btnModeUnified, 'is-active');
-      btnModeUnified.setAttribute('aria-checked', contextScopeMode === 'unified' ? 'true' : 'false');
-    }
-    if (btnModePerModel) {
-      if (contextScopeMode === 'per_model') addClass(btnModePerModel, 'is-active');
-      else removeClass(btnModePerModel, 'is-active');
-      btnModePerModel.setAttribute('aria-checked', contextScopeMode === 'per_model' ? 'true' : 'false');
-    }
-    if (ctxModelsToolbar) {
-      ctxModelsToolbar.hidden = (contextScopeMode === 'unified');
-    }
-    if (ctxModelListEl) {
-      ctxModelListEl.hidden = (contextScopeMode === 'unified');
-    }
-    renderCompactSessionCard();
-    renderClientStatusBar();
-    renderModelListGroup(products);
-    renderModelDetailCard(currentProd);
-    renderPresetSelectionUI();
-  }
-
-  function recordObservationFromSummary(summary, convoId, opts = {}) {
-    if (!summary) return;
-    const rawId = resolveStableModelKeyClient(summary);
-    if (!rawId && !summary.model) return;
-    const g = groupProductSafe({
-      modelId: rawId || summary.model,
-      label: summary.model || rawId,
-      modelOrAlias: summary.modelOrAlias,
-      effort: summary.effort
-    });
-    if (!g?.productKey) return;
-
-    if (budgetTracker && (summary.budget > 0 || summary.serviceLimit > 0 || opts.callId)) {
-      budgetTracker.recordObservation({
-        convoId: convoId || state.activeConversationId || state.route || null,
-        productKey: g.productKey,
-        modelId: rawId || g.productKey,
-        modelLabel: summary.model || g.productLabel,
-        effort: g.effort || summary.effort || null,
-        budget: Number(summary.budget || 0),
-        serviceLimit: Number(summary.serviceLimit || 0),
-        callId: opts.callId || null,
-        stepCount: Number.isFinite(opts.stepCount) ? opts.stepCount : -1,
-        ts: opts.ts || 0
-      });
+      box.hidden = true;
     }
   }
 
-  function syncContextModelSelectionFromState() {
-    const prevProd = activeSessionProductKey;
-    const activeConvId = state.activeConversationId || state.conversationId || state.route || null;
+  function applyContextViewVisibility() {
+    if (ctxTabsBar) ctxTabsBar.hidden = false;
+    if (paneSettings) paneSettings.hidden = activeContextTab !== 'settings';
+    if (paneSession) paneSession.hidden = activeContextTab !== 'session';
+    if (paneSpeed) paneSpeed.hidden = activeContextTab !== 'speed';
 
-    // 1. 最高优先级：宿主输入框旁真实选中的模型（排除插件自身 DOM）
-    const hostSelected = extractHostSelectedModel();
-    let exactId = null;
-    let detectedProduct = null;
-    let detectedEffort = null;
-    let isConfirmed = false;
-
-    if (hostSelected && hostSelected.productKey) {
-      exactId = hostSelected.modelId;
-      detectedProduct = hostSelected.productKey;
-      detectedEffort = hostSelected.effort;
-      isConfirmed = true;
-    } else if (state.latest && activeConvId) {
-      // 2. 次优先级：检查 state.latest 是否属于当前活跃会话且非历史归档模型
-      const candidateId = resolveStableModelKeyClient(state.latest);
-      if (candidateId) {
-        const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
-        const matchedCfg = Array.isArray(configs) && configs.length > 0
-          ? configs.find(c => (resolveStableModelKeyClient(c) || c.modelId) === candidateId)
-          : null;
-        const isAllowedInCatalog = Array.isArray(configs) && configs.length > 0
-          ? Boolean(matchedCfg && !matchedCfg.isHistorical)
-          : true;
-        if (isAllowedInCatalog) {
-          const g = groupProductSafe({
-            modelId: candidateId,
-            label: state.latest?.model || candidateId,
-            modelOrAlias: state.latest?.modelOrAlias,
-            effort: state.latest?.effort
-          });
-          exactId = candidateId;
-          detectedProduct = g.productKey;
-          detectedEffort = g.effort || state.latest?.effort || null;
-          isConfirmed = true;
-        }
-      }
+    setPillActive(btnTabSession, activeContextTab === 'session');
+    setPillActive(btnTabSpeed, activeContextTab === 'speed');
+    setPillActive(btnTabSettings, activeContextTab === 'settings');
+    btnTabSession?.setAttribute('aria-selected', String(activeContextTab === 'session'));
+    btnTabSpeed?.setAttribute('aria-selected', String(activeContextTab === 'speed'));
+    btnTabSettings?.setAttribute('aria-selected', String(activeContextTab === 'settings'));
+    if (!el('panel')?.hidden) {
+      el('badge-cache')?.setAttribute('aria-expanded', String(activeContextTab === 'session'));
     }
+  }
 
-    if (isConfirmed && exactId && detectedProduct) {
-      activeSessionModelKey = exactId;
-      activeSessionProductKey = detectedProduct;
-      activeSessionEffort = detectedEffort;
-      activeSessionModelConfirmed = true;
-      // 严禁在此处用 Date.now() 伪造观测时间戳；仅当无观测记录且有明确后端快照时保留已有真实观测
-    } else {
-      activeSessionModelConfirmed = false;
-      activeSessionModelKey = null;
-      activeSessionProductKey = null;
-      activeSessionEffort = null;
-    }
+  let prevTabBeforeSettings = 'session';
 
-    if (activeSessionModelConfirmed && activeSessionProductKey && (!manualModelSelection || !selectedProductKey)) {
-      const switched = prevProd !== activeSessionProductKey || selectedProductKey !== activeSessionProductKey;
-      selectedProductKey = activeSessionProductKey;
-      selectedEditModelKey = activeSessionModelKey;
-      if (switched) {
-        ctxDraftDirty = false;
-        loadDraftFromSelectedModel(true);
-      }
+  function switchContextTab(tabName) {
+    if (tabName !== 'session' && tabName !== 'speed' && tabName !== 'settings') return;
+    if (activeContextTab !== 'settings') {
+      prevTabBeforeSettings = activeContextTab;
     }
-    renderHeaderModelDropdown();
-    renderCompactSessionCard();
-    if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-    if (!isContextSettingsView && activeContextTab === 'models') {
-      renderModelSettingsTab();
-    } else if (!isContextSettingsView && activeContextTab === 'speed') {
+    activeContextTab = tabName;
+    isContextSettingsView = tabName === 'settings';
+    try { localStorage?.setItem(CTX_ACTIVE_TAB_KEY, tabName); } catch {}
+    applyContextViewVisibility();
+    if (tabName === 'speed') {
       renderSpeedComparisonTab();
+    } else if (tabName === 'settings') {
+      renderSshRemoteContextBanners();
+      void refreshModulesDisplay();
+      void refreshCliUnlockDisplay();
     }
+    positionFloatingPanels();
   }
 
-  ctxPresetGrid?.addEventListener('click', async (e) => {
-    const btn = e?.target?.closest?.('.ctx-preset-btn');
-    if (!btn || btn.disabled) return;
-    const mode = btn.getAttribute?.('data-ctx-mode') || btn.dataset?.ctxMode || 'default';
-    const rawLim = btn.getAttribute?.('data-ctx-limit') ?? btn.dataset?.ctxLimit;
-    ctxDraftDirty = true;
-    if (mode === 'dynamic') {
-      ctxDraft = { mode: 'dynamic', limitTokens: null };
-    } else if (mode === 'default') {
-      ctxDraft = { mode: 'default', limitTokens: null };
-    } else {
-      const lim = Number(rawLim || 512000);
-      ctxDraft = { mode: 'fixed', limitTokens: lim };
+  function openContextSettings(opts = {}) {
+    if (el('panel')?.hidden) showPanel('context');
+    switchContextTab('settings');
+    if (opts.openColors) {
+      toggleColorsDrawer(true);
     }
-    if (ctxCustomInput && 'value' in ctxCustomInput) {
-      ctxCustomInput.value = (ctxDraft.mode === 'fixed' && ctxDraft.limitTokens != null) ? String(ctxDraft.limitTokens) : '';
-    }
-    if (ctxResetNoticeEl) ctxResetNoticeEl.hidden = true;
-    renderPresetSelectionUI();
+    positionFloatingPanels();
+  }
 
-    const saved = await saveCurrentProductDraft();
-    if (saved.stale) return;
-    if (!saved.ok) {
-      showUnlockResultBox(false, saved.error);
-      return;
-    }
-
-    let needsRestart = false;
-    const needBackendUnlock = (ctxDraft.mode === 'dynamic' || Number(ctxDraft.limitTokens) > 256000)
-      && (!currentUnlockStatus || currentUnlockStatus.status === 'not_patched');
-    if (needBackendUnlock) {
-      try {
-        const uRes = await invokeUnlockApi('apply', {
-          mode: 'dynamic',
-          limitTokens: null,
-          serviceLimit: state.latest?.serviceLimit || undefined
-        });
-        if (!uRes || !uRes.ok) {
-          showUnlockResultBox(false, buildFriendlyWriteError(uRes?.error), { showRetry: true });
-          return;
-        }
-        needsRestart = Boolean(uRes.needsRestart);
-        if (needsRestart) needsRestartAfterApply = true;
-        await refreshUnlockStatus();
-      } catch (err) {
-        showUnlockResultBox(false, buildFriendlyWriteError(err?.message), { showRetry: true });
-        return;
-      }
-    }
-
-    const targetLbl = ctxDraft.mode === 'dynamic'
-      ? t('twp.preset.dynamic')
-      : ctxDraft.mode === 'default'
-        ? t('models.preset.default')
-        : formatKShort(ctxDraft.limitTokens || 256000);
-    const doneMsg = saved.notice
-      || (needsRestart ? t('twp.savedNeedRestart', { target: targetLbl }) : t('twp.savedDone', { target: targetLbl }));
-    showUnlockResultBox(true, doneMsg, { needsRestart });
-    if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-    renderCompactSessionCard();
-    render();
-  });
-
-  ctxCustomInput?.addEventListener('input', () => {
-    const rawStr = String(ctxCustomInput.value || '').trim();
-    ctxDraftDirty = true;
-    if (ctxResetNoticeEl) ctxResetNoticeEl.hidden = true;
-    if (!rawStr) {
-      ctxDraft = { mode: 'fixed', limitTokens: null };
-      renderPresetSelectionUI();
-      return;
-    }
-    const val = validateCustomLimitClient(rawStr, 'fixed');
-    ctxDraft = {
-      mode: 'fixed',
-      limitTokens: val.ok ? val.limitTokens : null
-    };
-    renderPresetSelectionUI();
-  });
-  ctxCustomInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      btnSaveModelCtx?.click?.();
-    }
-  });
+  btnTabSession?.addEventListener('click', () => switchContextTab('session'));
+  btnTabSpeed?.addEventListener('click', () => switchContextTab('speed'));
+  btnTabSettings?.addEventListener('click', () => switchContextTab('settings'));
 
   async function saveSettingsPayloadBridge(payload = {}) {
     if (window.contextMeterAPI?.saveSettings) {
@@ -13797,317 +8766,6 @@
       return await r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
     }
     return { ok: false, error: t('msg.noHostBridge') };
-  }
-
-  function showUnlockResultBox(isSuccess, html, opts = {}) {
-    if (!unlockResultBox || !unlockResultText) return;
-    unlockResultBox.style.display = 'block';
-    unlockResultBox.className = `unlock-result-box ${isSuccess ? 'result-success' : 'result-error'}`;
-    unlockResultText.innerHTML = html;
-    const canRestartHost = Boolean(hostSupportsRestart);
-    const needRestart = Boolean(opts.needsRestart);
-    const showRetry = Boolean(opts.showRetry);
-    if (btnUnlockResultRestart) btnUnlockResultRestart.hidden = !(needRestart && canRestartHost);
-    if (btnUnlockResultRetry) btnUnlockResultRetry.hidden = !showRetry;
-    if (unlockResultManual) unlockResultManual.hidden = !(needRestart && !canRestartHost);
-    if (unlockResultActions) unlockResultActions.hidden = !((needRestart && canRestartHost) || showRetry);
-  }
-
-  async function saveCurrentProductDraft() {
-    if (contextScopeMode === 'unified') {
-      const rawLimit = ctxDraft.mode === 'fixed'
-        ? (ctxCustomInput && 'value' in ctxCustomInput && ctxCustomInput.value !== '' ? ctxCustomInput.value : ctxDraft.limitTokens)
-        : ctxDraft.limitTokens;
-      const val = validateCustomLimitClient(rawLimit, ctxDraft.mode);
-      if (!val.ok) {
-        updateValidationMessageUI();
-        return { ok: false, error: val.error };
-      }
-      contextUnifiedPreference = {
-        modelId: 'unified',
-        mode: val.mode,
-        limitTokens: val.limitTokens,
-        updatedAt: new Date().toISOString()
-      };
-      const res = await saveSettingsPayloadBridge({
-        contextUnifiedPreference,
-        contextScopeMode: 'unified'
-      });
-      if (!res || !res.ok) {
-        return { ok: false, error: translateBackendText(res?.error) || t('msg.saveFail') };
-      }
-      syncContextPreferencesCache(contextPreferencesMap);
-      ctxDraftDirty = false;
-      renderModelSettingsTab();
-      let notice = null;
-      if (val.mode === 'fixed' && typeof budgetEngine.projectUnifiedBudgetForProducts === 'function') {
-        const projs = budgetEngine.projectUnifiedBudgetForProducts(contextUnifiedPreference, getKnownModelProducts().filter(p => p.inAccountCatalog), currentUnlockStatus, state.modelCapabilitiesById || null);
-        const clampedModel = projs.filter(p => p.outcome === 'clamped_to_model_max');
-        const clampedClient = projs.filter(p => p.outcome === 'exceeds_client_policy' || p.outcome === 'clamped_by_client_policy');
-        const unconfirmed = projs.filter(p => p.outcome === 'pending_restart_unconfirmed' || p.outcome === 'runtime_unconfirmed' || p.outcome === 'partial_policy_unconfirmed' || p.outcome === 'unknown_policy');
-        const msgParts = [];
-        if (clampedModel.length > 0) {
-          msgParts.push(`部分模型低于统一值：${clampedModel.map(c => `${c.productLabel}(上限 ${fmt(c.projectedTokens)})`).join('、')} 预计仅采用各自最大可用上限`);
-        }
-        if (clampedClient.length > 0) {
-          msgParts.push(`当前客户端限制为 ${fmt(clampedClient[0].clientLimitTokens)} tokens，超限模型预计仅保底 ${clampedClient.map(c => `${c.productLabel}(${fmt(c.projectedTokens)})`).join('、')}`);
-        }
-        if (unconfirmed.length > 0) {
-          msgParts.push('当前客户端运行策略尚未确认/待重启，统一值能否实机采用需后续发送请求验证');
-        }
-        if (msgParts.length > 0) {
-          notice = `已保存统一目标 ${fmt(val.limitTokens)} tokens。注意：${msgParts.join('；')}。`;
-        }
-      }
-      return { ok: true, prod: null, val, notice };
-    }
-
-    const prod = getSelectedProductObj();
-    if (!prod) {
-      return { ok: false, error: t('msg.noModelsDetected') };
-    }
-    const rawLimit = ctxDraft.mode === 'fixed'
-      ? (ctxCustomInput && 'value' in ctxCustomInput && ctxCustomInput.value !== '' ? ctxCustomInput.value : ctxDraft.limitTokens)
-      : ctxDraft.limitTokens;
-    const val = validateCustomLimitClient(rawLimit, ctxDraft.mode, prod);
-    if (!val.ok) {
-      updateValidationMessageUI();
-      return { ok: false, error: val.error };
-    }
-    if (val.exceedsModelLimit) {
-      updateValidationMessageUI();
-      const capSummary = getProductCapabilitySummary(prod);
-      const modelMaxCap = capSummary?.modelTheoreticalMaxTokens ?? val.adoptableTokens;
-      const capText = modelMaxCap != null ? `${fmt(modelMaxCap)} tokens` : '已知模型理论上限';
-      return {
-        ok: false,
-        error: `输入 ${fmt(val.limitTokens)} 超出 ${prod.productLabel} 模型理论输入上限 ${capText}（依据元数据：总窗口 - 最大输出）。请修改为 <= ${capText} 或重新选择合法档位，系统不会静默改写数值。`
-      };
-    }
-    const legacyKeys = resolveProductPreferenceState(prod).legacyKeys;
-    const thisSaveSeq = ++contextPrefSaveSeq;
-    const res = await saveSettingsPayloadBridge({
-      contextPreference: {
-        scope: 'product',
-        productKey: prod.productKey,
-        modelId: prod.productKey,
-        label: prod.productLabel,
-        mode: val.mode,
-        limitTokens: val.limitTokens,
-        clearLegacyKeys: legacyKeys
-      }
-    });
-    if (thisSaveSeq !== contextPrefSaveSeq) return { ok: false, stale: true };
-    if (!res || !res.ok) {
-      return { ok: false, error: translateBackendText(res?.error) || t('msg.saveFail') };
-    }
-    if (res.contextPreferences && typeof res.contextPreferences === 'object') {
-      contextPreferencesMap = { ...res.contextPreferences };
-    } else {
-      for (const lk of legacyKeys) delete contextPreferencesMap[lk];
-      contextPreferencesMap[prod.productKey] = {
-        scope: 'product',
-        productKey: prod.productKey,
-        modelId: prod.productKey,
-        label: prod.productLabel,
-        mode: val.mode,
-        limitTokens: val.limitTokens,
-        updatedAt: new Date().toISOString()
-      };
-    }
-    syncContextPreferencesCache(contextPreferencesMap);
-    ctxDraftDirty = false;
-    renderHeaderModelDropdown();
-    renderModelSettingsTab();
-    return { ok: true, prod, val };
-  }
-
-  btnSaveModelCtx?.addEventListener('click', async () => {
-    if (ctxResetNoticeEl) ctxResetNoticeEl.hidden = true;
-    const res = await saveCurrentProductDraft();
-    if (res.stale) return;
-    if (!res.ok) {
-      showUnlockResultBox(false, res.error);
-      return;
-    }
-    showUnlockResultBox(true, res.notice || t('models.status.savedPendingDispatch') || '已保存，下一次发送时尝试应用');
-    if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-    renderCompactSessionCard();
-    render();
-  });
-
-  btnResetModelCtx?.addEventListener('click', async () => {
-    if (contextScopeMode === 'unified') {
-      contextUnifiedPreference = {
-        modelId: 'unified',
-        mode: 'default',
-        limitTokens: null,
-        updatedAt: new Date().toISOString()
-      };
-      const res = await saveSettingsPayloadBridge({
-        contextUnifiedPreference: { mode: 'default' },
-        contextScopeMode: 'unified'
-      });
-      if (!res || !res.ok) {
-        showUnlockResultBox(false, t('msg.clearFail', { err: translateBackendText(res?.error) || t('msg.unknownErr') }));
-        return;
-      }
-      syncContextPreferencesCache(contextPreferencesMap);
-      ctxDraft = { mode: 'default', limitTokens: null };
-      ctxDraftDirty = false;
-      if (ctxCustomInput && 'value' in ctxCustomInput) ctxCustomInput.value = '';
-      renderModelSettingsTab();
-      renderPresetSelectionUI();
-      showUnlockResultBox(true, t('models.summary.modelDefault') || '已恢复默认值');
-      return;
-    }
-
-    const prod = getSelectedProductObj();
-    if (!prod) return;
-    const pState = resolveProductPreferenceState(prod);
-    const oldSavedPref = pState.pref;
-    const clearAll = [prod.productKey, ...pState.legacyKeys];
-    const thisSaveSeq = ++contextPrefSaveSeq;
-    const res = await saveSettingsPayloadBridge({
-      clearContextPreferences: clearAll
-    });
-    if (thisSaveSeq !== contextPrefSaveSeq) return;
-    if (!res || !res.ok) {
-      showUnlockResultBox(false, t('msg.clearFail', { err: translateBackendText(res?.error) || t('msg.unknownErr') }));
-      return;
-    }
-    if (res.contextPreferences && typeof res.contextPreferences === 'object') {
-      contextPreferencesMap = { ...res.contextPreferences };
-    } else {
-      for (const k of clearAll) delete contextPreferencesMap[k];
-    }
-    syncContextPreferencesCache(contextPreferencesMap);
-    ctxDraft = { mode: 'default', limitTokens: null };
-    ctxDraftDirty = false;
-    if (ctxCustomInput && 'value' in ctxCustomInput) ctxCustomInput.value = '';
-    renderHeaderModelDropdown();
-    renderModelSettingsTab();
-    renderPresetSelectionUI();
-    if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-    render();
-
-    if (ctxResetNoticeEl) {
-      const clientUsingSame = oldSavedPref && currentUnlockStatus && (
-        (oldSavedPref.mode === 'dynamic' && currentUnlockStatus.configuredMode === 'dynamic') ||
-        (oldSavedPref.mode === 'fixed' && currentUnlockStatus.configuredMode === 'fixed' && Number(oldSavedPref.limitTokens) === Number(currentUnlockStatus.configuredLimitTokens))
-      );
-      if (clientUsingSame) {
-        const curVal = describeClientModeValue(currentUnlockStatus);
-        ctxResetNoticeEl.textContent = t('msg.resetStillUsing', { val: curVal });
-        ctxResetNoticeEl.hidden = false;
-      } else {
-        ctxResetNoticeEl.hidden = true;
-      }
-    }
-    showUnlockResultBox(true, t('msg.resetDefault'));
-  });
-
-  function setScopeMode(newMode) {
-    contextScopeMode = newMode === 'per_model' ? 'per_model' : 'unified';
-    if (btnModeUnified) {
-      if (contextScopeMode === 'unified') addClass(btnModeUnified, 'is-active');
-      else removeClass(btnModeUnified, 'is-active');
-      btnModeUnified.setAttribute('aria-checked', contextScopeMode === 'unified' ? 'true' : 'false');
-    }
-    if (btnModePerModel) {
-      if (contextScopeMode === 'per_model') addClass(btnModePerModel, 'is-active');
-      else removeClass(btnModePerModel, 'is-active');
-      btnModePerModel.setAttribute('aria-checked', contextScopeMode === 'per_model' ? 'true' : 'false');
-    }
-    if (ctxModelsToolbar) {
-      ctxModelsToolbar.hidden = (contextScopeMode === 'unified');
-    }
-    if (ctxModelListEl) {
-      ctxModelListEl.hidden = (contextScopeMode === 'unified');
-    }
-    syncContextPreferencesCache(contextPreferencesMap);
-    void saveSettingsPayloadBridge({ contextScopeMode });
-    loadDraftFromSelectedModel(true);
-    const prod = getSelectedProductObj();
-    if (prod) renderModelDetailCard(prod);
-    renderCompactSessionCard();
-    if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-    render();
-  }
-
-  btnModeUnified?.addEventListener('click', () => setScopeMode('unified'));
-  btnModePerModel?.addEventListener('click', () => setScopeMode('per_model'));
-
-  async function invokeUnlockApi(endpoint, payload = {}) {
-    if (endpoint === 'status' && window.contextMeterAPI?.getContextUnlockStatus) {
-      return await window.contextMeterAPI.getContextUnlockStatus(payload);
-    }
-    if (endpoint === 'apply' && window.contextMeterAPI?.applyContextUnlock) {
-      return await window.contextMeterAPI.applyContextUnlock(payload);
-    }
-    if (endpoint === 'restore' && window.contextMeterAPI?.restoreContextUnlock) {
-      return await window.contextMeterAPI.restoreContextUnlock(payload);
-    }
-    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
-      const live = window.__AGContextMeterLive;
-      const r = await fetch(`http://127.0.0.1:${live.port}/context-unlock-${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
-        body: JSON.stringify(payload)
-      });
-      return await r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
-    }
-    return { ok: false, error: t('models.err.noApplyBridge') };
-  }
-
-  async function invokeRestartHostApi() {
-    if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.restartHost === 'function') {
-      return await window.contextMeterAPI.restartHost();
-    }
-    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
-      const live = window.__AGContextMeterLive;
-      const r = await fetch(`http://127.0.0.1:${live.port}/restart-host`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
-        body: '{}'
-      });
-      return await r.json().catch(() => ({ ok: true, supported: false }));
-    }
-    return { ok: true, supported: false };
-  }
-
-  async function invokeEnhanceApi(endpoint, payload = {}) {
-    if (endpoint === 'status' && window.contextMeterAPI?.getEnhanceStatus) {
-      return await window.contextMeterAPI.getEnhanceStatus(payload);
-    }
-    if (endpoint === 'apply' && window.contextMeterAPI?.applyEnhancePatch) {
-      return await window.contextMeterAPI.applyEnhancePatch(payload);
-    }
-    if (endpoint === 'restore' && window.contextMeterAPI?.restoreAllEnhance) {
-      return await window.contextMeterAPI.restoreAllEnhance(payload);
-    }
-    if (endpoint === 'restart-ls' && window.contextMeterAPI?.restartLanguageServers) {
-      return await window.contextMeterAPI.restartLanguageServers(payload);
-    }
-    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
-      const live = window.__AGContextMeterLive;
-      const routeMap = {
-        status: '/enhance-status',
-        apply: '/enhance-apply',
-        restore: '/enhance-restore',
-        'restart-ls': '/restart-language-servers'
-      };
-      const path = routeMap[endpoint];
-      if (path) {
-        const r = await fetch(`http://127.0.0.1:${live.port}${path}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
-          body: JSON.stringify(payload)
-        });
-        return await r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
-      }
-    }
-    return { ok: false, error: t('enhance.result.noBridge'), unavailable: true };
   }
 
   async function invokeModulesApi(action, name, enable, opts = {}) {
@@ -14131,268 +8789,81 @@
     return { ok: false, error: t('msg.noHostBridge'), unavailable: true };
   }
 
-  async function refreshUnlockStatus() {
-    const thisSeq = ++unlockReqSeq;
-    try {
-      const currentObservedBudget = (state.latest?.budget && state.latest.budget > 0)
-        ? state.latest.budget
-        : undefined;
-      const res = await invokeUnlockApi('status', { currentBudget: currentObservedBudget });
-      if (thisSeq !== unlockReqSeq) return;
-
-      if (!res || !res.ok || !res.data) {
-        unlockStatusFetchError = true;
-        currentUnlockStatus = null;
-        if (unlockStatusDesc) unlockStatusDesc.textContent = t('status.client.unavailable');
-        renderCompactSessionCard();
-        renderClientStatusBar();
-        renderSessionQuickActions();
-        if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
-        return;
-      }
-
-      unlockStatusFetchError = false;
-      const data = res.data;
-      currentUnlockStatus = data;
-      lastPartialReason = data.partialMatchReason || data.error || '';
-      if (typeof data.hostSupportsRestart === 'boolean') {
-        hostSupportsRestart = data.hostSupportsRestart;
-      }
-      if (data.status === 'patched_pending_restart') {
-        needsRestartAfterApply = true;
-      } else if (data.status === 'patched_loaded' || data.status === 'not_patched') {
-        needsRestartAfterApply = false;
-      }
-
-      // 重启后校验核对
-      if (pendingRestartVerification) {
-        if (data.runtimeEvidence?.restartDetected === true) {
-          if (data.status === 'patched_loaded' && doesClientMatchVerification(data, pendingRestartVerification)) {
-            restartMismatchNotice = '';
-          } else {
-            restartMismatchNotice = t('models.status.restartMismatch', { actual: describeClientModeValue(data) });
-          }
-          pendingRestartVerification = null;
-          void saveSettingsPayloadBridge({ uiPreferences: { restartVerification: null } });
-        }
-      }
-
-      const statusInfo = mapUnlockDisplayStatus(data);
-      if (unlockStatusDesc) {
-        unlockStatusDesc.textContent = t('models.status.line', { badge: statusInfo.badge, mode: describeClientModeValue(data) });
-      }
-      if (unlockMetaMode) {
-        unlockMetaMode.textContent = `${describeClientModeValue(data)}（${statusInfo.badge}）`;
-      }
-      if (unlockMetaTarget) {
-        unlockMetaTarget.textContent = data.arch ? t('models.meta.targetDesktopArch', { arch: data.arch }) : t('models.meta.targetDesktop');
-      }
-      if (unlockMetaArch) unlockMetaArch.textContent = data.arch || t('models.meta.archUnknown');
-      if (unlockMetaBackup) {
-        unlockMetaBackup.textContent = data.hasBackup
-          ? (data.backupStaleReason ? t('models.meta.backupStale') : t('models.meta.backupReady'))
-          : t('models.meta.backupNone');
-      }
-
-      if (btnApplyUnlock) {
-        const writableStatuses = new Set(['not_patched', 'patched_runtime_unconfirmed', 'patched_pending_restart', 'patched_loaded']);
-        if (writableStatuses.has(data.status) && (!data.arch || data.arch === 'arm64' || data.arch === 'x86-64')) {
-          btnApplyUnlock.disabled = false;
-          btnApplyUnlock.textContent = t('models.btn.saveApply');
-          btnApplyUnlock.hidden = (data.status === 'patched_loaded' && !needsRestartAfterApply);
-        } else if (data.status === 'partial_match') {
-          btnApplyUnlock.disabled = true;
-          btnApplyUnlock.textContent = t('models.btn.partialBlocked');
-          btnApplyUnlock.hidden = false;
-        } else if (data.status === 'failed') {
-          btnApplyUnlock.disabled = false;
-          btnApplyUnlock.textContent = t('models.btn.retryApply');
-          btnApplyUnlock.hidden = false;
-        } else {
-          btnApplyUnlock.disabled = true;
-          btnApplyUnlock.textContent = t('models.btn.unsupported');
-          btnApplyUnlock.hidden = true;
-        }
-      }
-
-      if (btnRestoreUnlock) {
-        btnRestoreUnlock.disabled = !(
-          (data.hasBackup && data.backupValidForCurrentBinary !== false) ||
-          data.hasMatchingGate3BSidecar ||
-          (data.status && data.status !== 'not_patched' && data.status !== 'unsupported')
-        );
-      }
-
-      if (data.status === 'partial_match' && unlockResultBox && (!unlockResultBox.style.display || unlockResultBox.style.display === 'none')) {
-        showUnlockResultBox(
-          false,
-          t('models.card.partialFailDetail', { reason: translateBackendText(lastPartialReason) || '' }),
-          { showRetry: true }
-        );
-      }
-
-      if (!ctxDraftDirty && !resolveProductPreferenceState(getSelectedProductObj()).pref) {
-        loadDraftFromSelectedModel(false);
-      } else {
-        renderCompactSessionCard();
-        renderClientStatusBar();
-        if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
-      }
-      if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
-    } catch {
-      if (thisSeq !== unlockReqSeq) return;
-      unlockStatusFetchError = true;
-      currentUnlockStatus = null;
-      renderCompactSessionCard();
-      renderClientStatusBar();
-      if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
+  async function invokeRestartHostApi() {
+    if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.restartHost === 'function') {
+      return await window.contextMeterAPI.restartHost();
     }
-  }
-
-  btnRefreshUnlock?.addEventListener('click', () => {
-    void refreshUnlockStatus();
-  });
-
-  btnApplyUnlock?.addEventListener('click', async () => {
-    if (isUnlocking) return;
-    if (ctxResetNoticeEl) ctxResetNoticeEl.hidden = true;
-    const saved = await saveCurrentProductDraft();
-    if (saved.stale) return;
-    if (!saved.ok) {
-      showUnlockResultBox(false, saved.error);
-      return;
-    }
-
-    isUnlocking = true;
-    if (btnApplyUnlock) btnApplyUnlock.disabled = true;
-    if (unlockResultBox) unlockResultBox.style.display = 'none';
-    needsRestartAfterApply = false;
-    restartMismatchNotice = '';
-
-    try {
-      // ELV-41: 底座统一应用为动态透传模式 (mov esi, edx)，使各模型设置能够独立生效，绝不把单一模型的数值固化进二进制
-      const res = await invokeUnlockApi('apply', {
-        mode: 'dynamic',
-        limitTokens: null,
-        serviceLimit: state.latest?.serviceLimit || undefined
+    if (typeof window !== 'undefined' && window.__AGContextMeterLive?.port) {
+      const live = window.__AGContextMeterLive;
+      const r = await fetch(`http://127.0.0.1:${live.port}/restart-host`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token },
+        body: '{}'
       });
-      if (!res || !res.ok) {
-        needsRestartAfterApply = false;
-        showUnlockResultBox(false, buildFriendlyWriteError(res?.error), { showRetry: true });
-        return;
-      }
-      if (res.needsRestart === true) {
-        needsRestartAfterApply = true;
-        showUnlockResultBox(true, t('msg.appliedRestart'), { needsRestart: true });
-      } else if (res.alreadyMatched) {
-        needsRestartAfterApply = false;
-        showUnlockResultBox(true, '底座引擎已处于动态跟随状态。当前模型设置已保存，下一次发送时尝试应用。');
-      } else {
-        needsRestartAfterApply = false;
-        showUnlockResultBox(true, '已应用底座配置。当前模型设置已保存，下一次发送时尝试应用。');
-      }
-    } catch (e) {
-      needsRestartAfterApply = false;
-      showUnlockResultBox(false, buildFriendlyWriteError(e?.message), { showRetry: true });
-    } finally {
-      isUnlocking = false;
-      await refreshUnlockStatus();
-      if (!needsRestartAfterApply && currentUnlockStatus?.status === 'patched_pending_restart') {
-        needsRestartAfterApply = true;
-        renderClientStatusBar();
-      }
+      return await r.json().catch(() => ({ ok: true, supported: false }));
     }
-  });
+    return { ok: true, supported: false };
+  }
 
   let isRestartInProgress = false;
 
-  async function executeClientRestart(fromModal = false) {
+  async function executeClientRestart() {
     if (isRestartInProgress) return;
     isRestartInProgress = true;
     if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = true;
-    if (btnRestartConfirmGo) btnRestartConfirmGo.disabled = true;
 
-    // 记录重启前的观测快照（不保存草稿）
-    try {
-      const obsObj = budgetTracker ? { ...budgetTracker.exportAllObservationsByProduct() } : {};
-      for (const [mid, val] of observedByModelId.entries()) obsObj[mid] = val;
-      preRestartSnapshot = { requestedAt: new Date().toISOString(), observations: obsObj };
-      localStorage?.setItem(CTX_PRE_RESTART_OBS_KEY, JSON.stringify(preRestartSnapshot));
-    } catch {}
-
-    const feedbackEl = fromModal ? modalRestartFeedback : (modalRestartFeedback || ctxRestartFeedback);
-    if (feedbackEl) {
-      feedbackEl.textContent = t('client.restart.triggering');
-      feedbackEl.hidden = false;
+    if (modalRestartFeedback) {
+      modalRestartFeedback.textContent = t('client.restart.triggering');
+      modalRestartFeedback.hidden = false;
     }
 
     const res = await invokeRestartHostApi();
     if (!res || res.supported === false) {
       hostSupportsRestart = false;
-      if (feedbackEl) {
-        feedbackEl.textContent = t('client.restart.hostNotSupported');
-        feedbackEl.hidden = false;
+      if (modalRestartFeedback) {
+        modalRestartFeedback.textContent = t('client.restart.hostNotSupported');
+        modalRestartFeedback.hidden = false;
       }
       isRestartInProgress = false;
       if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
-      if (btnRestartConfirmGo) btnRestartConfirmGo.disabled = false;
-      renderClientStatusBar();
       return;
     }
     if (res.ok === false) {
-      if (feedbackEl) {
-        feedbackEl.textContent = t('client.restart.failed', { err: translateBackendText(res.error) || t('msg.unknownErr') });
-        feedbackEl.hidden = false;
+      if (modalRestartFeedback) {
+        modalRestartFeedback.textContent = t('client.restart.failed', { err: translateBackendText(res.error) || t('msg.unknownErr') });
+        modalRestartFeedback.hidden = false;
       }
       isRestartInProgress = false;
       if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
-      if (btnRestartConfirmGo) btnRestartConfirmGo.disabled = false;
       return;
     }
 
-    if (feedbackEl) {
-      feedbackEl.textContent = t('models.restart.restarting');
-      feedbackEl.hidden = false;
+    if (modalRestartFeedback) {
+      modalRestartFeedback.textContent = t('models.restart.restarting');
+      modalRestartFeedback.hidden = false;
     }
     if (restartTimeoutTimer) clearTimeout(restartTimeoutTimer);
     restartTimeoutTimer = setTimeout(() => {
-      if (!state.disposed && feedbackEl) {
-        feedbackEl.textContent = t('models.restart.notExited');
-        feedbackEl.hidden = false;
+      if (!state.disposed && modalRestartFeedback) {
+        modalRestartFeedback.textContent = t('models.restart.notExited');
+        modalRestartFeedback.hidden = false;
       }
       isRestartInProgress = false;
       if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
-      if (btnRestartConfirmGo) btnRestartConfirmGo.disabled = false;
     }, 15000);
   }
 
   function openClientRestartConfirmFlow() {
-    if (!hostSupportsRestart) {
-      showUnlockResultBox(true, t('client.restart.hostNotSupported'), { needsRestart: true });
-      return;
-    }
     if (globalRestartModal) {
       if (modalRestartFeedback) {
-        modalRestartFeedback.textContent = '';
-        modalRestartFeedback.hidden = true;
+        modalRestartFeedback.textContent = hostSupportsRestart ? '' : t('client.restart.hostNotSupported');
+        modalRestartFeedback.hidden = hostSupportsRestart;
       }
-      if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = false;
+      if (btnModalRestartConfirm) btnModalRestartConfirm.disabled = !hostSupportsRestart;
       isRestartInProgress = false;
       globalRestartModal.hidden = false;
-      return;
-    }
-    if (ctxRestartConfirm) {
-      ctxRestartConfirm.hidden = false;
-      if (ctxRestartFeedback) ctxRestartFeedback.hidden = true;
     }
   }
-
-  btnRestartHost?.addEventListener('click', openClientRestartConfirmFlow);
-  btnUnlockResultRestart?.addEventListener('click', openClientRestartConfirmFlow);
-  btnUnlockResultRetry?.addEventListener('click', () => {
-    if (unlockResultBox) unlockResultBox.style.display = 'none';
-    void refreshUnlockStatus();
-  });
 
   btnModalRestartCancel?.addEventListener('click', () => {
     if (globalRestartModal) globalRestartModal.hidden = true;
@@ -14402,36 +8873,7 @@
       globalRestartModal.hidden = true;
     }
   });
-
-  btnModalRestartConfirm?.addEventListener('click', () => executeClientRestart(true));
-
-  btnRestartCancel?.addEventListener('click', () => {
-    if (ctxRestartConfirm) ctxRestartConfirm.hidden = true;
-  });
-
-  btnRestartConfirmGo?.addEventListener('click', () => executeClientRestart(false));
-
-  btnRestoreUnlock?.addEventListener('click', async () => {
-    if (isUnlocking) return;
-    isUnlocking = true;
-    if (btnRestoreUnlock) btnRestoreUnlock.disabled = true;
-    if (unlockResultBox) unlockResultBox.style.display = 'none';
-
-    try {
-      const res = await invokeUnlockApi('restore');
-      if (!res || !res.ok) {
-        showUnlockResultBox(false, buildFriendlyWriteError(res?.error || t('msg.restoreFail')), { showRetry: true });
-        return;
-      }
-      needsRestartAfterApply = true;
-      showUnlockResultBox(true, t('msg.restoredRestart'), { needsRestart: true });
-    } catch (e) {
-      showUnlockResultBox(false, buildFriendlyWriteError(e?.message), { showRetry: true });
-    } finally {
-      isUnlocking = false;
-      await refreshUnlockStatus();
-    }
-  });
+  btnModalRestartConfirm?.addEventListener('click', () => executeClientRestart());
 
   // -----------------------------------------------------------------------
   // 速度对比分页与纯 SVG 图表渲染
@@ -14788,88 +9230,6 @@
   bindSpeedFilterGroup(SPEED_ORIGIN_MAP, v => { speedOriginFilter = v; });
   bindSpeedFilterGroup(SPEED_METRIC_MAP, v => { speedMetric = v; });
 
-  applyContextViewVisibility();
-
-  const UNLOCK_POST_URL = 'https://linux.do/t/topic/3117832';
-  let unlockToastTimer = null;
-
-  function showUnlockToast(msg) {
-    if (!unlockLinkToast) return;
-    if (unlockToastTimer) clearTimeout(unlockToastTimer);
-    unlockLinkToast.textContent = msg;
-    unlockLinkToast.style.display = 'block';
-    unlockToastTimer = setTimeout(() => {
-      unlockLinkToast.style.display = 'none';
-    }, 4500);
-  }
-
-  async function openUnlockAuthorPost() {
-    let opened = false;
-    try {
-      if (window.contextMeterAPI?.openExternal) {
-        const res = await window.contextMeterAPI.openExternal(UNLOCK_POST_URL);
-        if (res && res.ok) opened = true;
-      }
-    } catch {}
-
-    if (!opened) {
-      try {
-        const w = window.open(UNLOCK_POST_URL, '_blank');
-        if (w) opened = true;
-      } catch {}
-    }
-
-    if (opened) {
-      showUnlockToast(t('models.linkOpened'));
-    } else {
-      copyUnlockPostUrl(true);
-    }
-  }
-
-  function copyUnlockPostUrl(fromFailedOpen = false) {
-    let copied = false;
-    try {
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(UNLOCK_POST_URL);
-        copied = true;
-      }
-    } catch {}
-    if (!copied) {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = UNLOCK_POST_URL;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        copied = true;
-      } catch {}
-    }
-    showUnlockToast(fromFailedOpen
-      ? t('models.linkCopyFallback')
-      : t('models.copyOk'));
-  }
-
-  linkUnlockAuthor?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    void openUnlockAuthorPost();
-  });
-
-  linkUnlockAuthor?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      e.stopPropagation();
-      void openUnlockAuthorPost();
-    }
-  });
-
-  btnCopyUnlockLink?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    copyUnlockPostUrl(false);
-  });
-
   // -------------------------------------------------------------
   // -------------------------------------------------------------
   // 模块 1.5: 插件面板语言 (Context Meter) 与客户端语言 (Antigravity)
@@ -14940,14 +9300,6 @@
         const open = tokenColorDrawerBody.style.display === 'block';
         tokenColorDrawerArrow.textContent = open ? t('drawer.colors.collapse') : t('drawer.colors.expand');
       }
-      if (cardDrawerArrow && cardDrawerBody) {
-        const open = cardDrawerBody.style.display === 'block';
-        cardDrawerArrow.textContent = open ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-      }
-      if (unlockDrawerArrow && unlockDrawerBody) {
-        const open = unlockDrawerBody.style.display === 'block';
-        unlockDrawerArrow.textContent = open ? t('drawer.collapse') : t('drawer.expand');
-      }
       const btnPlanDet = el('btn-plan-detail-toggle');
       if (btnPlanDet) {
         btnPlanDet.textContent = planDetailExpanded ? t('plan.detail.toggleClose') : t('plan.detail.toggleOpen');
@@ -14955,11 +9307,9 @@
     } catch {}
     try { if (typeof applyTheme === 'function') applyTheme(); } catch {}
     try { renderVersionSyncBanner(); } catch {}
+    try { renderSshRemoteContextBanners(); } catch {}
     try { render(); } catch {}
-    try { renderHeaderModelDropdown(); } catch {}
-    try { renderModelSettingsTab(); } catch {}
     try { renderSpeedComparisonTab(); } catch {}
-    try { if (currentUnlockStatus) { renderClientStatusBar(); renderCompactSessionCard(); } } catch {}
     try { renderCliUnlockState(currentCliUnlockStatus); } catch {}
     try {
       if (typeof renderPlanDetail === 'function' && ANTIGRAVITY_TOKEN_DATA?.planStatus) {
@@ -14967,15 +9317,11 @@
       }
     } catch {}
     try {
-      if (typeof renderEnhanceSectionUI === 'function') renderEnhanceSectionUI();
-    } catch {}
-    try {
-      if (isChineseExpanded || isProxyExpanded || isContextSettingsView) {
+      if (isChineseExpanded || isContextSettingsView) {
         void refreshModulesDisplay();
       }
       if (isContextSettingsView) {
         void refreshCliUnlockDisplay();
-        if (typeof refreshEnhanceStatus === 'function') void refreshEnhanceStatus();
       }
     } catch {}
     try {
@@ -15051,219 +9397,18 @@
     }
   });
 
-  // -------------------------------------------------------------
-  // 模块 3: 推荐配置与客户端品牌控制器
-  // -------------------------------------------------------------
-  const btnEnhancePresetApply = el('btn-enhance-preset-apply');
-  const btnEnhanceRestoreAll = el('btn-enhance-restore-all');
-  const enhanceGlobalBadge = el('enhance-global-badge');
-  const enhancePresetConfirm = el('enhance-preset-confirm');
-  const enhanceConfirmTitle = el('enhance-preset-confirm-text');
-  const btnEnhanceConfirmCancel = el('btn-enhance-confirm-cancel');
-  const btnEnhanceConfirmGo = el('btn-enhance-confirm-go');
-  const enhanceGlobalResult = el('enhance-global-result');
-  const enhanceResultText = el('enhance-global-result-text');
-  const enhanceResultActions = el('enhance-global-result-actions');
-  const enhanceManualNote = el('enhance-global-manual-note');
-  const btnEnhanceRestartHost = el('btn-enhance-restart-host');
-  const btnEnhanceRestartLs = el('btn-enhance-restart-ls');
+  const btnClientLangRestart = el('btn-client-lang-restart');
+  const clientLangResultBox = el('client-lang-result');
+  const clientLangResultText = el('client-lang-result-text');
 
-  const chkPresetLang = el('chk-rec-lang');
-  const chkPresetCtx = el('chk-rec-ctx');
-
-  let currentEnhanceStatus = null;
-  let pendingEnhanceConfirmMode = null; // 'preset' | 'restore' | null
-  let isEnhanceBusy = false;
-  let hasPendingLsReload = false;
-
-  function renderEnhanceSectionUI() {
-    if (typeof renderSshRemoteContextBanners === 'function') renderSshRemoteContextBanners();
-    const data = currentEnhanceStatus;
-    const s = data?.summary || data;
-    const ctxUnlock = s?.contextUnlock || null;
-    const isPatched = Boolean(
-      ctxUnlock && ctxUnlock.status && ctxUnlock.status !== 'not_patched' && ctxUnlock.status !== 'unsupported'
-    );
-
-    if (enhanceGlobalBadge) {
-      if (!data || !data.supported) {
-        enhanceGlobalBadge.textContent = t('enhance.status.unread');
-        enhanceGlobalBadge.className = 'key-pill pill-muted';
-      } else if (isPatched) {
-        enhanceGlobalBadge.textContent = t('enhance.status.patchedActive');
-        enhanceGlobalBadge.className = 'key-pill pill-ok';
-      } else {
-        enhanceGlobalBadge.textContent = t('enhance.status.stock');
-        enhanceGlobalBadge.className = 'key-pill pill-muted';
-      }
-    }
+  function showClientLangResult(ok, message) {
+    if (!clientLangResultBox || !clientLangResultText) return;
+    clientLangResultBox.style.display = 'block';
+    clientLangResultBox.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
+    clientLangResultText.textContent = message;
   }
 
-  function showEnhanceResultBox(ok, message, opts = {}) {
-    if (!enhanceGlobalResult || !enhanceResultText) return;
-    enhanceGlobalResult.style.display = 'block';
-    enhanceGlobalResult.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
-    enhanceResultText.textContent = message;
-    const needLs = Boolean(opts.needsLsRestart);
-    const needHost = Boolean(opts.needsHostRestart);
-    const canRestartHost = Boolean(hostSupportsRestart);
-    if (btnEnhanceRestartLs) btnEnhanceRestartLs.hidden = !needLs;
-    if (btnEnhanceRestartHost) btnEnhanceRestartHost.hidden = !(needHost && canRestartHost);
-    if (enhanceManualNote) enhanceManualNote.hidden = !(needHost && !canRestartHost);
-    if (enhanceResultActions) enhanceResultActions.hidden = !(needLs || (needHost && canRestartHost));
-  }
-
-  async function refreshEnhanceStatus() {
-    try {
-      const res = await invokeEnhanceApi('status', {});
-      if (res && res.ok && res.data) {
-        currentEnhanceStatus = res.data;
-      } else if (res && res.unavailable) {
-        currentEnhanceStatus = { supported: false };
-      }
-    } catch {
-      currentEnhanceStatus = null;
-    }
-    renderEnhanceSectionUI();
-  }
-
-  btnEnhancePresetApply?.addEventListener('click', () => {
-    const selectedLabels = [];
-    if (chkPresetLang?.checked) selectedLabels.push(t('enhance.preset.itemLang'));
-    if (chkPresetCtx?.checked) selectedLabels.push(t('enhance.preset.itemCtx'));
-    if (!selectedLabels.length) {
-      showEnhanceResultBox(false, t('enhance.confirm.noneSelected'));
-      return;
-    }
-    pendingEnhanceConfirmMode = 'preset';
-    if (enhanceConfirmTitle) {
-      enhanceConfirmTitle.textContent = t('enhance.confirm.presetSummary', { items: selectedLabels.join('、') });
-    }
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = false;
-  });
-
-  btnEnhanceRestoreAll?.addEventListener('click', () => {
-    pendingEnhanceConfirmMode = 'restore';
-    if (enhanceConfirmTitle) {
-      enhanceConfirmTitle.textContent = t('enhance.confirm.restoreSummary');
-    }
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = false;
-  });
-
-  btnEnhanceConfirmCancel?.addEventListener('click', () => {
-    pendingEnhanceConfirmMode = null;
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = true;
-  });
-
-  btnEnhanceConfirmGo?.addEventListener('click', async () => {
-    const mode = pendingEnhanceConfirmMode;
-    pendingEnhanceConfirmMode = null;
-    if (enhancePresetConfirm) enhancePresetConfirm.hidden = true;
-    if (!mode || isEnhanceBusy) return;
-
-    isEnhanceBusy = true;
-    try {
-      const doneParts = [];
-      const failedParts = [];
-      const needsLsRestart = false;
-      let needsHostRestart = false;
-
-      if (mode === 'preset') {
-        const wantLang = Boolean(chkPresetLang?.checked);
-        const wantCtx = Boolean(chkPresetCtx?.checked);
-
-        if (wantLang) {
-          try {
-            const lRes = await invokeModulesApi('toggle', 'chinese', true, {
-              language: 'zh-CN'
-            });
-            if (!lRes || !lRes.ok) {
-              throw new Error(translateBackendText(lRes?.error) || t('mod.zh.toggleFail'));
-            }
-            doneParts.push(t('enhance.preset.itemLang'));
-            needsHostRestart = true;
-          } catch (stepErr) {
-            failedParts.push(`${t('enhance.preset.itemLang')}: ${stepErr?.message || t('mod.zh.toggleFail')}`);
-          }
-        }
-
-        if (wantCtx) {
-          try {
-            const cRes = await invokeUnlockApi('apply', { mode: 'dynamic', limitTokens: null });
-            if (!cRes || !cRes.ok) {
-              throw new Error(buildFriendlyWriteError(cRes?.error));
-            }
-            doneParts.push(t('enhance.preset.itemCtx'));
-            if (cRes.needsRestart) needsHostRestart = true;
-          } catch (stepErr) {
-            failedParts.push(`${t('enhance.preset.itemCtx')}: ${stepErr?.message || t('msg.unknownErr')}`);
-          }
-        }
-      } else if (mode === 'restore') {
-        try {
-          const lRes = await invokeModulesApi('toggle', 'chinese', false, { language: 'en' });
-          if (!lRes || !lRes.ok) {
-            throw new Error(translateBackendText(lRes?.error) || t('mod.zh.toggleFail'));
-          }
-          doneParts.push(t('enhance.preset.itemLang'));
-          needsHostRestart = true;
-        } catch (stepErr) {
-          failedParts.push(`${t('enhance.preset.itemLang')}: ${stepErr?.message || t('mod.zh.toggleFail')}`);
-        }
-
-        try {
-          const cRes = await invokeUnlockApi('restore', {});
-          if (!cRes || !cRes.ok) {
-            throw new Error(buildFriendlyWriteError(cRes?.error));
-          }
-          doneParts.push(t('enhance.preset.itemCtx'));
-          if (cRes.needsRestart) needsHostRestart = true;
-        } catch (stepErr) {
-          failedParts.push(`${t('enhance.preset.itemCtx')}: ${stepErr?.message || t('msg.restoreFail')}`);
-        }
-      }
-
-      if (needsHostRestart) needsRestartAfterApply = true;
-
-      if (failedParts.length > 0) {
-        const msg = doneParts.length > 0
-          ? t('enhance.result.partialFail', { done: doneParts.join('、'), failed: failedParts.join('；') })
-          : t('enhance.result.fail', { err: failedParts.join('；') });
-        showEnhanceResultBox(false, msg, { needsLsRestart, needsHostRestart });
-      } else if (mode === 'preset') {
-        showEnhanceResultBox(
-          true,
-          t('enhance.result.presetDone', { summary: doneParts.join('、') }),
-          { needsLsRestart, needsHostRestart }
-        );
-      } else if (mode === 'restore') {
-        showEnhanceResultBox(true, t('enhance.result.restoredDone'), { needsLsRestart, needsHostRestart: true });
-      }
-      await Promise.all([refreshEnhanceStatus(), refreshModulesDisplay(), refreshUnlockStatus()]);
-    } catch (e) {
-      showEnhanceResultBox(false, t('enhance.result.fail', { err: e?.message || t('msg.unknownErr') }));
-    } finally {
-      isEnhanceBusy = false;
-    }
-  });
-
-  btnEnhanceRestartLs?.addEventListener('click', async () => {
-    try {
-      const res = await invokeEnhanceApi('restart-ls', {});
-      if (!res || !res.ok) {
-        showEnhanceResultBox(false, t('enhance.result.lsRestartFail', { err: translateBackendText(res?.error) || t('msg.unknownErr') }));
-        return;
-      }
-      const killedCount = Array.isArray(res.killed) ? res.killed.length : (Number(res.killed) || 0);
-      hasPendingLsReload = false;
-      showEnhanceResultBox(true, t('enhance.result.lsRestarted', { killed: killedCount }), { needsLsRestart: false, needsHostRestart: needsRestartAfterApply });
-      await refreshEnhanceStatus(false);
-    } catch (e) {
-      showEnhanceResultBox(false, t('enhance.result.lsRestartFail', { err: e?.message || t('msg.unknownErr') }));
-    }
-  });
-
-  btnEnhanceRestartHost?.addEventListener('click', openClientRestartConfirmFlow);
+  btnClientLangRestart?.addEventListener('click', openClientRestartConfirmFlow);
 
   let lastVersionSyncState = null;
 
@@ -15401,14 +9546,15 @@
         language: wantChinese ? 'zh-CN' : 'en'
       });
       if (!res || !res.ok) {
-        showEnhanceResultBox(false, translateBackendText(res?.error) || t('mod.zh.toggleFail'));
+        showClientLangResult(false, translateBackendText(res?.error) || t('mod.zh.toggleFail'));
       } else {
         needsRestartAfterApply = true;
-        renderClientStatusBar();
+        if (btnClientLangRestart) btnClientLangRestart.hidden = false;
+        showClientLangResult(true, t('msg.appliedRestart'));
       }
       await refreshModulesDisplay();
     } catch (e) {
-      showEnhanceResultBox(false, `${t('mod.zh.toggleFail')}: ${e.message}`);
+      showClientLangResult(false, `${t('mod.zh.toggleFail')}: ${e.message}`);
     } finally {
       if (btnToggleChineseModule) {
         btnToggleChineseModule.disabled = false;
@@ -15459,14 +9605,14 @@
     }
 
     const d = res.data;
-    const hooks = [d.offersContextWindow, d.autoCompactEnv, d.regionUnlock].filter(
-      h => h && h.status && h.status !== 'missing'
-    );
-    const patchedCount = hooks.filter(h => h.status === 'patched').length;
-    const totalCount = hooks.length;
+    const region = d.regionUnlock && d.regionUnlock.status && d.regionUnlock.status !== 'missing'
+      ? d.regionUnlock
+      : null;
+    const patchedCount = region && region.status === 'patched' ? 1 : 0;
+    const totalCount = region ? 1 : 0;
 
     if (d.status === 'patched') {
-      cliUnlockBadge.textContent = t('settings.cliUnlock.patched', { ok: patchedCount, total: totalCount || 1 });
+      cliUnlockBadge.textContent = t('settings.cliUnlock.patched', { ok: patchedCount || 1, total: totalCount || 1 });
       cliUnlockBadge.className = 'key-pill pill-ok';
     } else if (d.status === 'partial') {
       cliUnlockBadge.textContent = t('settings.cliUnlock.partial');
@@ -15492,9 +9638,6 @@
       metaParts.push(t('settings.cliUnlock.brokenLinks', {
         paths: d.brokenSymlinks.map(s => s.path).join(', ')
       }));
-    }
-    if (d.configStatus?.configContextWindow) {
-      metaParts.push(`config: ${d.configStatus.configContextWindow}`);
     }
     cliUnlockMeta.textContent = metaParts.join(' · ') || '—';
 
@@ -15529,7 +9672,7 @@
     renderCliUnlockState(currentCliUnlockStatus);
     if (cliUnlockResultBox) cliUnlockResultBox.style.display = 'none';
     try {
-      const res = await invokeCliUnlockApi('apply', { mode: 'dynamic' });
+      const res = await invokeCliUnlockApi('apply', {});
       if (!res || !res.ok) {
         if (cliUnlockResultBox && cliUnlockResultText) {
           cliUnlockResultBox.className = 'unlock-result-box result-error';
@@ -15540,10 +9683,7 @@
         if (cliUnlockResultBox && cliUnlockResultText) {
           cliUnlockResultBox.className = 'unlock-result-box result-success';
           cliUnlockResultBox.style.display = 'block';
-          const syncN = Array.isArray(res.syncedConfigs) ? res.syncedConfigs.length : 0;
-          cliUnlockResultText.textContent = syncN > 0
-            ? `${res.message || ''} (${t('settings.cliUnlock.metaCfg', { n: syncN })})`
-            : (res.message || t('msg.applied'));
+          cliUnlockResultText.textContent = res.message || t('msg.applied');
         }
       }
       await refreshCliUnlockDisplay();
@@ -15559,9 +9699,8 @@
     }
   });
 
-  // 静默初始化检测一次解锁状态与各模块状态
+  // 静默初始化检测各模块状态
   setTimeout(() => {
-    void refreshUnlockStatus();
     void refreshModulesDisplay();
     void refreshCliUnlockDisplay();
   }, 500);
@@ -15598,18 +9737,6 @@
     drawerBody.style.display = isHidden ? 'block' : 'none';
     if (drawerArrow) drawerArrow.textContent = isHidden ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
     btnDetails.setAttribute('aria-expanded', String(isHidden));
-  });
-
-  // 模型卡片下一层详情折叠展开（实测预算、速度与内部详情）
-  const btnCardDetails = el('btn-toggle-card-details');
-  const cardDrawerBody = el('ctx-card-drawer-body');
-  const cardDrawerArrow = el('ctx-card-drawer-arrow');
-  btnCardDetails?.addEventListener('click', () => {
-    if (!cardDrawerBody) return;
-    const isHidden = cardDrawerBody.style.display === 'none' || !cardDrawerBody.style.display;
-    cardDrawerBody.style.display = isHidden ? 'block' : 'none';
-    if (cardDrawerArrow) cardDrawerArrow.textContent = isHidden ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-    btnCardDetails.setAttribute('aria-expanded', String(isHidden));
   });
 
   // 二级抽屉 3（面板 A 内就近设置）: 热力图色阶与面板外观自定义抽屉折叠展开
@@ -15761,10 +9888,8 @@
   const outside = e => {
     const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
     const pop = el('color-picker-popover');
-    const twpPop = el('topbar-window-popover');
     if (!path.includes(host)) {
       closeColorPicker(true);
-      closeTopbarWindowPopover();
       toggle(false);
       hideContextTooltip();
       hideTopbarActionTooltip(true);
@@ -15772,9 +9897,6 @@
       if (om) om.hidden = true;
       syncHostStackingElevation(false);
       return;
-    }
-    if (twpPop && !twpPop.hidden && !path.includes(twpPop) && !path.includes(el('btn-topbar-window'))) {
-      closeTopbarWindowPopover();
     }
     const isClosingNow = pop?.classList ? pop.classList.contains('is-closing') : pop?.getAttribute('data-closing') === 'true';
     if (pop && !pop.hidden && !isClosingNow) {
@@ -15787,12 +9909,6 @@
   };
   const escape = e => {
     if (e.key === 'Escape') {
-      const twpPop = el('topbar-window-popover');
-      if (twpPop && !twpPop.hidden) {
-        closeTopbarWindowPopover();
-        el('btn-topbar-window')?.focus?.();
-        return;
-      }
       const pop = el('color-picker-popover');
       const isEscClosing = pop?.classList ? pop.classList.contains('is-closing') : pop?.getAttribute('data-closing') === 'true';
       if (pop && !pop.hidden && !isEscClosing) {
@@ -16001,12 +10117,7 @@
       ANTIGRAVITY_TOKEN_DATA.speedRecords = payload.speedRecords;
       if (!isContextSettingsView && activeContextTab === 'speed') {
         renderSpeedComparisonTab();
-      } else if (!isContextSettingsView && activeContextTab === 'models') {
-        renderModelSettingsTab();
       }
-    }
-    if (payload.modelCapabilitiesById && typeof payload.modelCapabilitiesById === 'object') {
-      mergeCapabilitiesMapClient(payload.modelCapabilitiesById);
     }
     if (Array.isArray(payload.cascadeModelConfigs) && payload.cascadeModelConfigs.length > 0) {
       const hasExisting = Array.isArray(state.cascadeModelConfigs) && state.cascadeModelConfigs.length > 0;
@@ -16014,8 +10125,6 @@
       const existingHasCaps = hasExisting && state.cascadeModelConfigs.some(c => Number.isFinite(c?.maxTokens) && c.maxTokens > 0);
       if (!hasExisting || (incomingHasCaps && !existingHasCaps)) {
         state.cascadeModelConfigs = payload.cascadeModelConfigs;
-        renderHeaderModelDropdown();
-        if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
       }
     }
 
@@ -16241,31 +10350,6 @@
       }
 
       if (settingsRes?.ok) {
-        if (settingsRes.uiPreferences?.restartVerification && typeof settingsRes.uiPreferences.restartVerification === 'object') {
-          pendingRestartVerification = { ...settingsRes.uiPreferences.restartVerification };
-          void refreshUnlockStatus();
-        }
-        if (settingsRes.contextScopeMode) {
-          contextScopeMode = settingsRes.contextScopeMode === 'per_model' ? 'per_model' : 'unified';
-        } else {
-          const hasPerModelPrefs = settingsRes.contextPreferences && Object.values(settingsRes.contextPreferences).some(p => p && p.mode && p.mode !== 'default');
-          contextScopeMode = hasPerModelPrefs ? 'per_model' : 'unified';
-        }
-
-        if (settingsRes.contextUnifiedPreference && typeof settingsRes.contextUnifiedPreference === 'object') {
-          contextUnifiedPreference = { ...settingsRes.contextUnifiedPreference };
-        } else {
-          contextUnifiedPreference = { mode: 'default', limitTokens: CTX_DEFAULT_TOKENS };
-        }
-
-        if (settingsRes.contextPreferences && typeof settingsRes.contextPreferences === 'object') {
-          contextPreferencesMap = { ...settingsRes.contextPreferences };
-        }
-        syncContextPreferencesCache(contextPreferencesMap);
-        renderHeaderModelDropdown();
-        if (!ctxDraftDirty) loadDraftFromSelectedModel(true);
-        else renderCompactSessionCard();
-        if (typeof renderQuickContextControls === 'function') renderQuickContextControls();
         const savedView = settingsRes.savedHeatView || settingsRes.uiPreferences?.savedHeatView;
         if (savedView && ['daily', 'weekly', 'monthly', 'yearly', 'cum'].includes(savedView)) {
           switchHeatView(savedView, false);
@@ -16289,7 +10373,6 @@
       if (settingsRes?.ok && typeof window !== 'undefined') {
         window.__AGContextMeterSettings = {
           ok: true,
-          contextPreferences: { ...contextPreferencesMap },
           uiPreferences: {
             ...(settingsRes.uiPreferences || {}),
             quotaShow5h: show5hQuota,
@@ -17348,97 +11431,6 @@
   }
 
   let isQuickCompactBusy = false;
-  let isQuickPresetSaving = false;
-  let twpFeedbackTimer = null;
-  let sessionCardFeedbackTimer = null;
-
-  function resolveQuickContextTarget() {
-    const scopeMode = getContextScopeMode();
-    if (scopeMode === 'unified') {
-      const pref = getContextUnifiedPreference();
-      const rp = resolveRuntimeUnlockPolicyClient();
-      const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
-        ? formatPrefShortPill(pref)
-        : (rp?.runtimeMode === 'dynamic'
-            ? t('twp.preset.dynamic')
-            : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
-                ? formatKShort(rp.currentClientLimitTokens)
-                : t('twp.preset.default')));
-      return {
-        scopeMode: 'unified',
-        ready: true,
-        prod: null,
-        pref,
-        rawWindowMax: null,
-        capSummary: null,
-        currentShortLabel: effectiveShort
-      };
-    }
-
-    const products = getKnownModelProducts();
-    const hostSelected = extractHostSelectedModel();
-    let prod = null;
-    if (hostSelected && hostSelected.productKey) {
-      prod = products.find(p => p.productKey === hostSelected.productKey) || {
-        productKey: hostSelected.productKey,
-        productLabel: hostSelected.label || hostSelected.productKey,
-        vendor: hostSelected.vendor || '其他',
-        members: []
-      };
-    } else if (activeSessionModelConfirmed && activeSessionProductKey) {
-      prod = products.find(p => p.productKey === activeSessionProductKey) || null;
-    }
-
-    if (!prod) {
-      return {
-        scopeMode: 'per_model',
-        ready: false,
-        prod: null,
-        pref: null,
-        rawWindowMax: null,
-        capSummary: null,
-        currentShortLabel: t('models.summary.unconfirmed')
-      };
-    }
-
-    const pState = resolveProductPreferenceState(prod);
-    const capSummary = getProductCapabilitySummary(prod);
-    const rawWindowMax = capSummary?.maxTokens ? Number(capSummary.maxTokens) : (capSummary?.modelTheoreticalMaxTokens ? Number(capSummary.modelTheoreticalMaxTokens) : null);
-    const rp = capSummary?.runtimePolicy || resolveRuntimeUnlockPolicyClient();
-    const pref = pState?.pref || null;
-    const effectiveShort = (pref && pref.mode && pref.mode !== 'default')
-      ? formatPrefShortPill(pref)
-      : (rp?.runtimeMode === 'dynamic'
-          ? t('twp.preset.dynamic')
-          : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens
-              ? formatKShort(rp.currentClientLimitTokens)
-              : t('twp.preset.default')));
-    return {
-      scopeMode: 'per_model',
-      ready: true,
-      prod,
-      pState,
-      pref,
-      capSummary,
-      rawWindowMax,
-      currentShortLabel: effectiveShort
-    };
-  }
-
-  function resolvePendingSessionBudgetHint(observedBudget) {
-    const obs = Number(observedBudget || 0);
-    if (!obs || obs <= 0) return null;
-    const target = resolveQuickContextTarget();
-    if (!target.ready || !target.pref) return null;
-    if (target.pref.mode === 'fixed' && Number(target.pref.limitTokens) > 0) {
-      const nextTok = Number(target.pref.limitTokens);
-      if (target.capSummary?.maxTokens && nextTok > Number(target.capSummary.maxTokens)) return null;
-      if (Math.abs(nextTok - obs) >= 1024) {
-        return { nextTokens: nextTok, nextLabel: formatKShort(nextTok) };
-      }
-    }
-    return null;
-  }
 
   function formatKeyLimitDisplay(elLimit, budgetVal) {
     if (!elLimit) return;
@@ -17448,87 +11440,12 @@
       elLimit.title = '';
       return;
     }
-    const baseText = short(val);
-    const pending = resolvePendingSessionBudgetHint(val);
-    if (pending) {
-      elLimit.textContent = `${baseText} → ${pending.nextLabel}`;
-      elLimit.title = t('key.limitNextTip', { cur: baseText, next: pending.nextLabel });
-    } else {
-      elLimit.textContent = baseText;
-      elLimit.title = '';
-    }
-  }
-
-  function showQuickContextNote(source, ok, msg, autoHideMs = 0) {
-    const targetId = source === 'session_card' ? 'ctx-compact-feedback' : 'twp-status-note';
-    const node = el(targetId);
-    if (!node) return;
-    if (source === 'session_card') {
-      if (sessionCardFeedbackTimer) { clearTimeout(sessionCardFeedbackTimer); sessionCardFeedbackTimer = null; }
-    } else {
-      if (twpFeedbackTimer) { clearTimeout(twpFeedbackTimer); twpFeedbackTimer = null; }
-    }
-    if (!msg) {
-      node.textContent = '';
-      node.hidden = true;
-      node.className = 'twp-status-note';
-      return;
-    }
-    node.textContent = msg;
-    node.className = `twp-status-note ${ok === true ? 'is-success' : (ok === false ? 'is-error' : '')}`.trim();
-    node.hidden = false;
-    if (autoHideMs > 0) {
-      const tid = setTimeout(() => {
-        if (source === 'session_card') sessionCardFeedbackTimer = null;
-        else twpFeedbackTimer = null;
-        if (el(targetId)) el(targetId).hidden = true;
-      }, autoHideMs);
-      if (source === 'session_card') sessionCardFeedbackTimer = tid;
-      else twpFeedbackTimer = tid;
-    }
-  }
-
-  function syncQuickPresetGrid(gridEl, info) {
-    if (!gridEl) return;
-    const btns = gridEl.querySelectorAll ? gridEl.querySelectorAll('.twp-preset-btn') : [];
-    const rp = info.capSummary?.runtimePolicy || resolveRuntimeUnlockPolicyClient();
-    const effectiveMode = (info.pref?.mode && info.pref.mode !== 'default')
-      ? info.pref.mode
-      : (rp?.runtimeMode === 'dynamic' ? 'dynamic' : 'fixed');
-    const effectiveLimit = (info.pref?.mode === 'fixed' && info.pref.limitTokens)
-      ? Number(info.pref.limitTokens)
-      : (rp?.runtimeMode === 'fixed' && rp.currentClientLimitTokens ? Number(rp.currentClientLimitTokens) : 256000);
-
-    for (const btn of btns) {
-      const bMode = btn.getAttribute('data-qctx-mode') || 'fixed';
-      const bLimRaw = btn.getAttribute('data-qctx-limit');
-      const bLim = bLimRaw ? Number(bLimRaw) : null;
-      const exceedsCap = Boolean(
-        info.ready &&
-        info.scopeMode === 'per_model' &&
-        bMode === 'fixed' &&
-        bLim &&
-        info.rawWindowMax &&
-        bLim > info.rawWindowMax
-      );
-      const disabled = Boolean(isQuickPresetSaving || !info.ready || exceedsCap);
-      btn.disabled = disabled;
-      const isMatched = Boolean(
-        info.ready &&
-        !exceedsCap &&
-        ((bMode === 'dynamic' && effectiveMode === 'dynamic') ||
-          (bMode === 'fixed' && effectiveMode === 'fixed' && bLim === effectiveLimit))
-      );
-      if (isMatched) addClass(btn, 'is-active');
-      else removeClass(btn, 'is-active');
-      btn.setAttribute('aria-pressed', String(isMatched));
-      btn.title = exceedsCap ? `${fmt(bLim)} > ${fmt(info.rawWindowMax)}` : '';
-    }
+    elLimit.textContent = short(val);
+    elLimit.title = '';
   }
 
   function renderQuickContextControls() {
     const btnTopCompact = el('btn-topbar-compact');
-    const btnTopWindow = el('btn-topbar-window');
     const prevTopCompactHidden = btnTopCompact ? btnTopCompact.hidden : true;
     const hasSession = Boolean(state.route);
 
@@ -17538,57 +11455,12 @@
       btnTopCompact.setAttribute('aria-label', isQuickCompactBusy ? t('session.quick.compactBusy') : t('topbar.quick.compactTitle'));
     }
 
-    const info = resolveQuickContextTarget();
-    if (btnTopWindow) {
-      btnTopWindow.hidden = false;
-      btnTopWindow.disabled = isQuickPresetSaving;
-      btnTopWindow.setAttribute('aria-label', t('twp.tipTitle', { cur: info.currentShortLabel || '—' }));
-    }
-
-    const scopeLbl = el('twp-scope-label');
-    const scopeToggle = el('btn-twp-toggle-scope');
-    if (scopeLbl) {
-      if (info.scopeMode === 'unified') {
-        scopeLbl.textContent = t('twp.scopeUnified');
-      } else if (info.ready && info.prod) {
-        scopeLbl.textContent = t('twp.scopeModel', { model: info.prod.productLabel });
-      } else {
-        scopeLbl.textContent = t('twp.scopeModelPending');
-      }
-      scopeLbl.title = scopeLbl.textContent;
-    }
-    if (scopeToggle) {
-      scopeToggle.textContent = info.scopeMode === 'unified' ? t('twp.switchToPerModel') : t('twp.switchToUnified');
-    }
-
-    syncQuickPresetGrid(el('twp-preset-grid'), info);
-    syncQuickPresetGrid(el('session-ctx-preset-bar'), info);
-
-    if (!twpFeedbackTimer) {
-      if (info.scopeMode === 'per_model' && !info.ready) {
-        showQuickContextNote('popover', null, t('twp.unconfirmedHint'));
-      } else if (info.pref?.mode === 'fixed' && info.pref.limitTokens && ![512000, 1000000].includes(Number(info.pref.limitTokens))) {
-        showQuickContextNote('popover', null, t('twp.customActiveNote', { val: formatKShort(info.pref.limitTokens) }));
-      } else {
-        showQuickContextNote('popover', null, '');
-      }
-    }
-    if (!sessionCardFeedbackTimer) {
-      if (info.scopeMode === 'per_model' && !info.ready) {
-        showQuickContextNote('session_card', null, t('twp.unconfirmedHint'));
-      } else if (info.pref?.mode === 'fixed' && info.pref.limitTokens && ![512000, 1000000].includes(Number(info.pref.limitTokens))) {
-        showQuickContextNote('session_card', null, t('twp.customActiveNote', { val: formatKShort(info.pref.limitTokens) }));
-      } else {
-        showQuickContextNote('session_card', null, '');
-      }
-    }
-
-    if (activeTopbarTipKind && !isTopbarTipFeedback) {
-      if (activeTopbarTipKind === 'compact' && btnTopCompact?.hidden) {
+    if (activeTopbarTipKind === 'compact' && !isTopbarTipFeedback) {
+      if (btnTopCompact?.hidden) {
         hideTopbarActionTooltip(true);
       } else {
-        syncTopbarActionTooltipContent(activeTopbarTipKind);
-        positionTopbarActionTooltip(activeTopbarTipKind === 'window' ? btnTopWindow : btnTopCompact);
+        syncTopbarActionTooltipContent('compact');
+        positionTopbarActionTooltip(btnTopCompact);
       }
     }
 
@@ -17597,119 +11469,10 @@
     }
   }
 
-  async function applyQuickContextPreset(mode, limitTokens = null, opts = {}) {
-    const source = opts.source || 'popover';
-    if (isQuickPresetSaving) return { ok: false, busy: true };
-    const info = resolveQuickContextTarget();
-    if (!info.ready) {
-      const msg = t('twp.unconfirmedHint');
-      showQuickContextNote(source, false, msg, 3500);
-      return { ok: false, error: msg };
-    }
-
-    const nextMode = mode === 'dynamic' ? 'dynamic' : 'fixed';
-    const nextTokens = nextMode === 'fixed' ? Number(limitTokens || 512000) : null;
-    const targetLabel = nextMode === 'dynamic' ? t('twp.preset.dynamic') : formatKShort(nextTokens);
-
-    isQuickPresetSaving = true;
-    renderQuickContextControls();
-    try {
-      if (info.scopeMode === 'unified') {
-        const nextPref = {
-          modelId: 'unified',
-          mode: nextMode,
-          limitTokens: nextTokens,
-          updatedAt: new Date().toISOString()
-        };
-        const res = await saveSettingsPayloadBridge({
-          contextUnifiedPreference: nextPref,
-          contextScopeMode: 'unified'
-        });
-        if (!res || !res.ok) {
-          throw new Error(translateBackendText(res?.error) || t('msg.saveFail'));
-        }
-        contextUnifiedPreference = nextPref;
-      } else {
-        const prod = info.prod;
-        const legacyKeys = resolveProductPreferenceState(prod).legacyKeys;
-        const res = await saveSettingsPayloadBridge({
-          contextPreference: {
-            scope: 'product',
-            productKey: prod.productKey,
-            modelId: prod.productKey,
-            label: prod.productLabel,
-            mode: nextMode,
-            limitTokens: nextTokens,
-            clearLegacyKeys: legacyKeys
-          }
-        });
-        if (!res || !res.ok) {
-          throw new Error(translateBackendText(res?.error) || t('msg.saveFail'));
-        }
-        if (res.contextPreferences && typeof res.contextPreferences === 'object') {
-          contextPreferencesMap = { ...res.contextPreferences };
-        } else {
-          for (const lk of legacyKeys) delete contextPreferencesMap[lk];
-          contextPreferencesMap[prod.productKey] = {
-            scope: 'product',
-            productKey: prod.productKey,
-            modelId: prod.productKey,
-            label: prod.productLabel,
-            mode: nextMode,
-            limitTokens: nextTokens,
-            updatedAt: new Date().toISOString()
-          };
-        }
-      }
-      syncContextPreferencesCache(contextPreferencesMap);
-      if (!ctxDraftDirty) loadDraftFromSelectedModel(true);
-
-      let needsRestart = false;
-      const needBackendUnlock = (nextMode === 'dynamic' || (nextTokens && nextTokens > 256000))
-        && (!currentUnlockStatus || currentUnlockStatus.status === 'not_patched');
-      if (needBackendUnlock) {
-        const uRes = await invokeUnlockApi('apply', {
-          mode: 'dynamic',
-          limitTokens: null,
-          serviceLimit: state.latest?.serviceLimit || undefined
-        });
-        if (!uRes || !uRes.ok) {
-          throw new Error(buildFriendlyWriteError(uRes?.error));
-        }
-        needsRestart = Boolean(uRes.needsRestart);
-        if (needsRestart) needsRestartAfterApply = true;
-        await refreshUnlockStatus();
-      } else {
-        renderCompactSessionCard();
-        renderClientStatusBar();
-      }
-      renderHeaderModelDropdown();
-      renderModelSettingsTab();
-      render();
-      const doneMsg = needsRestart
-        ? t('twp.savedNeedRestart', { target: targetLabel })
-        : t('twp.savedDone', { target: targetLabel });
-      showQuickContextNote(source, true, doneMsg, 3200);
-      return { ok: true, targetLabel, needsRestart };
-    } catch (err) {
-      const errMsg = t('twp.saveFail', { err: err?.message || t('msg.unknownErr') });
-      showQuickContextNote(source, false, errMsg, 4200);
-      return { ok: false, error: errMsg };
-    } finally {
-      isQuickPresetSaving = false;
-      renderQuickContextControls();
-    }
-  }
-
   function getHostCsrfToken() {
     try {
       const fromConfig = typeof window !== 'undefined' ? window.__APP_CONFIG__?.csrfToken : null;
       if (fromConfig && typeof fromConfig === 'string') return fromConfig;
-    } catch {}
-    try {
-      if (state && typeof state.observedCsrfToken === 'string' && state.observedCsrfToken) {
-        return state.observedCsrfToken;
-      }
     } catch {}
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -17722,8 +11485,9 @@
 
   async function triggerSessionCompact(source = 'topbar') {
     const cascadeId = state.route;
+    const hasIpcCompact = typeof window !== 'undefined' && typeof window.contextMeterAPI?.compactSession === 'function';
     const csrf = getHostCsrfToken();
-    if (!cascadeId || !csrf) {
+    if (!cascadeId || (!hasIpcCompact && !csrf)) {
       const noSessMsg = t('session.quick.compactNoSession');
       if (source === 'topbar') showTopbarTransientFeedback(false, noSessMsg, el('btn-topbar-compact'));
       return { ok: false, error: noSessMsg };
@@ -17732,47 +11496,51 @@
     isQuickCompactBusy = true;
     renderQuickContextControls();
     try {
-      let compactInfo = { name: 'compact' };
-      try {
-        const cmdRes = await fetch('/exa.language_server_pb.LanguageServerService/GetSlashCommands', {
+      if (hasIpcCompact) {
+        const ipcRes = await window.contextMeterAPI.compactSession(cascadeId);
+        if (!ipcRes || !ipcRes.ok) {
+          throw new Error(ipcRes?.error || t('msg.unknownErr'));
+        }
+      } else {
+        let compactInfo = { name: 'compact' };
+        try {
+          const cmdRes = await fetch('/exa.language_server_pb.LanguageServerService/GetSlashCommands', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Connect-Protocol-Version': '1',
+              'x-codeium-csrf-token': csrf
+            },
+            body: JSON.stringify({ cascadeId })
+          });
+          if (cmdRes.ok) {
+            const cmdData = await cmdRes.json().catch(() => null);
+            const list = cmdData?.commands || cmdData?.slashCommands || [];
+            const found = Array.isArray(list)
+              ? list.find(c => c?.name === 'compact' || c?.info?.name === 'compact')
+              : null;
+            if (found) {
+              compactInfo = found.info || found;
+            }
+          }
+        } catch {}
+
+        const sendRes = await fetch('/exa.language_server_pb.LanguageServerService/SendUserCascadeMessage', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Connect-Protocol-Version': '1',
             'x-codeium-csrf-token': csrf
           },
-          body: JSON.stringify({ cascadeId })
+          body: JSON.stringify({
+            cascadeId,
+            items: [{ item: { slashCommand: { info: compactInfo } } }]
+          })
         });
-        if (cmdRes.ok) {
-          const cmdData = await cmdRes.json().catch(() => null);
-          const list = cmdData?.commands || cmdData?.slashCommands || [];
-          const found = Array.isArray(list)
-            ? list.find(c => c?.name === 'compact' || c?.info?.name === 'compact')
-            : null;
-          if (found) {
-            compactInfo = found.info || found;
-          }
+        if (!sendRes.ok) {
+          const errTxt = await sendRes.text().catch(() => '');
+          throw new Error(errTxt || `HTTP ${sendRes.status}`);
         }
-      } catch {}
-
-      const cachedCtx = lastCascadeConfigByConv.get(cascadeId) || {};
-      const sendBody = {
-        cascadeId,
-        items: [{ item: { slashCommand: { info: compactInfo } } }],
-        ...cachedCtx
-      };
-      const sendRes = await fetch('/exa.language_server_pb.LanguageServerService/SendUserCascadeMessage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Connect-Protocol-Version': '1',
-          'x-codeium-csrf-token': csrf
-        },
-        body: JSON.stringify(sendBody)
-      });
-      if (!sendRes.ok) {
-        const errTxt = await sendRes.text().catch(() => '');
-        throw new Error(errTxt || `HTTP ${sendRes.status}`);
       }
       const doneMsg = t('session.quick.compactDone');
       if (source === 'topbar') showTopbarTransientFeedback(true, doneMsg, el('btn-topbar-compact'));
@@ -17835,16 +11603,6 @@
     if (barFill) barFill.style.width = pct != null ? `${pct}%` : (d?.exceeded ? '100%' : '0%');
 
     updateRingAndBubble(d, session, pct, danger, stale, incomplete);
-
-    syncContextModelSelectionFromState();
-
-    // 若观测到的上下文预算变化且抽屉已展开或尚未读取状态，触发一次轻量同步（不再据此判定真实请求已验证）
-    if (d?.budget && d.budget !== lastAutoObservedBudget && d.budget > 256000) {
-      lastAutoObservedBudget = d.budget;
-      if (currentUnlockStatus || (unlockDrawerBody && unlockDrawerBody.style.display === 'block')) {
-        void refreshUnlockStatus();
-      }
-    }
 
     const status = disp.isError
       ? disp.statusText
@@ -18109,12 +11867,6 @@
         });
         if (value) {
           state.latest = withStepError(value, rows[i]);
-          const callInfo = parseGeneratorCall ? parseGeneratorCall(rows[i], id, 'desktop', { cascadeModelConfigs: modelConfigsList }) : null;
-          recordObservationFromSummary(state.latest, id, {
-            callId: callInfo?.callId || null,
-            stepCount: state.count,
-            ts: Date.now()
-          });
           break;
         }
       }
@@ -18137,23 +11889,12 @@
       if (generation !== state.generation || state.disposed) return;
       if (!result?.ok) throw new Error(result?.error || '扫描未返回有效结果');
       state.scan = result.data; state.scanError = '';
-      if (result.data.modelCapabilitiesById && typeof result.data.modelCapabilitiesById === 'object') {
-        mergeCapabilitiesMapClient(result.data.modelCapabilitiesById);
-      }
       if (Array.isArray(result.data.cascadeModelConfigs) && result.data.cascadeModelConfigs.length) {
         state.cascadeModelConfigs = result.data.cascadeModelConfigs;
       }
       if (result.data.scannedAt >= state.requestAt && result.data.latest) {
         state.latest = result.data.latest;
         state.requestAt = result.data.scannedAt;
-        const genSteps = Number(result.data.generatorCount);
-        const msgSteps = Number(result.data.session?.userMessages || 0) + Number(result.data.session?.assistantMessages || 0);
-        const resolvedStepCount = Number.isFinite(genSteps) && genSteps >= 0 ? genSteps : (msgSteps > 0 ? msgSteps : state.count);
-        recordObservationFromSummary(state.latest, id, {
-          callId: result.data.latestCallId || null,
-          stepCount: resolvedStepCount,
-          ts: Number(result.data.scannedAt || Date.now())
-        });
       }
       state.latest = withStepError(state.latest);
       renderFiles(result.data.session);
@@ -18162,67 +11903,6 @@
   }
 
   let lastHistorySync = 0;
-  let lastAvailableModelsSync = 0;
-  let availableModelsFetchInFlight = false;
-  async function fetchAvailableModelsIfNeeded() {
-    if (availableModelsFetchInFlight) return;
-    if (typeof fetch !== 'function') return;
-    const csrf = getHostCsrfToken();
-    if (!csrf) return;
-    if (Date.now() - lastAvailableModelsSync < 300000 && state.modelCapabilitiesById && Object.keys(state.modelCapabilitiesById).length > 0) {
-      return;
-    }
-    availableModelsFetchInFlight = true;
-    try {
-      const response = await fetch('/exa.language_server_pb.LanguageServerService/GetAvailableModels', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Connect-Protocol-Version': '1', 'x-codeium-csrf-token': csrf },
-        body: JSON.stringify({ forceRefresh: false })
-      });
-      if (!response.ok) return;
-      const data = await response.json();
-      const modelsObj = data?.response?.models || data?.models;
-      if (!modelsObj || typeof modelsObj !== 'object') return;
-      const entries = Array.isArray(modelsObj)
-        ? modelsObj.map(item => [item?.model || item?.modelId || '', item])
-        : Object.entries(modelsObj);
-      const nextCaps = {};
-      for (const [entryKey, d] of entries) {
-        if (!d || typeof d !== 'object') continue;
-        const rawId = String(d.model || d.modelId || entryKey || '').trim();
-        if (!rawId) continue;
-        const normKey = rawId.toLowerCase().replace(/^model_/, '');
-        const maxTokens = Number.isSafeInteger(Number(d.maxTokens)) && Number(d.maxTokens) > 0 ? Number(d.maxTokens) : null;
-        const maxOutputTokens = d.maxOutputTokens != null && Number.isSafeInteger(Number(d.maxOutputTokens)) && Number(d.maxOutputTokens) >= 0
-          ? Number(d.maxOutputTokens)
-          : null;
-        const rec = {
-          modelId: rawId,
-          displayName: d.displayName || null,
-          maxTokens,
-          maxOutputTokens,
-          thinkingBudget: d.thinkingBudget ?? null,
-          minThinkingBudget: d.minThinkingBudget ?? null,
-          thinkingLevel: d.thinkingLevel || null,
-          supportsModelInfoOverride: typeof d.supportsModelInfoOverride === 'boolean' ? d.supportsModelInfoOverride : null,
-          capabilitySource: 'get_available_models'
-        };
-        if (normKey) nextCaps[normKey] = rec;
-        if (entryKey) nextCaps[String(entryKey).trim().toLowerCase().replace(/^model_/, '')] = rec;
-      }
-      if (Object.keys(nextCaps).length > 0) {
-        mergeCapabilitiesMapClient(nextCaps);
-        lastAvailableModelsSync = Date.now();
-        if (!isContextSettingsView && activeContextTab === 'models') {
-          renderModelSettingsTab();
-          renderPresetSelectionUI();
-        }
-      }
-    } catch {}
-    finally {
-      availableModelsFetchInFlight = false;
-    }
-  }
 
   function tick() {
     if (!state.disposed && !host.isConnected) {
@@ -18244,19 +11924,14 @@
         reportedFinalCallIds: state.reportedFinalCallIds || new Set(),
         reportedFinalCallOutputs: state.reportedFinalCallOutputs || new Map()
       });
-      closeTopbarWindowPopover();
       toggle(false); hideContextTooltip(); hideTopbarActionTooltip(true); renderFiles(null); render();
       void syncTokenHistoryFromHost(false);
     }
     if (id && !state.requestBusy && Date.now() >= state.requestNext) void requestPoll(state.generation, id);
     if (id && !state.scanBusy && Date.now() >= state.scanNext) void scan(state.generation, id);
     if (Date.now() - lastHistorySync > 15000) {
-      const isInitialSync = lastHistorySync === 0;
       lastHistorySync = Date.now();
       void syncTokenHistoryFromHost(false);
-      if (!isInitialSync && activeContextTab === 'models' && !isContextSettingsView) {
-        void fetchAvailableModelsIfNeeded();
-      }
     }
   }
 
@@ -18314,75 +11989,22 @@
     findTopRightClusterForTest: () => findTopRightCluster(),
     syncWindowControlsOverlayForTest: () => syncWindowControlsOverlay(),
     computeWindowControlsWidthForTest: el => computeWindowControlsWidth(el),
-    getContextPreferencesState: () => ({
-      activeSessionModelKey,
-      activeSessionProductKey,
-      selectedEditModelKey,
-      selectedProductKey,
-      activeContextTab,
-      isContextSettingsView,
-      draft: { ...ctxDraft },
-      contextPreferences: { ...contextPreferencesMap },
-      unlockStatus: currentUnlockStatus ? { ...currentUnlockStatus } : null,
-      pendingRestartVerification: pendingRestartVerification ? { ...pendingRestartVerification } : null,
-      needsRestartAfterApply
-    }),
-    setContextLatestForTest: (latestObj, configs = [], capabilitiesById = null) => {
-      if (capabilitiesById && typeof capabilitiesById === 'object') mergeCapabilitiesMapClient(capabilitiesById);
+    setContextLatestForTest: (latestObj, configs = []) => {
       if (Array.isArray(configs) && configs.length) state.cascadeModelConfigs = configs;
       state.latest = latestObj;
-      if (latestObj && (state.route || state.activeConversationId)) {
-        recordObservationFromSummary(latestObj, state.route || state.activeConversationId, { ts: latestObj.ts || Date.now() });
-      }
-      manualModelSelection = false;
       render();
-      return { activeSessionModelKey, activeSessionProductKey, selectedEditModelKey, selectedProductKey, draft: { ...ctxDraft } };
     },
-    setModelCapabilitiesForTest: (capabilitiesById) => {
-      mergeCapabilitiesMapClient(capabilitiesById);
-      if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
-    },
-    getBudgetTrackerTracesForTest: () => (budgetTracker && typeof budgetTracker.exportDiagnosticTraces === 'function')
-      ? budgetTracker.exportDiagnosticTraces()
-      : [],
     switchContextTabForTest: (tab) => switchContextTab(tab),
     openContextSettingsForTest: (opts) => openContextSettings(opts),
     setSpeedRecordsForTest: (records, calls = []) => {
       ANTIGRAVITY_TOKEN_DATA.speedRecords = Array.isArray(records) ? records : [];
       if (Array.isArray(calls)) state.sessionCalls = calls;
       if (!isContextSettingsView && activeContextTab === 'speed') renderSpeedComparisonTab();
-      if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
-    },
-    setRestartVerificationForTest: (ver, preSnapshot = null) => {
-      pendingRestartVerification = ver ? { ...ver } : null;
-      if (preSnapshot) preRestartSnapshot = preSnapshot;
-      if (!isContextSettingsView && activeContextTab === 'models') renderModelSettingsTab();
     },
     getKnownModelProductsForTest: () => getKnownModelProducts(),
-    refreshUnlockStatusForTest: () => refreshUnlockStatus(),
     refreshCliUnlockForTest: () => refreshCliUnlockDisplay(),
     refreshModulesForTest: () => refreshModulesDisplay(),
-    resolveQuickContextTargetForTest: () => resolveQuickContextTarget(),
-    applyQuickContextPresetForTest: (mode, lim, opts) => applyQuickContextPreset(mode, lim, opts),
     triggerSessionCompactForTest: (src) => triggerSessionCompact(src),
-    refreshEnhanceStatusForTest: () => refreshEnhanceStatus(),
-    getEnhanceStateForTest: () => ({
-      currentBrandTitle,
-      hasPendingLsReload,
-      currentEnhanceStatus: currentEnhanceStatus ? { ...currentEnhanceStatus } : null
-    }),
-    getUnlockUiStateForTest: () => ({
-      hostSupportsRestart,
-      needsRestartAfterApply,
-      resultBoxDisplay: unlockResultBox?.style?.display || '',
-      resultRestartHidden: btnUnlockResultRestart ? btnUnlockResultRestart.hidden : null,
-      resultRetryHidden: btnUnlockResultRetry ? btnUnlockResultRetry.hidden : null,
-      resultManualHidden: unlockResultManual ? unlockResultManual.hidden : null,
-      headerRestartHidden: btnRestartHost ? btnRestartHost.hidden : null
-    }),
-    getContextScopeModeForTest: () => getContextScopeMode(),
-    setContextScopeModeForTest: mode => setScopeMode(mode),
-    getContextUnifiedPreferenceForTest: () => getContextUnifiedPreference(),
     getPanelLanguage: () => getPanelLanguage(),
     setPanelLanguage: (lang, opts) => applyPanelLanguage(lang, opts),
     renderModelQuotaForTest: (force = true) => renderModelQuota(force),
@@ -18408,17 +12030,8 @@
         clearTimeout(topbarTipFeedbackTimer);
         topbarTipFeedbackTimer = null;
       }
-      if (twpFeedbackTimer) {
-        clearTimeout(twpFeedbackTimer);
-        twpFeedbackTimer = null;
-      }
-      if (sessionCardFeedbackTimer) {
-        clearTimeout(sessionCardFeedbackTimer);
-        sessionCardFeedbackTimer = null;
-      }
       if (layoutRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(layoutRaf);
       syncHostStackingElevation(false);
-      try { uninstallRequestInterceptor(); } catch {}
       try { themeObserver?.disconnect(); } catch {}
       try { resizeObserver?.disconnect(); } catch {}
       try { hostDomObserver?.disconnect(); } catch {}
@@ -18442,9 +12055,9 @@
   applyStaticPanelTranslations(shadow);
   applyStaticPanelTranslations(quotaShadow);
   if (typeof shortcutsShadow !== 'undefined' && shortcutsShadow) applyStaticPanelTranslations(shortcutsShadow);
-  renderEnhanceSectionUI();
+  applyContextViewVisibility();
+  renderSshRemoteContextBanners();
   void restoreSettingsFromHost();
-  installRequestInterceptor();
   render();
   tick();
 })();

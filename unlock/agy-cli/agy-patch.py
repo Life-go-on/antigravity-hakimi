@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
-"""Unlock the agy CLI on macOS (arm64 Mach-O) and Linux (x86-64 / arm64 ELF64, PIE & non-PIE).
+"""Apply adaptive region unlock to the agy CLI on macOS (arm64 Mach-O) and Linux (x86-64 / arm64 ELF64, PIE & non-PIE).
 
-Patches applied when matching symbols are present:
-1. model.SelectorModel.offersContextWindow (arm64 & x86-64)
-   Exposes context window selector options for all models in /model.
-2. store.AutoCompactOverride (arm64 only, optional)
-   Restores os.Getenv("AGY_CLI_AUTO_COMPACT_OVERRIDE") when constant-folded.
-3. authclient.ValidateAndOnboardAccount (arm64 & x86-64, adaptive)
-   Bypasses the ineligibleTiers "free-tier" region check while leaving allowedTiers untouched.
-4. utils.GetCheckpointConfig + config.applyFeatureProviderCheckpointOverrideConfig (Gate 3A / 3B)
-   Applies dynamic / fixed / default checkpoint context window policy without reverting region unlock.
+Patches authclient.ValidateAndOnboardAccount to bypass the ineligibleTiers "free-tier" check
+while leaving allowedTiers untouched.
 
 Usage:
-    agy-patch.py [--binary PATH] [--mode dynamic|fixed|default] [--limit TOKENS]
-                 [--no-env-fix] [--no-region] [--no-sync-config] [--dry-run] [--in-place]
+    agy-patch.py [--binary PATH] [--dry-run] [--in-place]
     agy-patch.py [--binary PATH] --locate      # print symbols, change nothing
 
 Without --in-place the result is written to PATH.patched (and ad-hoc signed on macOS).
@@ -21,55 +13,15 @@ Without --in-place the result is written to PATH.patched (and ad-hoc signed on m
 
 import argparse
 import hashlib
-import json
 import os
-import re
 import shutil
 import struct
 import subprocess
 import sys
 
 PCLNTAB_MAGICS = (0xFFFFFFF1, 0xFFFFFFF0)
-ENV_NAME = b"AGY_CLI_AUTO_COMPACT_OVERRIDE"
 FREE_TIE = bytes.fromhex("667265652d746965")
-
-FUNC_OFFERS = "model.SelectorModel.offersContextWindow"
-FUNC_OVERRIDE = "store.AutoCompactOverride"
-FUNC_TRIM = "strings.TrimSpace"
-FUNC_GETENV = "os.Getenv"
 FUNC_REGION = "authclient.ValidateAndOnboardAccount"
-FUNC_CHECKPOINT = "utils.GetCheckpointConfig"
-FUNC_EXP = "config.applyFeatureProviderCheckpointOverrideConfig"
-FUNC_SELECT = "config.selectCheckpointExperimentKey"
-
-TARGET_FUNCS = (
-    FUNC_OFFERS,
-    FUNC_OVERRIDE,
-    FUNC_TRIM,
-    FUNC_GETENV,
-    FUNC_REGION,
-    FUNC_CHECKPOINT,
-    FUNC_EXP,
-    FUNC_SELECT,
-)
-
-RET_TRUE_ARM64 = struct.pack("<II", 0x52800020, 0xD65F03C0)      # mov w0,#1 ; ret
-RET_TRUE_X64 = bytes.fromhex("b801000000c3")                     # mov eax,1 ; ret
-GETENV_STUB_ARM64 = struct.pack("<III", 0xD503201F, 0xAA1F03E0, 0xAA1F03E1)
-
-CLAMP_X64 = bytes.fromhex("81fa00e80300be00e803000f42f2")
-DYN_X64 = bytes.fromhex("89d6") + b"\x90" * 12
-DEF_ORIG_X64 = bytes.fromhex("c7400c00e80300")
-
-NOP_A64 = bytes.fromhex("1f2003d5")
-DYN_A64 = NOP_A64 * 6
-CLAMP_A64 = bytes.fromhex("04009dd26400a0f27f00046b04009dd26400a0f26330849a")
-DEF_ORIG_A64 = bytes.fromhex("03009dd26300a0f2030c00b9")
-DEF_GUARD_A64 = bytes.fromhex("7f0000718c000054")
-STR_W3_A64 = bytes.fromhex("030c00b9")
-
-MIN_LIM = 16384
-MAX_LIM = 2097152
 
 
 class PatchError(Exception):
@@ -89,31 +41,6 @@ def read_cstr(data, off, limit=2048):
         end = min(len(data), off + limit)
     return data[off:end].decode("utf-8", "replace")
 
-
-def enc_mov_a64(reg, val):
-    lo = val & 0xFFFF
-    hi = (val >> 16) & 0xFFFF
-    rd = reg & 0x1F
-    return struct.pack(
-        "<II",
-        (0xD2800000 | (lo << 5) | rd) & 0xFFFFFFFF,
-        (0xF2A00000 | (hi << 5) | rd) & 0xFFFFFFFF,
-    )
-
-
-def dec_mov_a64(data, off, reg):
-    if off < 0 or off + 8 > len(data):
-        return None
-    w0, w1 = struct.unpack_from("<II", data, off)
-    rd = reg & 0x1F
-    if (w0 & 0xFFE0001F) != (0xD2800000 | rd) or (w1 & 0xFFE0001F) != (0xF2A00000 | rd):
-        return None
-    return (((w1 >> 5) & 0xFFFF) << 16) | ((w0 >> 5) & 0xFFFF)
-
-
-# --------------------------------------------------------------------------
-# binary container parsing (Mach-O, ELF64 PIE/non-PIE, PE)
-# --------------------------------------------------------------------------
 
 def parse_container(data):
     if len(data) < 64:
@@ -285,7 +212,7 @@ def _resolve_elf_go_text_base(data, container, pcln_off, text_start):
 
 
 def build_functions(data, container):
-    """Locate target Go functions from .gopclntab, resolving PIE ELF64 text base when needed."""
+    """Locate authclient.ValidateAndOnboardAccount from .gopclntab, resolving PIE ELF64 text base when needed."""
     minlc = 4 if container["arch"] == "arm64" else 1
     for magic in PCLNTAB_MAGICS:
         pat = struct.pack("<I", magic) + bytes([0, 0, minlc, 8])
@@ -323,133 +250,23 @@ def build_functions(data, container):
                 if no < 0 or fnm + no >= len(data):
                     continue
                 nm = read_cstr(data, fnm + no, 512)
-                for suf in TARGET_FUNCS:
-                    if suf not in found and (nm == suf or nm.endswith("/" + suf) or nm.endswith("." + suf)):
-                        neo = struct.unpack_from("<I", data, ft + (k + 1) * 8)[0]
-                        found[suf] = {
-                            "name": nm,
-                            "entryoff": eo,
-                            "next_entryoff": neo,
-                            "size": max(0, neo - eo),
-                            "fn_start": go_toff + eo,
-                            "fn_end": go_toff + neo,
-                            "fn_va": go_tva + eo,
-                        }
-                if len(found) >= len(TARGET_FUNCS):
+                if nm == FUNC_REGION or nm.endswith("/" + FUNC_REGION) or nm.endswith("." + FUNC_REGION):
+                    neo = struct.unpack_from("<I", data, ft + (k + 1) * 8)[0]
+                    found[FUNC_REGION] = {
+                        "name": nm,
+                        "entryoff": eo,
+                        "next_entryoff": neo,
+                        "size": max(0, neo - eo),
+                        "fn_start": go_toff + eo,
+                        "fn_end": go_toff + neo,
+                        "fn_va": go_tva + eo,
+                    }
                     break
 
             return found, go_tva, go_toff, source, nfunc
 
     raise PatchError("Go .gopclntab not found")
 
-
-# --------------------------------------------------------------------------
-# Patch 1: model.SelectorModel.offersContextWindow
-# --------------------------------------------------------------------------
-
-def patch_offers(data, funcs, arch):
-    if FUNC_OFFERS not in funcs:
-        raise PatchError(f"symbol not found: {FUNC_OFFERS}")
-    fn = funcs[FUNC_OFFERS]
-    blob = RET_TRUE_ARM64 if arch == "arm64" else RET_TRUE_X64
-    off = fn["fn_start"]
-    if off < 0 or off + len(blob) > len(data):
-        raise PatchError(f"{FUNC_OFFERS}: entry offset out of bounds")
-    if bytes(data[off:off + len(blob)]) == blob:
-        return False, f"{FUNC_OFFERS}: already patched"
-    data[off:off + len(blob)] = blob
-    return True, f"{FUNC_OFFERS}: entry {fn['fn_va']:#x} -> return true ({blob.hex(' ')})"
-
-
-# --------------------------------------------------------------------------
-# Patch 2: store.AutoCompactOverride (arm64 only, optional)
-# --------------------------------------------------------------------------
-
-def encode_adrp(rd, pc, target):
-    delta = ((target & ~0xFFF) - (pc & ~0xFFF)) >> 12
-    if not -(1 << 20) <= delta < (1 << 20):
-        raise PatchError("adrp target out of range")
-    imm21 = delta & 0x1FFFFF
-    return 0x90000000 | ((imm21 & 3) << 29) | ((imm21 >> 2) << 5) | rd
-
-
-def encode_add_imm(rd, rn, imm12):
-    if not 0 <= imm12 <= 0xFFF:
-        raise PatchError("add immediate out of range")
-    return 0x91000000 | (imm12 << 10) | (rn << 5) | rd
-
-
-def encode_movz64(rd, imm16):
-    return 0xD2800000 | (imm16 << 5) | rd
-
-
-def encode_bl(pc, target):
-    delta = target - pc
-    if delta & 3 or not -(1 << 27) <= delta < (1 << 27):
-        raise PatchError("bl target out of range")
-    return 0x94000000 | ((delta >> 2) & 0x3FFFFFF)
-
-
-def patch_env(data, funcs, container):
-    if container["arch"] != "arm64":
-        raise PatchError(f"env-var patch is arm64-only (current arch={container['arch']})")
-    for needed in (FUNC_OVERRIDE, FUNC_TRIM, FUNC_GETENV):
-        if needed not in funcs:
-            raise PatchError(f"symbol not found: {needed}")
-
-    fn_ov = funcs[FUNC_OVERRIDE]
-    start = fn_ov["fn_start"]
-    site_va = fn_ov["fn_va"]
-    body_len = min(max(512, fn_ov["size"] or 512), len(data) - start)
-    body = bytes(data[start:start + body_len])
-
-    name_off = data.find(ENV_NAME)
-    if name_off < 0:
-        raise PatchError("env var name missing from rodata")
-    target = file_off_to_va(container, name_off)
-    getenv_va = funcs[FUNC_GETENV]["fn_va"]
-    trim_va = funcs[FUNC_TRIM]["fn_va"]
-
-    hits = [m.start() for m in re.finditer(re.escape(GETENV_STUB_ARM64), body)]
-    if len(hits) != 1:
-        for rel in range(0, body_len - 15, 4):
-            try:
-                expected = struct.pack(
-                    "<IIII",
-                    encode_adrp(0, site_va + rel, target),
-                    encode_add_imm(0, 0, target & 0xFFF),
-                    encode_movz64(1, len(ENV_NAME)),
-                    encode_bl(site_va + rel + 12, getenv_va),
-                )
-            except PatchError:
-                continue
-            if body[rel:rel + 16] == expected:
-                return False, f"{FUNC_OVERRIDE}: already patched"
-        raise PatchError(f"{FUNC_OVERRIDE}: expected 1 folded Getenv stub, found {len(hits)}")
-
-    site = start + hits[0]
-    bl_site = site + 12
-    old_bl = struct.unpack_from("<I", data, bl_site)[0]
-    if old_bl & 0xFC000000 != 0x94000000:
-        raise PatchError("expected bl after the stub")
-    bl_pc = site_va + hits[0] + 12
-    cur = bl_pc + sxt(old_bl & 0x3FFFFFF, 26) * 4
-    if cur != trim_va:
-        raise PatchError("that bl does not target strings.TrimSpace")
-
-    words = (
-        encode_adrp(0, site_va + hits[0], target),
-        encode_add_imm(0, 0, target & 0xFFF),
-        encode_movz64(1, len(ENV_NAME)),
-        encode_bl(bl_pc, getenv_va),
-    )
-    data[site:site + 16] = b"".join(struct.pack("<I", w) for w in words)
-    return True, f"{FUNC_OVERRIDE}: reads {ENV_NAME.decode()} (strings.TrimSpace -> os.Getenv @ {bl_pc:#x})"
-
-
-# --------------------------------------------------------------------------
-# Patch 3: authclient.ValidateAndOnboardAccount (Region / Free-tier unlock)
-# --------------------------------------------------------------------------
 
 def analyze_region_x64(b, fn_s, fn_e):
     cands = []
@@ -588,7 +405,7 @@ def analyze_region_a64(b, fn_s, fn_e):
 
 def patch_region(data, funcs, arch):
     if FUNC_REGION not in funcs:
-        return False, f"{FUNC_REGION}: symbol not present (skipped)"
+        raise PatchError(f"{FUNC_REGION}: symbol not found")
     fn = funcs[FUNC_REGION]
     fn_s = fn["fn_start"]
     fn_e = min(len(data), fn["fn_end"])
@@ -604,165 +421,6 @@ def patch_region(data, funcs, arch):
         raise PatchError(f"{FUNC_REGION}: in-memory verification failed after patching")
     return True, f"{FUNC_REGION}: patched free-tier branch @ file {bo:#x} ({pbytes.hex(' ')})"
 
-
-# --------------------------------------------------------------------------
-# Patch 4: Gate 3A / Gate 3B checkpoint context window
-# --------------------------------------------------------------------------
-
-def patch_context(data, funcs, arch, mode, lim, orig3b_hex):
-    if FUNC_CHECKPOINT not in funcs:
-        return False, False, orig3b_hex, f"{FUNC_CHECKPOINT}: symbol not present (skipped)"
-    fn_ck = funcs[FUNC_CHECKPOINT]
-    fn_exp = funcs.get(FUNC_EXP)
-    fn_sel = funcs.get(FUNC_SELECT)
-    ck_s, ck_e = fn_ck["fn_start"], min(len(data), fn_ck["fn_end"])
-    body = data[ck_s:ck_e]
-    changed = False
-    saved3b = orig3b_hex
-
-    def put(off, val):
-        nonlocal changed
-        if bytes(data[off:off + len(val)]) != val:
-            data[off:off + len(val)] = val
-            changed = True
-
-    if arch == "x86-64":
-        ch = []
-        for r in range(0, len(body) - 13):
-            s = bytes(body[r:r + 14])
-            if s == CLAMP_X64 or s == DYN_X64 or (s[0] == 0xBE and s[5:] == b"\x90" * 9 and MIN_LIM <= struct.unpack_from("<I", s, 1)[0] <= MAX_LIM):
-                ch.append(ck_s + r)
-        if len(ch) != 1:
-            return False, False, saved3b, f"{FUNC_CHECKPOINT}: skipped (x64 clamp hits={len(ch)})"
-        dh = []
-        for r in range(2, len(body) - 6):
-            if body[r] == 0xC7 and body[r + 1] == 0x40 and body[r + 2] == 0x0C and 0x70 <= body[r - 2] <= 0x7F and body[r - 1] == 0x07:
-                imm = struct.unpack_from("<I", body, r + 3)[0]
-                if MIN_LIM <= imm <= MAX_LIM:
-                    dh.append(ck_s + r)
-        if len(dh) > 1:
-            return False, False, saved3b, f"{FUNC_CHECKPOINT}: skipped (x64 def hits={len(dh)})"
-        g3b = None
-        if fn_exp and fn_sel:
-            es, ee, eva, sva = fn_exp["fn_start"], min(len(data), fn_exp["fn_end"]), fn_exp["fn_va"], fn_sel["fn_va"]
-            eb = data[es:ee]
-            gh = []
-            for r in range(0, len(eb) - 12):
-                if eb[r] != 0xE8:
-                    continue
-                if eva + r + 5 + struct.unpack_from("<i", eb, r + 1)[0] != sva:
-                    continue
-                ti = eb.find(b"\x84\xc0", r + 5, min(len(eb), r + 105))
-                if ti < 0 or ti + 4 > len(eb):
-                    continue
-                jo = ti + 2
-                if eb[jo] == 0x75:
-                    gh.append(("unpatched", es + jo, 2, bytes(eb[jo:jo + 2]).hex()))
-                elif eb[jo] == 0x0F and eb[jo + 1] == 0x85 and jo + 6 <= len(eb):
-                    gh.append(("unpatched", es + jo, 6, bytes(eb[jo:jo + 6]).hex()))
-                elif eb[jo] == 0x90 and eb[jo + 1] == 0x90:
-                    ln = 6 if (jo + 6 <= len(eb) and bytes(eb[jo:jo + 6]) == b"\x90" * 6) else 2
-                    gh.append(("patched", es + jo, ln, None))
-            if len(gh) == 1:
-                g3b = gh[0]
-        if g3b and g3b[0] == "unpatched" and g3b[3]:
-            saved3b = g3b[3]
-        if mode == "default":
-            put(ch[0], CLAMP_X64)
-            if dh:
-                put(dh[0], DEF_ORIG_X64)
-            if g3b and g3b[0] == "patched" and saved3b:
-                ob = bytes.fromhex(saved3b)
-                if len(ob) == g3b[2]:
-                    put(g3b[1], ob)
-        elif mode == "fixed":
-            put(ch[0], b"\xbe" + struct.pack("<I", lim) + b"\x90" * 9)
-            if dh:
-                put(dh[0], b"\xc7\x40\x0c" + struct.pack("<I", lim))
-            if g3b and g3b[0] == "unpatched":
-                put(g3b[1], b"\x90" * g3b[2])
-        else:
-            put(ch[0], DYN_X64)
-            if dh:
-                put(dh[0], DEF_ORIG_X64)
-            if g3b and g3b[0] == "unpatched":
-                put(g3b[1], b"\x90" * g3b[2])
-        return True, changed, saved3b, f"{FUNC_CHECKPOINT}: mode={mode}" + (f" ({lim})" if mode == "fixed" else "")
-
-    # arm64
-    ch = []
-    for r in range(0, len(body) - 23, 4):
-        s = bytes(body[r:r + 24])
-        if s == CLAMP_A64 or s == DYN_A64:
-            ch.append(ck_s + r)
-        else:
-            imm = dec_mov_a64(body, r, 3)
-            if imm is not None and MIN_LIM <= imm <= MAX_LIM and s[8:] == NOP_A64 * 4:
-                ch.append(ck_s + r)
-    if len(ch) != 1:
-        return False, False, saved3b, f"{FUNC_CHECKPOINT}: skipped (arm64 clamp hits={len(ch)})"
-    dh = []
-    for r in range(8, len(body) - 11, 4):
-        if bytes(body[r - 8:r]) == DEF_GUARD_A64 and bytes(body[r + 8:r + 12]) == STR_W3_A64:
-            imm = dec_mov_a64(body, r, 3)
-            if imm is not None and MIN_LIM <= imm <= MAX_LIM:
-                dh.append(ck_s + r)
-    if len(dh) > 1:
-        return False, False, saved3b, f"{FUNC_CHECKPOINT}: skipped (arm64 def hits={len(dh)})"
-    g3b = None
-    if fn_exp and fn_sel:
-        es, ee, eeo, seo = fn_exp["fn_start"], min(len(data), fn_exp["fn_end"]), fn_exp["entryoff"], fn_sel["entryoff"]
-        eb = data[es:ee]
-        gh = []
-        for r in range(0, len(eb) - 7, 4):
-            w = struct.unpack_from("<I", eb, r)[0]
-            if (w & 0xFC000000) != 0x94000000:
-                continue
-            if eeo + r + sxt(w & 0x03FFFFFF, 26) * 4 != seo:
-                continue
-            for d in range(4, 53, 4):
-                if r + d + 8 > len(eb):
-                    break
-                w2 = struct.unpack_from("<I", eb, r + d)[0]
-                if (w2 & 0xFFFFFC1F) != 0xD63F0000:
-                    continue
-                jo = r + d + 4
-                wn = struct.unpack_from("<I", eb, jo)[0]
-                if (wn & 0xFFF8001F) == 0x37000000 or (wn & 0xFF00001F) == 0x35000000:
-                    gh.append(("unpatched", es + jo, 4, bytes(eb[jo:jo + 4]).hex()))
-                elif wn == 0xD503201F:
-                    gh.append(("patched", es + jo, 4, None))
-                break
-        if len(gh) == 1:
-            g3b = gh[0]
-    if g3b and g3b[0] == "unpatched" and g3b[3]:
-        saved3b = g3b[3]
-    if mode == "default":
-        put(ch[0], CLAMP_A64)
-        if dh:
-            put(dh[0], DEF_ORIG_A64)
-        if g3b and g3b[0] == "patched" and saved3b:
-            ob = bytes.fromhex(saved3b)
-            if len(ob) == 4:
-                put(g3b[1], ob)
-    elif mode == "fixed":
-        put(ch[0], enc_mov_a64(3, lim) + NOP_A64 * 4)
-        if dh:
-            put(dh[0], enc_mov_a64(3, lim) + STR_W3_A64)
-        if g3b and g3b[0] == "unpatched":
-            put(g3b[1], NOP_A64)
-    else:
-        put(ch[0], DYN_A64)
-        if dh:
-            put(dh[0], DEF_ORIG_A64)
-        if g3b and g3b[0] == "unpatched":
-            put(g3b[1], NOP_A64)
-    return True, changed, saved3b, f"{FUNC_CHECKPOINT}: mode={mode}" + (f" ({lim})" if mode == "fixed" else "")
-
-
-# --------------------------------------------------------------------------
-# Helpers: binary auto-detection, safety guard, config sync, macOS resign
-# --------------------------------------------------------------------------
 
 def assert_not_official_antigravity(path):
     real_path = os.path.realpath(os.path.abspath(path))
@@ -831,53 +489,6 @@ def detect_default_agy_binary():
     return os.path.expanduser("~/.local/bin/agy")
 
 
-def format_context_label(mode, lim):
-    if mode in ("default", "dynamic"):
-        return None
-    if lim % 1024 == 0 and lim in (262144, 524288, 983040, 1048576):
-        return f"{lim // 1024}K"
-    if lim >= 1_000_000 and lim % 1_000_000 == 0:
-        return f"{lim // 1_000_000}M"
-    if lim % 1000 == 0:
-        return f"{lim // 1000}K"
-    return str(lim)
-
-
-def sync_cli_configs(mode, lim):
-    home = os.path.expanduser("~")
-    label = format_context_label(mode, lim) if mode == "fixed" else None
-    targets = [
-        (os.path.join(home, ".gemini", "config", "config.json"), True),
-        (os.path.join(home, ".gemini", "antigravity-cli", "settings.json"), False),
-    ]
-    synced = []
-    for fpath, create_dir in targets:
-        d = os.path.dirname(fpath)
-        if not os.path.isdir(d):
-            if create_dir:
-                os.makedirs(d, exist_ok=True)
-            else:
-                continue
-        obj = {}
-        if os.path.isfile(fpath):
-            try:
-                with open(fpath, "r", encoding="utf-8") as fh:
-                    obj = json.load(fh) or {}
-            except Exception:
-                obj = {}
-        if mode in ("default", "dynamic") or not label:
-            obj.pop("contextWindow", None)
-        else:
-            obj["contextWindow"] = label
-        tmp = f"{fpath}.tmp-{os.getpid()}"
-        with open(tmp, "w", encoding="utf-8") as fh:
-            json.dump(obj, fh, indent=2)
-            fh.write("\n")
-        os.replace(tmp, fpath)
-        synced.append(fpath)
-    return synced
-
-
 def resign(path, container_format):
     if sys.platform != "darwin" or container_format != "Mach-O":
         print("[i] non-Mach-O or non-macOS target: no ad-hoc signing step applied")
@@ -891,18 +502,10 @@ def resign(path, container_format):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--binary", default=None, help="path to agy CLI binary (auto-detected if omitted)")
-    ap.add_argument("--mode", default="dynamic", choices=("default", "dynamic", "fixed"))
-    ap.add_argument("--limit", type=int, default=0, help="fixed context limit tokens (16384..2097152)")
-    ap.add_argument("--no-env-fix", action="store_true")
-    ap.add_argument("--no-region", action="store_true")
-    ap.add_argument("--no-sync-config", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--in-place", action="store_true")
     ap.add_argument("--locate", action="store_true", help="print symbols only")
     args = ap.parse_args()
-
-    if args.mode == "fixed" and not (MIN_LIM <= args.limit <= MAX_LIM):
-        sys.exit(f"error: --mode fixed requires --limit between {MIN_LIM} and {MAX_LIM}")
 
     src_arg = args.binary if args.binary else detect_default_agy_binary()
     src = os.path.abspath(os.path.expanduser(src_arg))
@@ -922,43 +525,16 @@ def main():
     print(f"[i] {src_real}\n[i] format={container['format']} arch={arch} "
           f"go_text_va={go_tva:#x} go_text_off={go_toff:#x} ({go_src}) symbols={total_syms}")
 
-    for key in TARGET_FUNCS:
-        if key in funcs:
-            print(f"[i] {key} -> va={funcs[key]['fn_va']:#x} off={funcs[key]['fn_start']:#x}")
-        else:
-            print(f"[i] {key} -> MISSING")
+    if FUNC_REGION in funcs:
+        print(f"[i] {FUNC_REGION} -> va={funcs[FUNC_REGION]['fn_va']:#x} off={funcs[FUNC_REGION]['fn_start']:#x}")
+    else:
+        print(f"[i] {FUNC_REGION} -> MISSING")
 
     if args.locate:
         return
 
-    ok, msg = patch_offers(data, funcs, arch)
+    ok, msg = patch_region(data, funcs, arch)
     print(("[*] " if ok else "[=] ") + msg)
-
-    if not args.no_env_fix:
-        try:
-            ok, msg = patch_env(data, funcs, container)
-            print(("[*] " if ok else "[=] ") + msg)
-        except PatchError as exc:
-            print(f"[!] skipped env-var patch: {exc}")
-
-    if not args.no_region:
-        ok, msg = patch_region(data, funcs, arch)
-        print(("[*] " if ok else "[=] ") + msg)
-
-    dst = src_real if args.in_place else src + ".patched"
-    meta_path = f"{dst}.hakimi_meta.json"
-    prev_meta = {}
-    if os.path.isfile(meta_path):
-        try:
-            with open(meta_path, "r", encoding="utf-8") as fh:
-                prev_meta = json.load(fh) or {}
-        except Exception:
-            prev_meta = {}
-
-    ctx_ok, ctx_changed, saved3b, ctx_msg = patch_context(
-        data, funcs, arch, args.mode, args.limit, prev_meta.get("gate3bOrigHex")
-    )
-    print(("[*] " if ctx_changed else ("[=] " if ctx_ok else "[!] ")) + ctx_msg)
 
     after = hashlib.sha256(bytes(data)).hexdigest()
     if args.dry_run:
@@ -968,6 +544,7 @@ def main():
             print(f"[*] dry run: {before[:12]} -> {after[:12]}")
         return
 
+    dst = src_real if args.in_place else src + ".patched"
     if before != after:
         assert_not_official_antigravity(dst)
         tmp_dst = f"{dst}.hakimi_tmp_{os.getpid()}"
@@ -986,20 +563,6 @@ def main():
         print(f"[*] wrote {dst}\n    sha256 {before[:12]} -> {after[:12]}")
     else:
         print("[=] binary already up to date")
-
-    if saved3b and saved3b != prev_meta.get("gate3bOrigHex"):
-        try:
-            prev_meta["gate3bOrigHex"] = saved3b
-            with open(meta_path, "w", encoding="utf-8") as fh:
-                json.dump(prev_meta, fh, indent=2)
-                fh.write("\n")
-        except OSError:
-            pass
-
-    if args.in_place and not args.no_sync_config:
-        synced = sync_cli_configs(args.mode, args.limit)
-        if synced:
-            print(f"[*] synced configs: {', '.join(synced)}")
 
 
 if __name__ == "__main__":

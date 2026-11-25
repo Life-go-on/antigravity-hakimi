@@ -14,7 +14,7 @@ const { packHakimiAsar } = require(path.join(ROOT, 'scripts', 'pack-hakimi-asar.
 const { buildMacosIcon } = require(path.join(ROOT, 'scripts', 'build-macos-icon.js'));
 const { replaceAsarIcon } = require(path.join(ROOT, 'scripts', 'replace-asar-icon.js'));
 const meterCore = require(path.join(ROOT, 'payload', 'dist', 'meter-core.js'));
-const contextUnlock = require(path.join(ROOT, 'payload', 'dist', 'meter-context-unlock.js'));
+const enhance = require(path.join(ROOT, 'payload', 'dist', 'meter-enhance.js'));
 const modulesConfig = require(path.join(ROOT, 'payload', 'dist', 'modules-config.js'));
 const { runDoctor } = require(path.join(ROOT, 'scripts', 'doctor.js'));
 
@@ -55,6 +55,21 @@ const EXCLUDED_SYMBOLS = [
   'chk-enhance-chinese-title',
   'btn-enhance-apply-prompt',
   'chk-rec-title',
+  'meter-context-unlock',
+  '__JETSKI_LS_CLIENT_DECORATOR__',
+  'WebSocket.prototype.send',
+  'XMLHttpRequest.prototype.send',
+  'window.fetch =',
+  'checkpointConfig.maxTokenLimit',
+  'offersContextWindow',
+  'AGY_CLI_AUTO_COMPACT_OVERRIDE',
+  'GetCheckpointConfig',
+  'applyFeatureProviderCheckpointOverrideConfig',
+  'btn-topbar-window',
+  'topbar-window-popover',
+  'session-ctx-preset-bar',
+  'applyQuickContextPreset',
+  'resolveQuickContextTarget',
 ];
 
 function collectJsFiles(dir) {
@@ -77,7 +92,7 @@ test('all JS files in payload/dist, scripts, and src/renderer pass vm.Script syn
     ...collectJsFiles(path.join(ROOT, 'scripts')),
     ...collectJsFiles(path.join(ROOT, 'src', 'renderer')),
   ];
-  assert.ok(jsFiles.length >= 18, `expected >= 18 JS files, got ${jsFiles.length}`);
+  assert.ok(jsFiles.length >= 15, `expected >= 15 JS files, got ${jsFiles.length}`);
   for (const file of jsFiles) {
     const src = fs.readFileSync(file, 'utf8');
     const cleanSrc = src.startsWith('#!') ? '//' + src.slice(2) : src;
@@ -635,28 +650,25 @@ test('buildMacosIcon converts JPEG/PNG/ICNS and packHakimiAsar optionally swaps 
   }
 });
 
-test('context presets start at 512K up to 1M and arm64 clients enable Apply button', () => {
-  const tpl = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'template.html'), 'utf8');
-  for (const dropped of ['128000', '256000']) {
-    assert.equal(tpl.includes(`data-ctx-limit="${dropped}"`), false, `${dropped} preset should not exist in settings grid`);
-    assert.equal(tpl.includes(`data-qctx-limit="${dropped}"`), false, `${dropped} preset should not exist in quick preset grids`);
+test('preload and renderer contain zero outgoing request interception hooks', () => {
+  const modularInstaller = require(path.join(ROOT, 'payload', 'dist', 'modular-installer.js'));
+  const preloadCode = modularInstaller.generateMeterPreloadCode();
+  for (const forbidden of [
+    '__JETSKI_LS_CLIENT_DECORATOR__',
+    'webFrame.executeJavaScript',
+    'context-unlock',
+    'enhance-status',
+    'enhance-apply',
+    'enhance-restore',
+  ]) {
+    assert.equal(preloadCode.includes(forbidden), false, `Preload must not include ${forbidden}`);
   }
-  for (const preset of ['512000', '1000000']) {
-    assert.ok(tpl.includes(`data-ctx-limit="${preset}"`), `Missing preset button for ${preset}`);
-    assert.ok(tpl.includes(`data-qctx-limit="${preset}"`), `Missing quick preset button for ${preset}`);
-  }
+  assert.ok(preloadCode.includes('compactSession'), 'Preload should expose compactSession IPC bridge');
 
-  const rendererSources = collectJsFiles(path.join(ROOT, 'src', 'renderer'))
-    .map((f) => fs.readFileSync(f, 'utf8'))
-    .join('\n');
-  assert.ok(
-    rendererSources.includes("data.arch === 'arm64'"),
-    'src/renderer/*.js must enable btnApplyUnlock on Apple Silicon (arm64)'
-  );
-  assert.ok(
-    rendererSources.includes('rawWindowMax'),
-    'src/renderer/*.js must compare presets against rawWindowMax so 1M stays enabled on 1M models'
-  );
+  const tpl = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'template.html'), 'utf8');
+  for (const removed of ['tab-ctx-models', 'pane-ctx-models', 'ctx-compact-card', 'enhance-preset-card', 'btn-topbar-window', 'topbar-window-popover']) {
+    assert.equal(tpl.includes(removed), false, `template.html must not contain ${removed}`);
+  }
 });
 
 test('meter-core recognizes Gemini 4 Hydrogen, Argon, and Orchestrator (Carbon) under Google vendor', () => {
@@ -670,10 +682,10 @@ test('meter-core recognizes Gemini 4 Hydrogen, Argon, and Orchestrator (Carbon) 
   }
 });
 
-test('meter-context-unlock ps lookup preserves UTF-8 non-ASCII bundle paths under stripped C locale', async () => {
+test('meter-enhance ps lookup preserves UTF-8 non-ASCII bundle paths under stripped C locale', () => {
   const targetLs = '/Applications/哈基米.app/Contents/Resources/bin/language_server';
   const syntheticPs = `41204 Sun Nov 15 14:00:32 2026     ${targetLs} --standalone\n`;
-  const parsed = contextUnlock.parseMacPsOutput(syntheticPs, targetLs);
+  const parsed = enhance.parseMacPsOutput(syntheticPs, targetLs);
   assert.equal(parsed.length, 1);
   assert.equal(parsed[0].pid, 41204);
 
@@ -685,10 +697,7 @@ test('meter-context-unlock ps lookup preserves UTF-8 non-ASCII bundle paths unde
     delete process.env.LC_ALL;
     delete process.env.LC_CTYPE;
 
-    const proc = await contextUnlock.getRunningLanguageServerInfoAsync(targetLs, true);
-    assert.equal(proc.queryFailed, false);
-
-    // Independently check whether 哈基米.app language_server is running using explicit UTF-8 ps env
+    const isRunning = enhance.checkLanguageServerRunning({ targets: [{ id: 'desktop', path: targetLs }] });
     const livePs = execFileSync('ps', ['-ax', '-o', 'pid=,command='], {
       encoding: 'utf8',
       env: { ...process.env, LANG: 'en_US.UTF-8', LC_CTYPE: 'UTF-8' },
@@ -696,7 +705,7 @@ test('meter-context-unlock ps lookup preserves UTF-8 non-ASCII bundle paths unde
     const actuallyRunning = livePs.split(/\r?\n/).some((l) => l.includes(targetLs));
     if (actuallyRunning) {
       assert.equal(
-        proc.isRunning,
+        isRunning,
         true,
         'Live 哈基米.app language_server must still be detected when parent env lacks UTF-8 LANG/LC_CTYPE'
       );
@@ -810,9 +819,6 @@ test('checkAppVersionSync detects version mismatch and renderer exposes quick ac
   for (const marker of [
     'version-sync-banner',
     'btn-topbar-compact',
-    'btn-topbar-window',
-    'topbar-window-popover',
-    'session-ctx-preset-bar',
     'topbar-action-tooltip',
     'cli-unlock-card',
     'badge-cache',
@@ -827,7 +833,7 @@ test('checkAppVersionSync detects version mismatch and renderer exposes quick ac
     assert.equal(tpl.includes(removed), false, `${removed} should be removed from template.html`);
     assert.equal(renderedJs.includes(removed), false, `${removed} should be removed from meter-renderer.js`);
   }
-  for (const btnId of ['btn-topbar-compact', 'btn-topbar-window']) {
+  for (const btnId of ['btn-topbar-compact']) {
     const match = tpl.match(new RegExp(`<button\\s+id="${btnId}"[^>]*>([\\s\\S]*?)<\\/button>`));
     assert.ok(match, `Missing <button id="${btnId}"> element in template.html`);
     assert.ok(match[1].includes('<svg'), `${btnId} must render an <svg> icon`);
@@ -835,8 +841,7 @@ test('checkAppVersionSync detects version mismatch and renderer exposes quick ac
     assert.equal(visibleText, '', `${btnId} on primary top bar must be icon-only with no visible text`);
   }
   assert.ok(renderedJs.includes('GetSlashCommands'), 'Missing GetSlashCommands in meter-renderer.js');
-  assert.ok(renderedJs.includes('applyQuickContextPreset'), 'Missing applyQuickContextPreset in meter-renderer.js');
-  assert.ok(renderedJs.includes('resolveQuickContextTarget'), 'Missing resolveQuickContextTarget in meter-renderer.js');
+  assert.ok(renderedJs.includes('compactSession'), 'Missing compactSession in meter-renderer.js');
 });
 
 test('build-hakimi.sh and set-hakimi-icon.sh escalate to SIGKILL on stuck processes, clean stale SingletonLock, and use open -n', async () => {
@@ -1796,10 +1801,10 @@ test('meter-storage byte verification, collector bounded caches, SSH renderer ba
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
-  // 4. Renderer exposes SSH remote context banners
+  // 4. Renderer exposes SSH remote status banner
   const tpl = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'template.html'), 'utf8');
   const renderedJs = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'meter-renderer.js'), 'utf8');
-  for (const marker of ['ctx-ssh-remote-banner', 'enhance-ssh-remote-banner']) {
+  for (const marker of ['enhance-ssh-remote-banner']) {
     assert.ok(tpl.includes(marker), `Missing ${marker} in template.html`);
     assert.ok(renderedJs.includes(marker), `Missing ${marker} in meter-renderer.js`);
   }

@@ -8,16 +8,6 @@ const { fileURLToPath } = require('url');
 const { spawn, spawnSync } = require('child_process');
 const { safeWriteJsonSync, safeReadJsonSync } = require('./meter-storage');
 const {
-  analyzeBinaryAsync: getContextUnlockStatus,
-  analyzeBinary,
-  analyzeBinaryAsync,
-  applyUnlock: applyContextUnlock,
-  restoreUnlock: restoreContextUnlock,
-  validateContextLimit,
-  DEFAULT_CHECKPOINT_TOKENS,
-  AUTHOR_INFO: CONTEXT_UNLOCK_AUTHOR
-} = require('./meter-context-unlock');
-const {
   analyzeSteps,
   summarize,
   add,
@@ -1032,54 +1022,6 @@ function sanitizeAccountPlanEntry(entry, accountKey = 'default') {
   return out;
 }
 
-function sanitizeContextPreferenceEntry(raw, fallbackModelId = null) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-  const isProductScope = raw.scope === 'product' || (typeof raw.productKey === 'string' && raw.productKey.trim()) || (typeof fallbackModelId === 'string' && fallbackModelId.startsWith('product:'));
-  const rawModelId = isProductScope ? (raw.productKey || raw.modelId || fallbackModelId) : (raw.modelId || fallbackModelId);
-  if (!rawModelId || typeof rawModelId !== 'string') return null;
-  const stableKey = isProductScope
-    ? rawModelId.trim().toLowerCase()
-    : (resolveStableModelId(rawModelId) || rawModelId.trim().toLowerCase());
-  if (!stableKey) return null;
-
-  const modeRaw = String(raw.mode || 'default').trim().toLowerCase();
-  if (modeRaw !== 'default' && modeRaw !== 'fixed' && modeRaw !== 'dynamic') {
-    return null;
-  }
-
-  let limitTokens = null;
-  if (modeRaw === 'default') {
-    limitTokens = DEFAULT_CHECKPOINT_TOKENS;
-  } else if (modeRaw === 'fixed') {
-    const val = validateContextLimit(raw.limitTokens);
-    if (!val.ok) return null;
-    limitTokens = val.limitTokens;
-  }
-
-  const out = {
-    modelId: stableKey,
-    label: typeof raw.label === 'string' && raw.label.trim() ? raw.label.trim() : String(rawModelId).trim(),
-    mode: modeRaw,
-    limitTokens,
-    updatedAt: typeof raw.updatedAt === 'string' && raw.updatedAt ? raw.updatedAt : new Date().toISOString()
-  };
-  if (isProductScope) {
-    out.scope = 'product';
-    out.productKey = stableKey;
-  }
-  return out;
-}
-
-function sanitizeContextPreferencesMap(rawMap) {
-  const out = {};
-  if (!rawMap || typeof rawMap !== 'object' || Array.isArray(rawMap)) return out;
-  for (const [k, v] of Object.entries(rawMap)) {
-    const clean = sanitizeContextPreferenceEntry(v, k);
-    if (clean) out[clean.modelId] = clean;
-  }
-  return out;
-}
-
 function loadCustomPlanSettings(overridePathOrDir) {
   const p = getCustomPlanPath(overridePathOrDir);
   const def = {
@@ -1087,10 +1029,7 @@ function loadCustomPlanSettings(overridePathOrDir) {
     updatedAt: '',
     lastAccount: 'default',
     accounts: {},
-    uiPreferences: {},
-    contextPreferences: {},
-    contextScopeMode: 'unified',
-    contextUnifiedPreference: { mode: 'default', limitTokens: null }
+    uiPreferences: {}
   };
   try {
     if (!fs.existsSync(p)) return def;
@@ -1130,29 +1069,13 @@ function loadCustomPlanSettings(overridePathOrDir) {
     const uiPreferences = (raw.uiPreferences && typeof raw.uiPreferences === 'object' && !Array.isArray(raw.uiPreferences))
       ? { ...raw.uiPreferences }
       : {};
-    const contextPreferences = sanitizeContextPreferencesMap(raw.contextPreferences);
-
-    // 默认使用统一模式，但升级时若已保存非默认模型偏好则保留分别模式，不覆盖用户选择
-    let contextScopeMode = 'unified';
-    if (raw.contextScopeMode === 'per_model' || raw.contextScopeMode === 'unified') {
-      contextScopeMode = raw.contextScopeMode;
-    } else if (Object.keys(contextPreferences).length > 0) {
-      contextScopeMode = 'per_model';
-    }
-
-    const contextUnifiedPreference = raw.contextUnifiedPreference && typeof raw.contextUnifiedPreference === 'object'
-      ? (sanitizeContextPreferenceEntry({ ...raw.contextUnifiedPreference, modelId: 'unified' }) || { mode: 'default', limitTokens: null })
-      : { mode: 'default', limitTokens: null };
 
     return {
       version: raw.version || '1.1.0',
       updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : '',
       lastAccount: typeof raw.lastAccount === 'string' ? raw.lastAccount : 'default',
       accounts,
-      uiPreferences,
-      contextPreferences,
-      contextScopeMode,
-      contextUnifiedPreference
+      uiPreferences
     };
   } catch {
     return def;
@@ -1232,14 +1155,10 @@ function getPluginSettings(options = {}) {
   const email = options?.email || cachedTokenHistory?.planStatus?.email || null;
   const customPlan = resolveAccountCustomPlan(settings, email);
   const uiPrefs = settings.uiPreferences || {};
-  const contextPreferences = settings.contextPreferences || {};
   return {
     ok: true,
     customPlan,
     uiPreferences: uiPrefs,
-    contextPreferences,
-    contextScopeMode: settings.contextScopeMode || 'unified',
-    contextUnifiedPreference: settings.contextUnifiedPreference || { mode: 'default', limitTokens: null },
     savedHeatView: uiPrefs.savedHeatView,
     panelLanguage: uiPrefs.panelLanguage || 'zh-CN',
     accounts: settings.accounts || {},
@@ -1351,89 +1270,6 @@ function savePluginSettings(payload = {}, options = {}) {
     settings.uiPreferences = nextUi;
   }
 
-  if (!settings.contextPreferences || typeof settings.contextPreferences !== 'object') {
-    settings.contextPreferences = {};
-  }
-
-  if (Array.isArray(payload.clearContextPreferences)) {
-    for (const rawKey of payload.clearContextPreferences) {
-      if (typeof rawKey !== 'string' || !rawKey.trim()) continue;
-      const kNorm = rawKey.trim().toLowerCase();
-      delete settings.contextPreferences[kNorm];
-      const resolvedK = resolveStableModelId(rawKey);
-      if (resolvedK) delete settings.contextPreferences[resolvedK];
-    }
-  }
-
-  if (payload.clearContextPreference === true) {
-    const rawTargetModel = payload.productKey || payload.modelId || payload.contextPreference?.productKey || payload.contextPreference?.modelId;
-    if (!rawTargetModel || typeof rawTargetModel !== 'string' || !rawTargetModel.trim()) {
-      return { ok: false, error: '恢复模型默认偏好时缺少模型标识' };
-    }
-    const trimmed = rawTargetModel.trim().toLowerCase();
-    delete settings.contextPreferences[trimmed];
-    if (!trimmed.startsWith('product:')) {
-      const stableKey = resolveStableModelId(rawTargetModel);
-      if (stableKey) delete settings.contextPreferences[stableKey];
-    }
-  } else if (payload.contextPreference !== undefined) {
-    const cp = payload.contextPreference;
-    if (!cp || typeof cp !== 'object' || Array.isArray(cp)) {
-      return { ok: false, error: '无效的模型上下文偏好参数格式' };
-    }
-    const isProd = cp.scope === 'product' || (typeof cp.productKey === 'string' && cp.productKey.trim());
-    const idField = isProd ? (cp.productKey || cp.modelId) : cp.modelId;
-    if (!idField || typeof idField !== 'string' || !idField.trim()) {
-      return { ok: false, error: '按模型保存偏好时必须提供模型标识' };
-    }
-    const modeRaw = String(cp.mode || 'default').trim().toLowerCase();
-    if (modeRaw !== 'default' && modeRaw !== 'fixed' && modeRaw !== 'dynamic') {
-      return { ok: false, error: `不支持的上下文偏好模式: ${cp.mode}` };
-    }
-    if (modeRaw === 'fixed') {
-      const valCheck = validateContextLimit(cp.limitTokens);
-      if (!valCheck.ok) {
-        return { ok: false, error: valCheck.error };
-      }
-    }
-    const sanitizedPref = sanitizeContextPreferenceEntry({
-      ...cp,
-      modelId: idField,
-      mode: modeRaw,
-      updatedAt: new Date().toISOString()
-    });
-    if (!sanitizedPref) {
-      return { ok: false, error: '模型上下文偏好参数校验失败' };
-    }
-    if (Array.isArray(cp.clearLegacyKeys)) {
-      for (const lk of cp.clearLegacyKeys) {
-        if (typeof lk !== 'string' || !lk.trim()) continue;
-        delete settings.contextPreferences[lk.trim().toLowerCase()];
-        const rk = resolveStableModelId(lk);
-        if (rk) delete settings.contextPreferences[rk];
-      }
-    }
-    settings.contextPreferences[sanitizedPref.modelId] = sanitizedPref;
-  }
-
-  if (payload.contextScopeMode === 'unified' || payload.contextScopeMode === 'per_model') {
-    settings.contextScopeMode = payload.contextScopeMode;
-  }
-  if (payload.contextUnifiedPreference !== undefined) {
-    if (payload.contextUnifiedPreference === null) {
-      delete settings.contextUnifiedPreference;
-    } else if (typeof payload.contextUnifiedPreference === 'object') {
-      const sanitizedUnified = sanitizeContextPreferenceEntry({
-        ...payload.contextUnifiedPreference,
-        modelId: 'unified',
-        updatedAt: new Date().toISOString()
-      });
-      if (sanitizedUnified) {
-        settings.contextUnifiedPreference = sanitizedUnified;
-      }
-    }
-  }
-
   delete settings.recoveredFromCorruption;
   settings.updatedAt = new Date().toISOString();
   const writeRes = saveCustomPlanSettingsDetailed(settings, targetDir);
@@ -1489,10 +1325,7 @@ function savePluginSettings(payload = {}, options = {}) {
     savedAt: settings.updatedAt,
     customPlan: activeCustom,
     planStatus: effectivePlanStatus,
-    uiPreferences: settings.uiPreferences,
-    contextPreferences: settings.contextPreferences || {},
-    contextScopeMode: settings.contextScopeMode || 'unified',
-    contextUnifiedPreference: settings.contextUnifiedPreference || null
+    uiPreferences: settings.uiPreferences
   };
 }
 
@@ -2262,10 +2095,5 @@ module.exports = {
   clearCustomPlanForAccount,
   resolveAccountCustomPlan,
   getPluginSettings,
-  savePluginSettings,
-  sanitizeContextPreferenceEntry,
-  getContextUnlockStatus,
-  applyContextUnlock,
-  restoreContextUnlock,
-  CONTEXT_UNLOCK_AUTHOR
+  savePluginSettings
 };

@@ -56,9 +56,9 @@
     // 分页 1: 当前会话与版本同步提示
     'versionSync.mismatch': { 'zh-CN': '⚠️ 检测到官方 Antigravity 已更新至 v{officialVer}（当前哈基米基于 v{hakimiVer}）。如需同步新版底座，请运行：bash ./build-hakimi.sh --force --restart', 'zh-TW': '⚠️ 偵測到官方 Antigravity 已更新至 v{officialVer}（目前哈基米基於 v{hakimiVer}）。如需同步新版底座，請執行：bash ./build-hakimi.sh --force --restart', en: '⚠️ Official Antigravity updated to v{officialVer} (Hakimi is on v{hakimiVer}). Rebuild with: bash ./build-hakimi.sh --force --restart' },
     'ssh.remote.contextBanner': {
-      'zh-CN': '🌐 SSH 远端窗口（{host}）：修改并应用上下文模式后会同步保存到本机配置，并在下次重连 SSH 时自动应用到远端 language_server；“重启语言服务”仅作用于本机 哈基米.app 后端。',
-      'zh-TW': '🌐 SSH 遠端視窗（{host}）：修改並套用上下文模式後會同步儲存至本機設定，並在下次重連 SSH 時自動套用到遠端 language_server；「重啟語言服務」僅作用於本機 哈基米.app 後端。',
-      en: '🌐 SSH Remote Window ({host}): Context window changes are saved locally and automatically synced to the remote language_server on the next SSH reconnect; "Restart Language Server" only restarts the local 哈基米.app backend.'
+      'zh-CN': '🌐 SSH 远端窗口（{host}）：远端 language_server 已在连接时自动应用地区解锁；客户端界面语言与 CLI 地区解锁设置仅作用于本机。',
+      'zh-TW': '🌐 SSH 遠端視窗（{host}）：遠端 language_server 已在連線時自動套用地區解鎖；用戶端介面語言與 CLI 地區解鎖設定僅作用於本機。',
+      en: '🌐 SSH Remote Window ({host}): Remote language_server region unlock is applied automatically on connect; client UI language and CLI region unlock settings apply locally.'
     },
     'ssh.remote.localRestartLsTitle': {
       'zh-CN': '仅重启本机 哈基米.app 语言服务（不影响已连接的 SSH 远端主机）',
@@ -896,9 +896,9 @@
       'colors.eyedropperUnsupported': { 'zh-CN': '当前环境不支持原生吸管，可直接粘贴 HEX', 'zh-TW': '目前環境不支援原生滴管，可直接貼上 HEX', en: 'Eyedropper unsupported; paste HEX directly' },
       'colors.appliedHex': { 'zh-CN': '已应用 {hex}', 'zh-TW': '已套用 {hex}', en: 'Applied {hex}' },
       'colors.copied': { 'zh-CN': '✔ 已复制 {label}: {val}', 'zh-TW': '✔ 已複製 {label}: {val}', en: '✔ Copied {label}: {val}' },
-      'settings.cliUnlock.title': { 'zh-CN': '⌨️ agy CLI 上下文联动解锁', 'zh-TW': '⌨️ agy CLI 上下文連動解鎖', en: '⌨️ agy CLI Context Unlock' },
-      'settings.cliUnlock.desc': { 'zh-CN': '检测本机 agy 命令行二进制，解除 /model 上下文选择器机型白名单并修复 AGY_CLI_AUTO_COMPACT_OVERRIDE 环境变量读取，同时同步上下文窗口配置。', 'zh-TW': '偵測本機 agy 命令列二進位檔，解除 /model 上下文選擇器機型白名單並修復 AGY_CLI_AUTO_COMPACT_OVERRIDE 環境變數讀取，同時同步上下文視窗設定。', en: 'Detects local agy CLI binary, bypasses /model context selector allowlist, fixes AGY_CLI_AUTO_COMPACT_OVERRIDE env reading, and syncs CLI context config.' },
-      'settings.cliUnlock.applyBtn': { 'zh-CN': '一键修补并同步 agy CLI', 'zh-TW': '一鍵修補並同步 agy CLI', en: 'Patch & Sync agy CLI' },
+      'settings.cliUnlock.title': { 'zh-CN': '⌨️ agy CLI 地区解锁', 'zh-TW': '⌨️ agy CLI 地區解鎖', en: '⌨️ agy CLI Region Unlock' },
+      'settings.cliUnlock.desc': { 'zh-CN': '检测本机 agy 命令行二进制，应用账号地区解锁补丁并自动完成签名校验。', 'zh-TW': '偵測本機 agy 命令列二進位檔，套用帳號地區解鎖修補並自動完成簽章校驗。', en: 'Detects the local agy CLI binary, applies the account region unlock patch, and re-signs it.' },
+      'settings.cliUnlock.applyBtn': { 'zh-CN': '一键应用 agy CLI 地区解锁', 'zh-TW': '一鍵套用 agy CLI 地區解鎖', en: 'Apply agy CLI Region Unlock' },
       'settings.cliUnlock.busy': { 'zh-CN': '正在修补并重签名 agy CLI…', 'zh-TW': '正在修補並重簽章 agy CLI…', en: 'Patching & codesigning agy CLI…' },
       'settings.cliUnlock.patched': { 'zh-CN': '🟢 已解锁 ({ok}/{total})', 'zh-TW': '🟢 已解鎖 ({ok}/{total})', en: '🟢 Unlocked ({ok}/{total})' },
       'settings.cliUnlock.unpatched': { 'zh-CN': '⚪ 未修补', 'zh-TW': '⚪ 未修補', en: '⚪ Unpatched' },

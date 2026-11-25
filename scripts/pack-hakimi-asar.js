@@ -46,7 +46,6 @@ const PAYLOAD_FILES = [
   'local-api.js',
   'meter-cli-unlock.js',
   'meter-collector.js',
-  'meter-context-unlock.js',
   'meter-core.js',
   'meter-enhance.js',
   'meter-main.js',

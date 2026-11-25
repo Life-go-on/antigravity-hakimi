@@ -1,7 +1,7 @@
 'use strict';
 /**
  * Remote SSH Integration Engine for 哈基米.app
- * - Adaptive Linux ELF64 (x86-64 & arm64) Region Unlock + Context Window Unlock (Gate 3A / 3B)
+ * - Adaptive Linux ELF64 (x86-64 & arm64) Region Unlock (ValidateAndOnboardAccount)
  * - Bootstrap script decorator for dist/remote/bootstrapScript.js (auto-patches remote language_server)
  * - In-memory SSH remote session registry & Electron session-routed Connect RPC transport
  *
@@ -11,42 +11,17 @@
 const fs = require('fs');
 const path = require('path');
 const {
-  NOP_ARM64,
-  PATCH_256K_ARM64,
-  CLAMP_256K_ARM64,
-  DEF_ORIG_ARM64,
-  DEF_GUARD_ARM64,
-  STR_W3_X0_0C_ARM64,
-  CLAMP_256K_X64,
-  PATCH_256K_X64,
-  DEF_ORIG_X64,
-  DEF_PREFIX_X64,
   sha256Buffer,
-  signExtend,
   readCString,
-  encodeMovzMovkArm64,
-  decodeMovzMovkArm64,
-  buildClampConstArm64,
-  buildDefConstArm64,
-  buildClampConstX64,
-  buildDefConstX64,
   scanGopclntabBySuffix,
   analyzeArm64RegionInRange,
 } = require('./binary-utils');
 
 const TARGET_REGION_FUNC = 'authclient.ValidateAndOnboardAccount';
-const TARGET_CHECKPOINT_FUNC = 'utils.GetCheckpointConfig';
-const TARGET_EXP_FUNC = 'config.applyFeatureProviderCheckpointOverrideConfig';
-const TARGET_SELECT_EXP_FUNC = 'config.selectCheckpointExperimentKey';
-
-const DEFAULT_CHECKPOINT_TOKENS = 256000;
-const MIN_LIMIT_TOKENS = 16384;
-const MAX_LIMIT_TOKENS = 2097152;
-
 const FREE_TIE_BYTES = Buffer.from('667265652d746965', 'hex'); // "free-tie" LE
 
 // ============================================================================
-// 1. Pure Node.js Linux ELF64 (x86-64 & arm64) Adaptive Analyzer & Patcher
+// 1. Pure Node.js Linux ELF64 (x86-64 & arm64) Adaptive Region Analyzer & Patcher
 // ============================================================================
 
 function parseElf64(buf) {
@@ -148,7 +123,6 @@ function resolveElfGoTextBase(buf, elf, pclnOff, textStartFromHeader) {
       pos = hit + 8;
       if ((hit - rOff) % 24 !== 16) continue;
       const moddataVA = Number(buf.readBigUInt64LE(hit - 16));
-      // Scan nearby .rela.dyn entries (and if needed, a quick bounded scan) for minpc/text in [moddataVA, moddataVA+0x160)
       const candidates = new Map();
       const scanRange = (start, end) => {
         for (let p = start; p + 24 <= end; p += 24) {
@@ -161,7 +135,6 @@ function resolveElfGoTextBase(buf, elf, pclnOff, textStartFromHeader) {
           }
         }
       };
-      // Check local window around hit first (sorted .rela.dyn hits in O(1))
       const winStart = Math.max(rOff, hit - 16 - 24 * 64);
       const winEnd = Math.min(rEnd, hit - 16 + 24 * 128);
       scanRange(winStart, winEnd);
@@ -169,7 +142,6 @@ function resolveElfGoTextBase(buf, elf, pclnOff, textStartFromHeader) {
         scanRange(rOff, rEnd);
       }
       if (candidates.size > 0) {
-        // Prefer repeated addend (minpc + text both equal runtime.text), then smallest VA near .text start
         let bestVA = null;
         let bestCount = -1;
         for (const [va, cnt] of candidates.entries()) {
@@ -238,7 +210,6 @@ function decodeX64JneOrJmp(buf, off, fnEnd) {
 function analyzeX64RegionInRange(buf, fnStart, fnEnd, fnName) {
   const hasFreeTieConst = buf.indexOf(FREE_TIE_BYTES, fnStart) >= fnStart && buf.indexOf(FREE_TIE_BYTES, fnStart) < fnEnd;
   const candidates = [];
-
   const seenJOff = new Set();
 
   for (let p = fnStart; p < fnEnd - 24; p++) {
@@ -265,8 +236,6 @@ function analyzeX64RegionInRange(buf, fnStart, fnEnd, fnName) {
     const freeIdx = buf.indexOf(FREE_TIE_BYTES, afterBr);
     if (freeIdx < 0 || freeIdx > afterBr + 16) continue;
 
-    // Locate stage-3 tail check: cmp byte [reg+8], 0x72 ('r') followed immediately by backward jne
-    // Encoding: [optional REX 0x41] 0x80 <modrm: 0x78..0x7f> 0x08 0x72  (or SIB [rsp/r12+8]: 0x7c 0x24 0x08 0x72)
     let tailEnd = null;
     let loopTop = null;
     const tailScanEnd = Math.min(fnEnd - 6, freeIdx + 0x30);
@@ -295,7 +264,6 @@ function analyzeX64RegionInRange(buf, fnStart, fnEnd, fnName) {
     }
     if (tailEnd === null || loopTop === null) continue;
 
-    // Inspect loop-exit conditional branches inside [loopTop, min(p, loopTop + 0x48))
     const loopExits = [];
     const loopScanEnd = Math.min(p, loopTop + 0x48);
     for (let r = loopTop; r < loopScanEnd - 2; r++) {
@@ -311,8 +279,6 @@ function analyzeX64RegionInRange(buf, fnStart, fnEnd, fnName) {
     }
     if (loopExits.length === 0) continue;
 
-    // Distinguish allowedTiers (BREAK_ONLY) vs ineligibleTiers (HAS_MATCH_BODY):
-    // In allowedTiers, tailEnd immediately executes `jmp <exitDest>` (0xeb or 0xe9) to one of loopExits.
     let immediateBreakTarget = null;
     if (tailEnd + 2 <= fnEnd && buf[tailEnd] === 0xeb) {
       immediateBreakTarget = tailEnd + 2 + buf.readInt8(tailEnd + 1);
@@ -403,358 +369,56 @@ function analyzeElfRegionUnlock(filePathOrBuf) {
   return { ...res, format: 'ELF64', goTextSource: goInfo.goTextSource, sha256 };
 }
 
-function analyzeElfGate3A(buf, fnStart, fnEnd, arch) {
-  const body = buf.subarray(fnStart, fnEnd);
-  if (arch === 'x86-64') {
-    const clampHits = [];
-    for (let rel = 0; rel <= body.length - 14; rel++) {
-      if (body.subarray(rel, rel + 14).equals(CLAMP_256K_X64)) {
-        clampHits.push({ status: 'unpatched', mode: 'default', limitTokens: DEFAULT_CHECKPOINT_TOKENS, offset: fnStart + rel });
-      } else if (body.subarray(rel, rel + 14).equals(PATCH_256K_X64)) {
-        clampHits.push({ status: 'patched_dynamic', mode: 'dynamic', limitTokens: null, offset: fnStart + rel });
-      } else if (body[rel] === 0xbe && body.subarray(rel + 5, rel + 14).every((b) => b === 0x90)) {
-        const imm = body.readUInt32LE(rel + 1);
-        if (imm >= MIN_LIMIT_TOKENS && imm <= MAX_LIMIT_TOKENS) {
-          clampHits.push({ status: 'patched_fixed', mode: 'fixed', limitTokens: imm, offset: fnStart + rel });
-        }
-      }
-    }
-    if (clampHits.length !== 1) {
-      return { ok: false, status: 'unknown', reason: `x86-64 Gate 3A clamp 命中数异常 (${clampHits.length})` };
-    }
-    const defHits = [];
-    for (let rel = 2; rel <= body.length - 7; rel++) {
-      if (
-        body[rel] === 0xc7 &&
-        body[rel + 1] === 0x40 &&
-        body[rel + 2] === 0x0c &&
-        body[rel - 2] >= 0x70 &&
-        body[rel - 2] <= 0x7f &&
-        body[rel - 1] === 0x07
-      ) {
-        const imm = body.readUInt32LE(rel + 3);
-        if (imm >= MIN_LIMIT_TOKENS && imm <= MAX_LIMIT_TOKENS) {
-          defHits.push({ offset: fnStart + rel, limitTokens: imm });
-        }
-      }
-    }
-    if (defHits.length > 1) {
-      return { ok: false, status: 'unknown', reason: `x86-64 Gate 3A default 命中数异常 (${defHits.length})` };
-    }
-    return {
-      ok: true,
-      ...clampHits[0],
-      length: 14,
-      hasDefaultSite: defHits.length === 1,
-      defaultOffset: defHits.length === 1 ? defHits[0].offset : null,
-      defaultLimitTokens: defHits.length === 1 ? defHits[0].limitTokens : null,
-    };
-  }
-
-  if (arch === 'arm64') {
-    const clampHits = [];
-    for (let rel = 0; rel <= body.length - 24; rel += 4) {
-      if (body.subarray(rel, rel + 24).equals(CLAMP_256K_ARM64)) {
-        clampHits.push({ status: 'unpatched', mode: 'default', limitTokens: DEFAULT_CHECKPOINT_TOKENS, offset: fnStart + rel });
-      } else if (body.subarray(rel, rel + 24).equals(PATCH_256K_ARM64)) {
-        clampHits.push({ status: 'patched_dynamic', mode: 'dynamic', limitTokens: null, offset: fnStart + rel });
-      } else {
-        const imm = decodeMovzMovkArm64(body, rel, 3);
-        if (
-          imm !== null &&
-          imm >= MIN_LIMIT_TOKENS &&
-          imm <= MAX_LIMIT_TOKENS &&
-          body.subarray(rel + 8, rel + 12).equals(NOP_ARM64) &&
-          body.subarray(rel + 12, rel + 16).equals(NOP_ARM64) &&
-          body.subarray(rel + 16, rel + 20).equals(NOP_ARM64) &&
-          body.subarray(rel + 20, rel + 24).equals(NOP_ARM64)
-        ) {
-          clampHits.push({ status: 'patched_fixed', mode: 'fixed', limitTokens: imm, offset: fnStart + rel });
-        }
-      }
-    }
-    if (clampHits.length !== 1) {
-      return { ok: false, status: 'unknown', reason: `ARM64 Gate 3A clamp 命中数异常 (${clampHits.length})` };
-    }
-    const defHits = [];
-    for (let rel = 8; rel <= body.length - 12; rel += 4) {
-      if (
-        body.subarray(rel - 8, rel).equals(DEF_GUARD_ARM64) &&
-        body.subarray(rel + 8, rel + 12).equals(STR_W3_X0_0C_ARM64)
-      ) {
-        const imm = decodeMovzMovkArm64(body, rel, 3);
-        if (imm !== null && imm >= MIN_LIMIT_TOKENS && imm <= MAX_LIMIT_TOKENS) {
-          defHits.push({ offset: fnStart + rel, limitTokens: imm });
-        }
-      }
-    }
-    if (defHits.length > 1) {
-      return { ok: false, status: 'unknown', reason: `ARM64 Gate 3A default 命中数异常 (${defHits.length})` };
-    }
-    return {
-      ok: true,
-      ...clampHits[0],
-      length: 24,
-      hasDefaultSite: defHits.length === 1,
-      defaultOffset: defHits.length === 1 ? defHits[0].offset : null,
-      defaultLimitTokens: defHits.length === 1 ? defHits[0].limitTokens : null,
-    };
-  }
-
-  return { ok: false, status: 'unknown', reason: `不支持架构: ${arch}` };
-}
-
-function analyzeElfGate3B(buf, fnExp, fnSelect, arch) {
-  if (!fnExp || !fnSelect) {
-    return { ok: false, status: 'unknown', reason: '缺少 Gate 3B 符号' };
-  }
-  const fnStart = fnExp.fnStart;
-  const fnEnd = Math.min(buf.length, fnExp.fnEnd);
-  const body = buf.subarray(fnStart, fnEnd);
-
-  if (arch === 'x86-64') {
-    const hits = [];
-    for (let rel = 0; rel < body.length - 12; rel++) {
-      if (body[rel] !== 0xe8) continue;
-      const disp = body.readInt32LE(rel + 1);
-      if (fnExp.fnVA + rel + 5 + disp !== fnSelect.fnVA) continue;
-      const win = body.subarray(rel + 5, Math.min(body.length, rel + 105));
-      const tIdx = win.indexOf(Buffer.from([0x84, 0xc0]));
-      if (tIdx < 0) continue;
-      const jOff = rel + 5 + tIdx + 2;
-      if (jOff + 2 > body.length) continue;
-      const b1 = body[jOff];
-      const b2 = body[jOff + 1];
-      if (b1 === 0x75) {
-        hits.push({ status: 'unpatched', offset: fnStart + jOff, length: 2, origHex: Buffer.from([b1, b2]).toString('hex') });
-      } else if (b1 === 0x0f && b2 === 0x85 && jOff + 6 <= body.length) {
-        hits.push({ status: 'unpatched', offset: fnStart + jOff, length: 6, origHex: Buffer.from(body.subarray(jOff, jOff + 6)).toString('hex') });
-      } else if (b1 === 0x90 && b2 === 0x90) {
-        const len = jOff + 6 <= body.length && body.subarray(jOff, jOff + 6).every((b) => b === 0x90) ? 6 : 2;
-        hits.push({ status: 'patched', offset: fnStart + jOff, length: len });
-      }
-    }
-    if (hits.length !== 1) return { ok: false, status: 'unknown', reason: `x86-64 Gate 3B 命中数异常 (${hits.length})` };
-    return { ok: true, ...hits[0] };
-  }
-
-  if (arch === 'arm64') {
-    const hits = [];
-    for (let rel = 0; rel <= body.length - 8; rel += 4) {
-      const w = body.readUInt32LE(rel);
-      if (((w & 0xfc000000) >>> 0) !== 0x94000000) continue;
-      const imm26 = signExtend(w & 0x03ffffff, 26);
-      if (fnExp.entryOff + rel + imm26 * 4 !== fnSelect.entryOff) continue;
-      for (let d = 4; d <= 52 && rel + d + 4 <= body.length; d += 4) {
-        const w2 = body.readUInt32LE(rel + d);
-        if (((w2 & 0xfffffc1f) >>> 0) !== 0xd63f0000) continue;
-        const jOff = rel + d + 4;
-        const wNext = body.readUInt32LE(jOff);
-        if (((wNext & 0xfff8001f) >>> 0) === 0x37000000 || ((wNext & 0xff00001f) >>> 0) === 0x35000000) {
-          hits.push({ status: 'unpatched', offset: fnStart + jOff, length: 4, origHex: Buffer.from(body.subarray(jOff, jOff + 4)).toString('hex') });
-        } else if (wNext === 0xd503201f) {
-          hits.push({ status: 'patched', offset: fnStart + jOff, length: 4 });
-        }
-        break;
-      }
-    }
-    if (hits.length !== 1) return { ok: false, status: 'unknown', reason: `ARM64 Gate 3B 命中数异常 (${hits.length})` };
-    return { ok: true, ...hits[0] };
-  }
-
-  return { ok: false, status: 'unknown', reason: `不支持架构: ${arch}` };
-}
-
-function analyzeElfContextUnlock(filePathOrBuf) {
-  const buf = Buffer.isBuffer(filePathOrBuf) ? filePathOrBuf : fs.readFileSync(String(filePathOrBuf));
-  let elf;
-  try {
-    elf = parseElf64(buf);
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-  const goInfo = findElfGoFunctions(buf, elf, [
-    TARGET_CHECKPOINT_FUNC,
-    TARGET_EXP_FUNC,
-    TARGET_SELECT_EXP_FUNC,
-  ]);
-  if (!goInfo.foundPcln) {
-    return { ok: false, error: '找不到 Go .gopclntab 符号表' };
-  }
-  const fnCk = goInfo.funcs[TARGET_CHECKPOINT_FUNC];
-  const fnExp = goInfo.funcs[TARGET_EXP_FUNC];
-  const fnSel = goInfo.funcs[TARGET_SELECT_EXP_FUNC];
-  if (!fnCk) {
-    return { ok: false, error: `找不到 ${TARGET_CHECKPOINT_FUNC}` };
-  }
-  const gate3a = analyzeElfGate3A(buf, fnCk.fnStart, Math.min(buf.length, fnCk.fnEnd), elf.arch);
-  const gate3b = analyzeElfGate3B(buf, fnExp, fnSel, elf.arch);
-  return {
-    ok: gate3a.ok,
-    format: 'ELF64',
-    arch: elf.arch,
-    goTextSource: goInfo.goTextSource,
-    gate3a,
-    gate3b,
-  };
-}
-
-function normalizeContextSpec(opts = {}) {
-  const rawMode = String(opts.mode || 'dynamic').trim().toLowerCase();
-  const mode = rawMode === 'fixed' || rawMode === 'default' ? rawMode : 'dynamic';
-  let limitTokens = 0;
-  if (mode === 'fixed') {
-    const n = Number(opts.limitTokens);
-    if (!Number.isSafeInteger(n) || n < MIN_LIMIT_TOKENS || n > MAX_LIMIT_TOKENS) {
-      throw new Error(`无效固定上下文上限: ${opts.limitTokens}`);
-    }
-    limitTokens = n;
-  }
-  return { mode, limitTokens };
-}
-
-function patchElfBuffer(inputBuf, options = {}) {
+function patchElfBuffer(inputBuf) {
   const buf = Buffer.from(inputBuf);
-  const applyRegion = options.region !== false;
-  const applyContext = options.context !== false;
-  const ctxSpec = applyContext ? normalizeContextSpec(options) : null;
-
-  let regionResult = null;
-  let contextResult = null;
+  const reg = analyzeElfRegionUnlock(buf);
+  let regionResult = reg;
   let modified = false;
 
-  if (applyRegion) {
-    const reg = analyzeElfRegionUnlock(buf);
-    regionResult = reg;
-    if (reg.ok && reg.status === 'unpatched') {
-      reg.patchedBytes.copy(buf, reg.branchOffset);
-      regionResult = { ...reg, status: 'patched', changed: true };
-      modified = true;
-    } else if (reg.ok) {
-      regionResult = { ...reg, changed: false };
-    }
-  }
-
-  let savedGate3bOrigHex = options.origGate3bHex || null;
-  if (applyContext) {
-    const ctx = analyzeElfContextUnlock(buf);
-    contextResult = ctx;
-    if (ctx.ok && ctx.gate3a.ok) {
-      const { arch, gate3a, gate3b } = ctx;
-      if (gate3b.ok && gate3b.status === 'unpatched' && gate3b.origHex) {
-        savedGate3bOrigHex = gate3b.origHex;
-      }
-
-      const writeSlice = (offset, bytes) => {
-        if (!buf.subarray(offset, offset + bytes.length).equals(bytes)) {
-          bytes.copy(buf, offset);
-          modified = true;
-        }
-      };
-
-      if (arch === 'x86-64') {
-        if (ctxSpec.mode === 'default') {
-          writeSlice(gate3a.offset, CLAMP_256K_X64);
-          if (gate3a.hasDefaultSite) writeSlice(gate3a.defaultOffset, DEF_ORIG_X64);
-          if (gate3b.ok && gate3b.status === 'patched' && savedGate3bOrigHex) {
-            const orig = Buffer.from(savedGate3bOrigHex, 'hex');
-            if (orig.length === gate3b.length) writeSlice(gate3b.offset, orig);
-          }
-        } else if (ctxSpec.mode === 'fixed') {
-          writeSlice(gate3a.offset, buildClampConstX64(ctxSpec.limitTokens));
-          if (gate3a.hasDefaultSite) writeSlice(gate3a.defaultOffset, buildDefConstX64(ctxSpec.limitTokens));
-          if (gate3b.ok && gate3b.status === 'unpatched') writeSlice(gate3b.offset, Buffer.alloc(gate3b.length, 0x90));
-        } else {
-          writeSlice(gate3a.offset, PATCH_256K_X64);
-          if (gate3a.hasDefaultSite) writeSlice(gate3a.defaultOffset, DEF_ORIG_X64);
-          if (gate3b.ok && gate3b.status === 'unpatched') writeSlice(gate3b.offset, Buffer.alloc(gate3b.length, 0x90));
-        }
-      } else if (arch === 'arm64') {
-        if (ctxSpec.mode === 'default') {
-          writeSlice(gate3a.offset, CLAMP_256K_ARM64);
-          if (gate3a.hasDefaultSite) writeSlice(gate3a.defaultOffset, DEF_ORIG_ARM64);
-          if (gate3b.ok && gate3b.status === 'patched' && savedGate3bOrigHex) {
-            const orig = Buffer.from(savedGate3bOrigHex, 'hex');
-            if (orig.length === 4) writeSlice(gate3b.offset, orig);
-          }
-        } else if (ctxSpec.mode === 'fixed') {
-          writeSlice(gate3a.offset, buildClampConstArm64(ctxSpec.limitTokens));
-          if (gate3a.hasDefaultSite) writeSlice(gate3a.defaultOffset, buildDefConstArm64(ctxSpec.limitTokens));
-          if (gate3b.ok && gate3b.status === 'unpatched') writeSlice(gate3b.offset, NOP_ARM64);
-        } else {
-          writeSlice(gate3a.offset, PATCH_256K_ARM64);
-          if (gate3a.hasDefaultSite) writeSlice(gate3a.defaultOffset, DEF_ORIG_ARM64);
-          if (gate3b.ok && gate3b.status === 'unpatched') writeSlice(gate3b.offset, NOP_ARM64);
-        }
-      }
-      contextResult = { ...ctx, configuredMode: ctxSpec.mode, configuredLimitTokens: ctxSpec.limitTokens, origGate3bHex: savedGate3bOrigHex };
-    }
+  if (reg.ok && reg.status === 'unpatched') {
+    reg.patchedBytes.copy(buf, reg.branchOffset);
+    regionResult = { ...reg, status: 'patched', changed: true };
+    modified = true;
+  } else if (reg.ok) {
+    regionResult = { ...reg, changed: false };
   }
 
   return {
-    ok: (!applyRegion || Boolean(regionResult?.ok)) && (!applyContext || Boolean(contextResult?.ok)),
+    ok: Boolean(regionResult?.ok),
     modified,
     buffer: buf,
     region: regionResult,
-    context: contextResult,
-    origGate3bHex: savedGate3bOrigHex,
   };
 }
 
-function patchElfBinaryFile(filePath, options = {}) {
+function patchElfBinaryFile(filePath) {
   const target = path.resolve(String(filePath || ''));
   if (!target || !fs.existsSync(target)) {
     return { ok: false, error: `找不到目标 ELF 文件: ${filePath}` };
   }
-  const metaPath = `${target}.hakimi_meta.json`;
-  let prevMeta = {};
-  try {
-    if (fs.existsSync(metaPath)) prevMeta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) || {};
-  } catch {}
-
   const input = fs.readFileSync(target);
-  const res = patchElfBuffer(input, { ...options, origGate3bHex: options.origGate3bHex || prevMeta.gate3bOrigHex || null });
+  const res = patchElfBuffer(input);
   if (res.modified) {
     const tmpPath = `${target}.hakimi_tmp.${process.pid}`;
     fs.writeFileSync(tmpPath, res.buffer);
     fs.chmodSync(tmpPath, 0o755);
     fs.renameSync(tmpPath, target);
   }
-  if (res.origGate3bHex && res.origGate3bHex !== prevMeta.gate3bOrigHex) {
-    try {
-      fs.writeFileSync(metaPath, JSON.stringify({ ...prevMeta, gate3bOrigHex: res.origGate3bHex }, null, 2), 'utf8');
-    } catch {}
-  }
   return {
     ok: res.ok,
     modified: res.modified,
     region: res.region,
-    context: res.context,
-    origGate3bHex: res.origGate3bHex,
   };
 }
 
 // ============================================================================
-// 2. Embedded Self-Contained Python3 Remote ELF64 Patcher & Bootstrap Decorator
+// 2. Embedded Self-Contained Python3 Remote ELF64 Region Patcher & Bootstrap Decorator
 // ============================================================================
 
 function getRemotePythonPatcherSource() {
   return `import json, os, struct, sys
 
-CLAMP_X64 = bytes.fromhex("81fa00e80300be00e803000f42f2")
-DYN_X64 = bytes.fromhex("89d6") + b"\\x90" * 12
-DEF_ORIG_X64 = bytes.fromhex("c7400c00e80300")
 FREE_TIE = bytes.fromhex("667265652d746965")
-
-NOP_A64 = bytes.fromhex("1f2003d5")
-DYN_A64 = NOP_A64 * 6
-CLAMP_A64 = bytes.fromhex("04009dd26400a0f27f00046b04009dd26400a0f26330849a")
-DEF_ORIG_A64 = bytes.fromhex("03009dd26300a0f2030c00b9")
-DEF_GUARD_A64 = bytes.fromhex("7f0000718c000054")
-STR_W3_A64 = bytes.fromhex("030c00b9")
-
-MIN_LIM = 16384
-MAX_LIM = 2097152
 
 def sxt(v, bits):
     m = 1 << (bits - 1)
@@ -767,21 +431,6 @@ def cstr(b, off, lim=2048):
     if e < 0:
         e = min(len(b), off + lim)
     return b[off:e].decode("utf-8", "replace")
-
-def enc_mov_a64(reg, val):
-    lo = val & 0xffff
-    hi = (val >> 16) & 0xffff
-    rd = reg & 0x1f
-    return struct.pack("<II", (0xd2800000 | (lo << 5) | rd) & 0xffffffff, (0xf2a00000 | (hi << 5) | rd) & 0xffffffff)
-
-def dec_mov_a64(b, off, reg):
-    if off < 0 or off + 8 > len(b):
-        return None
-    w0, w1 = struct.unpack_from("<II", b, off)
-    rd = reg & 0x1f
-    if (w0 & 0xffe0001f) != (0xd2800000 | rd) or (w1 & 0xffe0001f) != (0xf2a00000 | rd):
-        return None
-    return (((w1 >> 5) & 0xffff) << 16) | ((w0 >> 5) & 0xffff)
 
 def parse_elf64(b):
     if len(b) < 64 or b[:4] != b"\\x7fELF" or b[4] != 2 or b[5] != 1:
@@ -1015,179 +664,19 @@ def analyze_region_a64(b, fn_s, fn_e):
     pbytes = struct.pack("<I", (0x14000000 | (off26 & 0x03ffffff)) & 0xffffffff)
     return bo, st, pbytes
 
-def patch_context(b, arch, fn_ck, fn_exp, fn_sel, mode, lim, orig3b_hex):
-    changed = False
-    saved3b = orig3b_hex
-    ck_s, ck_e = fn_ck[3], min(len(b), fn_ck[4])
-    body = b[ck_s:ck_e]
-    def put(off, data):
-        nonlocal changed
-        if bytes(b[off:off+len(data)]) != data:
-            b[off:off+len(data)] = data
-            changed = True
-    if arch == "x86-64":
-        ch = []
-        for r in range(0, len(body) - 13):
-            s = bytes(body[r:r+14])
-            if s == CLAMP_X64 or s == DYN_X64 or (s[0] == 0xbe and s[5:] == b"\\x90" * 9 and MIN_LIM <= struct.unpack_from("<I", s, 1)[0] <= MAX_LIM):
-                ch.append(ck_s + r)
-        if len(ch) != 1:
-            return False, changed, saved3b, f"g3a_clamp={len(ch)}"
-        dh = []
-        for r in range(2, len(body) - 6):
-            if body[r] == 0xc7 and body[r+1] == 0x40 and body[r+2] == 0x0c and 0x70 <= body[r-2] <= 0x7f and body[r-1] == 0x07:
-                imm = struct.unpack_from("<I", body, r + 3)[0]
-                if MIN_LIM <= imm <= MAX_LIM:
-                    dh.append(ck_s + r)
-        if len(dh) > 1:
-            return False, changed, saved3b, f"g3a_def={len(dh)}"
-        g3b = None
-        if fn_exp and fn_sel:
-            es, ee, eva, sva = fn_exp[3], min(len(b), fn_exp[4]), fn_exp[5], fn_sel[5]
-            eb = b[es:ee]
-            gh = []
-            for r in range(0, len(eb) - 12):
-                if eb[r] != 0xe8:
-                    continue
-                if eva + r + 5 + struct.unpack_from("<i", eb, r + 1)[0] != sva:
-                    continue
-                ti = eb.find(b"\\x84\\xc0", r + 5, min(len(eb), r + 105))
-                if ti < 0 or ti + 4 > len(eb):
-                    continue
-                jo = ti + 2
-                if eb[jo] == 0x75:
-                    gh.append(("unpatched", es + jo, 2, bytes(eb[jo:jo+2]).hex()))
-                elif eb[jo] == 0x0f and eb[jo+1] == 0x85 and jo + 6 <= len(eb):
-                    gh.append(("unpatched", es + jo, 6, bytes(eb[jo:jo+6]).hex()))
-                elif eb[jo] == 0x90 and eb[jo+1] == 0x90:
-                    ln = 6 if (jo + 6 <= len(eb) and bytes(eb[jo:jo+6]) == b"\\x90" * 6) else 2
-                    gh.append(("patched", es + jo, ln, None))
-            if len(gh) == 1:
-                g3b = gh[0]
-        if g3b and g3b[0] == "unpatched" and g3b[3]:
-            saved3b = g3b[3]
-        if mode == "default":
-            put(ch[0], CLAMP_X64)
-            if dh:
-                put(dh[0], DEF_ORIG_X64)
-            if g3b and g3b[0] == "patched" and saved3b:
-                ob = bytes.fromhex(saved3b)
-                if len(ob) == g3b[2]:
-                    put(g3b[1], ob)
-        elif mode == "fixed":
-            put(ch[0], b"\\xbe" + struct.pack("<I", lim) + b"\\x90" * 9)
-            if dh:
-                put(dh[0], b"\\xc7\\x40\\x0c" + struct.pack("<I", lim))
-            if g3b and g3b[0] == "unpatched":
-                put(g3b[1], b"\\x90" * g3b[2])
-        else:
-            put(ch[0], DYN_X64)
-            if dh:
-                put(dh[0], DEF_ORIG_X64)
-            if g3b and g3b[0] == "unpatched":
-                put(g3b[1], b"\\x90" * g3b[2])
-        return True, changed, saved3b, "ok"
-    else:
-        ch = []
-        for r in range(0, len(body) - 23, 4):
-            s = bytes(body[r:r+24])
-            if s == CLAMP_A64 or s == DYN_A64:
-                ch.append(ck_s + r)
-            else:
-                imm = dec_mov_a64(body, r, 3)
-                if imm is not None and MIN_LIM <= imm <= MAX_LIM and s[8:] == NOP_A64 * 4:
-                    ch.append(ck_s + r)
-        if len(ch) != 1:
-            return False, changed, saved3b, f"a64_clamp={len(ch)}"
-        dh = []
-        for r in range(8, len(body) - 11, 4):
-            if bytes(body[r-8:r]) == DEF_GUARD_A64 and bytes(body[r+8:r+12]) == STR_W3_A64:
-                imm = dec_mov_a64(body, r, 3)
-                if imm is not None and MIN_LIM <= imm <= MAX_LIM:
-                    dh.append(ck_s + r)
-        if len(dh) > 1:
-            return False, changed, saved3b, f"a64_def={len(dh)}"
-        g3b = None
-        if fn_exp and fn_sel:
-            es, ee, eeo, seo = fn_exp[3], min(len(b), fn_exp[4]), fn_exp[1], fn_sel[1]
-            eb = b[es:ee]
-            gh = []
-            for r in range(0, len(eb) - 7, 4):
-                w = struct.unpack_from("<I", eb, r)[0]
-                if (w & 0xfc000000) != 0x94000000:
-                    continue
-                if eeo + r + sxt(w & 0x03ffffff, 26) * 4 != seo:
-                    continue
-                for d in range(4, min(56, len(eb) - r - 4), 4):
-                    w2 = struct.unpack_from("<I", eb, r + d)[0]
-                    if (w2 & 0xfffffc1f) != 0xd63f0000:
-                        continue
-                    jo = r + d + 4
-                    wn = struct.unpack_from("<I", eb, jo)[0]
-                    if (wn & 0xfff8001f) == 0x37000000 or (wn & 0xff00001f) == 0x35000000:
-                        gh.append(("unpatched", es + jo, 4, bytes(eb[jo:jo+4]).hex()))
-                    elif wn == 0xd503201f:
-                        gh.append(("patched", es + jo, 4, None))
-                    break
-            if len(gh) == 1:
-                g3b = gh[0]
-        if g3b and g3b[0] == "unpatched" and g3b[3]:
-            saved3b = g3b[3]
-        if mode == "default":
-            put(ch[0], CLAMP_A64)
-            if dh:
-                put(dh[0], DEF_ORIG_A64)
-            if g3b and g3b[0] == "patched" and saved3b:
-                ob = bytes.fromhex(saved3b)
-                if len(ob) == 4:
-                    put(g3b[1], ob)
-        elif mode == "fixed":
-            put(ch[0], enc_mov_a64(3, lim) + NOP_A64 * 4)
-            if dh:
-                put(dh[0], enc_mov_a64(3, lim) + STR_W3_A64)
-            if g3b and g3b[0] == "unpatched":
-                put(g3b[1], NOP_A64)
-        else:
-            put(ch[0], DYN_A64)
-            if dh:
-                put(dh[0], DEF_ORIG_A64)
-            if g3b and g3b[0] == "unpatched":
-                put(g3b[1], NOP_A64)
-        return True, changed, saved3b, "ok"
-
 def main():
     args = sys.argv[1:]
     analyze_only = "--analyze" in args
     pos = [a for a in args if a != "--analyze"]
     bin_path = pos[0]
-    mode = pos[1] if len(pos) > 1 else "dynamic"
-    lim = int(pos[2]) if len(pos) > 2 else 0
-    if mode == "fixed" and not (MIN_LIM <= lim <= MAX_LIM):
-        raise RuntimeError(f"invalid limit {lim}")
-    meta_path = bin_path + ".hakimi_meta.json"
-    meta = {}
-    if os.path.exists(meta_path):
-        try:
-            with open(meta_path, "r", encoding="utf-8") as mf:
-                meta = json.load(mf) or {}
-        except Exception:
-            meta = {}
     with open(bin_path, "rb") as f:
         data = bytearray(f.read())
     arch, tsec, rsec, secs = parse_elf64(data)
-    targets = [
-        "authclient.ValidateAndOnboardAccount",
-        "utils.GetCheckpointConfig",
-        "config.applyFeatureProviderCheckpointOverrideConfig",
-        "config.selectCheckpointExperimentKey",
-    ]
+    targets = ["authclient.ValidateAndOnboardAccount"]
     funcs = find_go_funcs(data, arch, tsec, rsec, secs, targets)
     if not funcs:
         raise RuntimeError("gopclntab not found")
     fn_reg = funcs.get(targets[0])
-    fn_ck = funcs.get(targets[1])
-    fn_exp = funcs.get(targets[2])
-    fn_sel = funcs.get(targets[3])
     if not fn_reg:
         raise RuntimeError("ValidateAndOnboardAccount not found")
     reg_hit = analyze_region_a64(data, fn_reg[3], min(len(data), fn_reg[4])) if arch == "arm64" else analyze_region_x64(data, fn_reg[3], min(len(data), fn_reg[4]))
@@ -1198,31 +687,17 @@ def main():
     if not analyze_only and reg_st == "unpatched":
         data[reg_off:reg_off+len(reg_bytes)] = reg_bytes
         changed = True
-    ctx_ok, ctx_changed, saved3b, ctx_msg = (False, False, meta.get("gate3bOrigHex"), "missing_symbol")
-    if fn_ck:
-        if analyze_only:
-            tmp_copy = bytearray(data)
-            ctx_ok, ctx_changed, saved3b, ctx_msg = patch_context(tmp_copy, arch, fn_ck, fn_exp, fn_sel, mode, lim, meta.get("gate3bOrigHex"))
-        else:
-            ctx_ok, ctx_changed, saved3b, ctx_msg = patch_context(data, arch, fn_ck, fn_exp, fn_sel, mode, lim, meta.get("gate3bOrigHex"))
-            changed = changed or ctx_changed
-    if not analyze_only:
-        if changed:
-            tmp_path = f"{bin_path}.hakimi_tmp.{os.getpid()}"
-            with open(tmp_path, "wb") as tf:
-                tf.write(data)
-            os.chmod(tmp_path, 0o755)
-            os.replace(tmp_path, bin_path)
-        if saved3b and saved3b != meta.get("gate3bOrigHex"):
-            meta["gate3bOrigHex"] = saved3b
-            with open(meta_path, "w", encoding="utf-8") as mf:
-                json.dump(meta, mf)
+    if not analyze_only and changed:
+        tmp_path = f"{bin_path}.hakimi_tmp.{os.getpid()}"
+        with open(tmp_path, "wb") as tf:
+            tf.write(data)
+        os.chmod(tmp_path, 0o755)
+        os.replace(tmp_path, bin_path)
     print(json.dumps({
         "ok": True,
         "arch": arch,
         "analyzeOnly": analyze_only,
         "region": {"status": "patched" if (not analyze_only) else reg_st, "offset": hex(reg_off)},
-        "context": {"ok": ctx_ok, "mode": mode, "limit": lim, "detail": ctx_msg},
         "changed": changed,
     }))
 
@@ -1231,51 +706,14 @@ if __name__ == "__main__":
 `;
 }
 
-function readDesiredSshContextConfig(options = {}) {
-  let mode = 'dynamic';
-  let limitTokens = 0;
-  try {
-    const contextUnlock = require('./meter-context-unlock');
-    const backupDir = typeof contextUnlock.getUnlockBackupDir === 'function'
-      ? contextUnlock.getUnlockBackupDir(options.backupDir)
-      : null;
-    if (backupDir) {
-      const manifestPath = path.join(backupDir, 'manifest.json');
-      if (fs.existsSync(manifestPath)) {
-        const m = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-        const cm = String(m?.configuredMode || '').trim().toLowerCase();
-        if (cm === 'default') {
-          mode = 'default';
-          limitTokens = 0;
-        } else if (cm === 'fixed') {
-          const n = Number(m?.configuredLimitTokens);
-          if (Number.isSafeInteger(n) && n >= MIN_LIMIT_TOKENS && n <= MAX_LIMIT_TOKENS) {
-            mode = 'fixed';
-            limitTokens = n;
-          }
-        } else if (cm === 'dynamic') {
-          mode = 'dynamic';
-          limitTokens = 0;
-        }
-      }
-    }
-  } catch {}
-  return { mode, limitTokens };
-}
-
-function buildRemoteBootstrapHookShell(options = {}) {
-  const ctx = options.mode
-    ? normalizeContextSpec(options)
-    : readDesiredSshContextConfig(options);
-  const spec = `v1|region=1|ctx=${ctx.mode}:${ctx.limitTokens}`;
+function buildRemoteBootstrapHookShell() {
+  const spec = 'v2|region=1';
   const pyB64 = Buffer.from(getRemotePythonPatcherSource(), 'utf8').toString('base64');
 
   // POSIX sh compatible (dash/bash/ash), strict `set -u` safe, ZERO writes to stdout!
   return `
-# --- Hakimi Remote SSH Auto-Unlock (Region + Context Window) ---
+# --- Hakimi Remote SSH Auto-Unlock (Region) ---
 hakimi_want_spec='${spec}'
-hakimi_ctx_mode='${ctx.mode}'
-hakimi_ctx_limit='${ctx.limitTokens}'
 hakimi_py_b64='${pyB64}'
 
 hakimi_can_patch() {
@@ -1316,7 +754,7 @@ hakimi_patch_bin() {
   hakimi_py_file="\${agy_bindir:-/tmp}/.hakimi_patch.$$.py"
   if printf '%s' "$hakimi_py_b64" | base64 -d >"$hakimi_py_file" 2>>"$hakimi_log" ||
      python3 -c 'import base64,sys; open(sys.argv[1],"wb").write(base64.b64decode(sys.argv[2]))' "$hakimi_py_file" "$hakimi_py_b64" 2>>"$hakimi_log"; then
-    if python3 "$hakimi_py_file" "$hakimi_target" "$hakimi_ctx_mode" "$hakimi_ctx_limit" >>"$hakimi_log" 2>&1; then
+    if python3 "$hakimi_py_file" "$hakimi_target" >>"$hakimi_log" 2>&1; then
       printf '%s\\n' "$hakimi_want_spec" >"$hakimi_target.hakimi_stamp" 2>/dev/null || true
       rm -f "$hakimi_target.hakimi_skip" 2>/dev/null || true
     else
@@ -1372,10 +810,10 @@ agy_prepare() {
 `;
 }
 
-function decorateBootstrapScript(script, options = {}) {
+function decorateBootstrapScript(script) {
   if (typeof script !== 'string' || !script) return script;
   if (script.includes('hakimi_patch_bin()')) return script;
-  const hookShell = buildRemoteBootstrapHookShell(options);
+  const hookShell = buildRemoteBootstrapHookShell();
   const anchor = '\nagy_main; exit $?';
   const idx = script.lastIndexOf(anchor);
   if (idx >= 0) {
@@ -1510,26 +948,13 @@ function createRemoteSessionRequester(sender, sessionInfo, expectedOrigin = null
 
 module.exports = {
   TARGET_REGION_FUNC,
-  TARGET_CHECKPOINT_FUNC,
-  TARGET_EXP_FUNC,
-  TARGET_SELECT_EXP_FUNC,
-  CLAMP_256K_X64,
-  PATCH_256K_X64,
-  DEF_ORIG_X64,
-  CLAMP_256K_ARM64,
-  PATCH_256K_ARM64,
-  DEF_ORIG_ARM64,
-  DEF_GUARD_ARM64,
-  NOP_ARM64,
   parseElf64,
   fileOffToVA,
   findElfGoFunctions,
   analyzeElfRegionUnlock,
-  analyzeElfContextUnlock,
   patchElfBuffer,
   patchElfBinaryFile,
   getRemotePythonPatcherSource,
-  readDesiredSshContextConfig,
   buildRemoteBootstrapHookShell,
   decorateBootstrapScript,
   recordRemoteSession,
