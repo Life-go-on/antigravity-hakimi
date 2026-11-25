@@ -218,6 +218,19 @@ function getAccountsStatus(options = {}) {
     }
   }
 
+  // Sync upgraded/more-specific live tier display name (e.g. Ultra 5x/20x) onto active saved profile
+  const isMeaningfulTier = (v) => Boolean(v && v !== '未知' && v !== '未知套餐');
+  if (activeProfile && isMeaningfulTier(hintTier) && activeProfile.tierName !== hintTier) {
+    const idx = registry.profiles.findIndex((p) => p.id === activeProfile.id);
+    if (idx >= 0) {
+      registry.profiles[idx] = { ...registry.profiles[idx], tierName: hintTier };
+      activeProfile = registry.profiles[idx];
+      try {
+        saveProfilesRegistry(registry, { stateDir });
+      } catch {}
+    }
+  }
+
   // 2. Metadata-only Vault existence check (NO `-w` plaintext reads for saved profiles!)
   const profiles = registry.profiles.map((p) => {
     let vaultPresent = false;

@@ -358,12 +358,21 @@ function readOnboardingStateFromAppStorage(userDataDir) {
 function extractTierHintFromSecret(rawSecret) {
   const parsed = parseStoredTokenMetadata(rawSecret);
   if (!parsed) return '';
-  const candidates = [parsed.tier_display_name, parsed.tierDisplayName, parsed.user_tier, parsed.userTier];
-  for (const c of candidates) {
-    const clean = sanitizeTierName(c);
-    if (clean) return clean;
+  const displayName = sanitizeTierName(parsed.tier_display_name || parsed.tierDisplayName || '');
+  const userTierId = sanitizeTierName(parsed.user_tier || parsed.userTier || '');
+  const lowerId = userTierId.toLowerCase();
+  if (/ultra/i.test(displayName) || /ultra/i.test(lowerId)) {
+    const multMatch = displayName.match(/ultra[\s(]*(\d+x)\b/i);
+    if (multMatch) return `Google AI Ultra ${multMatch[1].toLowerCase()}`;
+    if (lowerId === 'g1-ultra-lite-tier' || /ultra[-_ ]?(?:lite|5x)\b/i.test(lowerId)) {
+      return 'Google AI Ultra 5x';
+    }
+    if (lowerId === 'g1-ultra-tier' || /ultra[-_ ]?20x\b/i.test(lowerId)) {
+      return 'Google AI Ultra 20x';
+    }
+    return displayName || 'Google AI Ultra';
   }
-  return '';
+  return displayName || userTierId || '';
 }
 
 function readJsonFileSafe(filePath, fallback) {

@@ -1231,9 +1231,23 @@
 
     if (/ultra/i.test(rawTierName) || /ultra/i.test(userTier.id || '')) {
       tierKey = 'ultra';
-      const subTierMatch = rawTierName.match(/ultra\s*([0-9a-zA-Z\-_]+)/i);
-      if (subTierMatch && !['plan', 'tier'].includes(subTierMatch[1].toLowerCase())) {
-        tierDisplayName = `Google AI Ultra (${subTierMatch[1]})`;
+      const tierIdLower = String(userTier.id || '').trim().toLowerCase();
+      const upgradeUri = String(userTier.upgradeSubscriptionUri || '').trim();
+      const upgradeText = String(userTier.upgradeSubscriptionText || '').trim();
+      const multMatch = rawTierName.match(/ultra[\s(]*(\d+x)\b/i);
+      const subTierMatch = rawTierName.match(/ultra[\s(]*([0-9a-zA-Z\-_]+)/i);
+      if (multMatch) {
+        tierDisplayName = `Google AI Ultra ${multMatch[1].toLowerCase()}`;
+      } else if (subTierMatch && !['plan', 'tier'].includes(subTierMatch[1].toLowerCase())) {
+        tierDisplayName = /^lite$/i.test(subTierMatch[1])
+          ? 'Google AI Ultra 5x'
+          : `Google AI Ultra (${subTierMatch[1]})`;
+      } else if (tierIdLower === 'g1-ultra-lite-tier' || /ultra[-_ ]?(?:lite|5x)\b/i.test(tierIdLower)) {
+        tierDisplayName = 'Google AI Ultra 5x';
+      } else if (tierIdLower === 'g1-ultra-tier' || /ultra[-_ ]?20x\b/i.test(tierIdLower)) {
+        tierDisplayName = 'Google AI Ultra 20x';
+      } else if (upgradeUri && /higher\s+google\s+ai\s+ultra/i.test(upgradeText)) {
+        tierDisplayName = 'Google AI Ultra 5x';
       } else {
         tierDisplayName = 'Google AI Ultra';
       }

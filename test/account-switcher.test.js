@@ -134,14 +134,138 @@ test('getAccountsStatus uses metadata-only has() with zero -w reads when current
   });
 });
 
-test('extractEmailHintFromSecret reads id_token_email and extractTierHintFromSecret reads tier_display_name', () => {
-  const blob = encodeGoKeyringSecret({
+test('extractEmailHintFromSecret reads id_token_email and extractTierHintFromSecret distinguishes Ultra 5x vs 20x', () => {
+  const blobPlain = encodeGoKeyringSecret({
     id_token_email: 'Alice.Work@Example.COM',
     tier_display_name: 'Google AI Ultra',
     token: { refresh_token: 'secret-never-returned' },
   });
-  assert.equal(switcher.extractEmailHintFromSecret(blob), 'alice.work@example.com');
-  assert.equal(switcher.extractTierHintFromSecret(blob), 'Google AI Ultra');
+  assert.equal(switcher.extractEmailHintFromSecret(blobPlain), 'alice.work@example.com');
+  assert.equal(switcher.extractTierHintFromSecret(blobPlain), 'Google AI Ultra');
+
+  const blob5x = encodeGoKeyringSecret({
+    id_token_email: 'five@example.com',
+    user_tier: 'g1-ultra-lite-tier',
+    tier_display_name: 'Google AI Ultra',
+  });
+  assert.equal(switcher.extractTierHintFromSecret(blob5x), 'Google AI Ultra 5x');
+
+  const blob20x = encodeGoKeyringSecret({
+    id_token_email: 'twenty@example.com',
+    user_tier: 'g1-ultra-tier',
+    tier_display_name: 'Google AI Ultra',
+  });
+  assert.equal(switcher.extractTierHintFromSecret(blob20x), 'Google AI Ultra 20x');
+
+  const blobEnterprise = encodeGoKeyringSecret({
+    id_token_email: 'corp@example.com',
+    user_tier: 'gcp-ge-ultra-tier',
+    tier_display_name: 'Google AI Ultra',
+  });
+  assert.equal(switcher.extractTierHintFromSecret(blobEnterprise), 'Google AI Ultra');
+});
+
+test('parseUserPlanStatus distinguishes Google AI Ultra 5x vs 20x and keeps enterprise Ultra generic', () => {
+  const { parseUserPlanStatus } = require(path.join(ROOT, 'payload', 'dist', 'meter-core.js'));
+
+  const res5x = parseUserPlanStatus({
+    userStatus: {
+      email: 'five@example.com',
+      userTier: {
+        id: 'g1-ultra-lite-tier',
+        name: 'Google AI Ultra',
+        description: 'Google AI Ultra',
+        upgradeSubscriptionUri: 'https://antigravity.google/g1-upgrade',
+        upgradeSubscriptionText: 'You can upgrade to a higher Google AI Ultra plan to receive the highest rate limits.',
+      },
+    },
+  });
+  assert.equal(res5x.tierKey, 'ultra');
+  assert.equal(res5x.tierName, 'Google AI Ultra 5x');
+
+  const res20x = parseUserPlanStatus({
+    userStatus: {
+      email: 'twenty@example.com',
+      userTier: {
+        id: 'g1-ultra-tier',
+        name: 'Google AI Ultra',
+        description: 'Google AI Ultra',
+        upgradeSubscriptionText: 'You are subscribed to the best Google AI plan.',
+      },
+    },
+  });
+  assert.equal(res20x.tierKey, 'ultra');
+  assert.equal(res20x.tierName, 'Google AI Ultra 20x');
+
+  const resEnterprise = parseUserPlanStatus({
+    userStatus: {
+      email: 'corp@example.com',
+      userTier: {
+        id: 'gcp-ge-ultra-tier',
+        name: 'Google AI Ultra',
+      },
+    },
+  });
+  assert.equal(resEnterprise.tierKey, 'ultra');
+  assert.equal(resEnterprise.tierName, 'Google AI Ultra');
+
+  const resFallbackUpgrade = parseUserPlanStatus({
+    userStatus: {
+      email: 'fallback@example.com',
+      userTier: {
+        id: 'g1-ultra-custom',
+        name: 'Google AI Ultra',
+        upgradeSubscriptionUri: 'https://antigravity.google/g1-upgrade',
+        upgradeSubscriptionText: 'You can upgrade to a higher Google AI Ultra plan.',
+      },
+    },
+  });
+  assert.equal(resFallbackUpgrade.tierName, 'Google AI Ultra 5x');
+
+  const resExplicitParen = parseUserPlanStatus({
+    userStatus: {
+      email: 'paren@example.com',
+      userTier: {
+        id: 'unknown-ultra',
+        name: 'Google AI Ultra (5x)',
+      },
+    },
+  });
+  assert.equal(resExplicitParen.tierName, 'Google AI Ultra 5x');
+});
+
+test('getAccountsStatus auto-updates stored generic Ultra tierName to live 5x/20x without reading -w', () => {
+  withTempDir((tmp) => {
+    const secret5x = encodeGoKeyringSecret({ id_token_email: 'five@example.com', user_tier: 'g1-ultra-lite-tier' });
+    const kc = makeMockKeychain({
+      'gemini::antigravity': secret5x,
+      'antigravity-hakimi-accounts::five@example.com': secret5x,
+    });
+    switcher.saveProfilesRegistry(
+      {
+        profiles: [
+          { id: 'five@example.com', email: 'five@example.com', tierName: 'Google AI Ultra', tokenFingerprint: switcher.computeTokenFingerprint(secret5x) },
+        ],
+      },
+      { stateDir: tmp }
+    );
+
+    const status = switcher.getAccountsStatus({
+      platform: 'darwin',
+      stateDir: tmp,
+      keychain: kc,
+      currentEmail: 'five@example.com',
+      currentTierName: 'Google AI Ultra 5x',
+      detectAgyCliImpl: () => [],
+    });
+    assert.equal(status.ok, true);
+    assert.equal(status.activeTierName, 'Google AI Ultra 5x');
+    assert.equal(status.profiles[0].tierName, 'Google AI Ultra 5x');
+    assert.equal(kc.calls.get.length, 0);
+
+    const reloaded = switcher.loadProfilesRegistry({ stateDir: tmp });
+    assert.equal(reloaded.profiles[0].tierName, 'Google AI Ultra 5x');
+  });
 });
 
 test('detectRunningAgyCliProcesses matches agy CLI and agy language_server without false positives', () => {
