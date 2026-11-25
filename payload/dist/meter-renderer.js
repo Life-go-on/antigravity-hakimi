@@ -1621,6 +1621,33 @@
     .acc-settings-row-actions{display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
     .acc-settings-mini-btn{padding:2px 8px;font-size:10.5px}
 
+    /* 应用内换图标卡片与预览区 */
+    .hakimi-icon-preview-row{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:7px;background:var(--ag-bg-subcard);border:1px dashed var(--ag-border-subcard);transition:border-color .15s ease,background-color .15s ease}
+    .hakimi-icon-preview-row.is-dragover{border-color:#38bdf8;background:rgba(56,189,248,0.1)}
+    .hakimi-icon-tiles{display:inline-flex;align-items:center;gap:7px;flex-shrink:0}
+    .hakimi-icon-tile-group{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+    .hakimi-icon-tile-group[hidden]{display:none!important}
+    .hakimi-icon-tile{position:relative;width:48px;height:48px;padding:3px;border-radius:11px;border:1px solid var(--ag-border-card);background-color:rgba(128,128,128,0.12);background-image:linear-gradient(45deg,rgba(128,128,128,0.14) 25%,transparent 25%,transparent 75%,rgba(128,128,128,0.14) 75%),linear-gradient(45deg,rgba(128,128,128,0.14) 25%,transparent 25%,transparent 75%,rgba(128,128,128,0.14) 75%);background-size:10px 10px;background-position:0 0,5px 5px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;flex-shrink:0}
+    button.hakimi-icon-tile{cursor:pointer;transition:border-color .15s ease,transform .12s ease}
+    button.hakimi-icon-tile:hover{border-color:#38bdf8;transform:scale(1.03)}
+    .hakimi-icon-tile-next{border-color:rgba(34,197,94,0.55)}
+    .hakimi-icon-tile-lg{width:56px;height:56px;border-radius:13px}
+    .hakimi-icon-tile[hidden]{display:none!important}
+    .hakimi-icon-img{width:100%;height:100%;object-fit:contain;display:block}
+    .hakimi-icon-img[hidden]{display:none!important}
+    .hakimi-icon-empty{font-size:18px;line-height:1;opacity:0.75}
+    .hakimi-icon-empty[hidden]{display:none!important}
+    .hakimi-icon-tile-cap{font-size:9.5px;color:var(--ag-text-muted);line-height:1.1}
+    .hakimi-icon-arrow{font-size:13px;color:var(--ag-text-muted);margin-bottom:13px;flex-shrink:0}
+    .hakimi-icon-arrow[hidden]{display:none!important}
+    .hakimi-icon-meta-col{min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:5px}
+    .hakimi-icon-meta{font-size:10.5px;line-height:1.45;color:var(--ag-text-secondary);white-space:pre-line;word-break:break-word}
+    .hakimi-icon-mask-toggle{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ag-text-primary);cursor:pointer;user-select:none}
+    .hakimi-icon-mask-toggle[hidden]{display:none!important}
+    .hakimi-icon-mask-toggle input[type="checkbox"]{margin:0;cursor:pointer;flex-shrink:0}
+    .hakimi-icon-modal-row{display:flex;align-items:flex-start;gap:12px}
+    .hakimi-icon-modal-row .ag-modal-body{white-space:pre-line;flex:1;min-width:0}
+
     @media (max-width:440px){
       .ctx-preset-grid{grid-template-columns:1fr}
       .ctx-tier-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -1987,6 +2014,50 @@
           </div>
         </div>
 
+        <!-- 4. 应用图标自定义（哈基米） -->
+        <div class="ctx-settings-card" id="hakimi-icon-card" hidden>
+          <div class="ctx-settings-card-hdr">
+            <div class="ctx-settings-card-title" data-i18n="icon.card.title">🖼️ 应用图标（哈基米）</div>
+            <span id="hakimi-icon-badge" class="key-pill pill-muted" data-i18n="settings.common.reading">读取中…</span>
+          </div>
+          <div id="hakimi-icon-desc" class="ctx-settings-card-desc" data-i18n="icon.card.desc">选择或拖入本地图片（PNG / JPG / WebP / HEIC / ICNS）实时预览并替换 哈基米.app 图标；在沙盒完成签名校验后再原子冷替换重启，后续自动升级会自动沿用。</div>
+          <div id="hakimi-icon-dropzone" class="hakimi-icon-preview-row" role="region" aria-label="应用图标预览与拖放区" data-i18n-aria="icon.dropzoneAria">
+            <div class="hakimi-icon-tiles">
+              <div class="hakimi-icon-tile-group">
+                <button id="btn-hakimi-icon-tile-pick" class="hakimi-icon-tile" type="button" title="点击选择图片或拖入图片文件" data-i18n-title="icon.tilePickTitle">
+                  <img id="hakimi-icon-cur-img" class="hakimi-icon-img" alt="" hidden />
+                  <span id="hakimi-icon-cur-empty" class="hakimi-icon-empty">🖼️</span>
+                </button>
+                <span class="hakimi-icon-tile-cap" data-i18n="icon.cap.current">当前</span>
+              </div>
+              <span id="hakimi-icon-arrow" class="hakimi-icon-arrow" hidden aria-hidden="true">→</span>
+              <div id="hakimi-icon-next-wrap" class="hakimi-icon-tile-group" hidden>
+                <div class="hakimi-icon-tile hakimi-icon-tile-next">
+                  <img id="hakimi-icon-next-img" class="hakimi-icon-img" alt="" hidden />
+                  <span id="hakimi-icon-next-empty" class="hakimi-icon-empty">…</span>
+                </div>
+                <span class="hakimi-icon-tile-cap" data-i18n="icon.cap.preview">新图标</span>
+              </div>
+            </div>
+            <div class="hakimi-icon-meta-col">
+              <div id="hakimi-icon-meta" class="hakimi-icon-meta">—</div>
+              <label id="hakimi-icon-mask-wrap" class="hakimi-icon-mask-toggle" hidden>
+                <input id="chk-hakimi-icon-mask" type="checkbox" checked />
+                <span data-i18n="icon.maskLabel">自动添加 macOS 圆角留白遮罩</span>
+              </label>
+            </div>
+          </div>
+          <div class="ctx-settings-card-actions">
+            <button id="btn-hakimi-icon-pick" class="unlock-btn unlock-btn-primary" type="button" data-i18n="icon.btn.pick">选择图片…</button>
+            <button id="btn-hakimi-icon-apply" class="unlock-btn unlock-btn-upgrade" type="button" hidden data-i18n="icon.btn.apply">应用并重启生效</button>
+            <button id="btn-hakimi-icon-clear" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="icon.btn.clear">取消选择</button>
+            <button id="btn-hakimi-icon-restore" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="icon.btn.restore">恢复默认图标</button>
+          </div>
+          <div id="hakimi-icon-result" class="unlock-result-box" style="display:none;">
+            <div id="hakimi-icon-result-text" class="unlock-result-text"></div>
+          </div>
+        </div>
+
         <!-- 保留：兼容隐藏旧中文折叠触发节点 -->
         <div id="chinese-i18n-drawer" hidden>
           <button id="btn-toggle-chinese" type="button" hidden></button>
@@ -2097,6 +2168,24 @@
         <div class="ag-modal-actions">
           <button id="btn-modal-upgrade-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
           <button id="btn-modal-upgrade-confirm" class="unlock-btn unlock-btn-upgrade" type="button" data-i18n="upgrade.btn.install">立即重启并更新</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 哈基米应用图标替换/恢复确认模态弹窗 -->
+    <div id="hakimi-icon-modal" class="ag-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-icon-title">
+      <div class="ag-modal-card">
+        <div id="modal-icon-title" class="ag-modal-title" data-i18n="icon.modal.applyTitle">替换应用图标并重启</div>
+        <div class="hakimi-icon-modal-row">
+          <div id="modal-icon-preview-box" class="hakimi-icon-tile hakimi-icon-tile-lg" hidden>
+            <img id="modal-icon-preview-img" class="hakimi-icon-img" alt="" />
+          </div>
+          <div id="modal-icon-body" class="ag-modal-body"></div>
+        </div>
+        <div id="modal-icon-feedback" class="ag-modal-feedback" hidden></div>
+        <div class="ag-modal-actions">
+          <button id="btn-modal-icon-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
+          <button id="btn-modal-icon-confirm" class="unlock-btn unlock-btn-upgrade" type="button" data-i18n="icon.btn.apply">应用并重启生效</button>
         </div>
       </div>
     </div>
@@ -3564,7 +3653,44 @@
       'upgrade.modal.starting': { 'zh-CN': '正在启动冷切更新接力进程并退出当前客户端…', 'zh-TW': '正在啟動冷切更新接力行程並結束目前用戶端…', en: 'Launching detached swap helper and quitting…' },
       'upgrade.modal.failed': { 'zh-CN': '启动更新失败：{err}', 'zh-TW': '啟動更新失敗：{err}', en: 'Upgrade failed to start: {err}' },
       'upgrade.sync.upToDate': { 'zh-CN': '当前已是最新版本。', 'zh-TW': '目前已是最新版本。', en: 'Already up to date.' },
-      'upgrade.sync.readyNow': { 'zh-CN': '✔ 后台试构建与验签已通过，可立即重启应用更新！', 'zh-TW': '✔ 後台試建構與驗簽已通過，可立即重啟套用更新！', en: '✔ Verified in sandbox — ready to restart and upgrade!' }
+      'upgrade.sync.readyNow': { 'zh-CN': '✔ 后台试构建与验签已通过，可立即重启应用更新！', 'zh-TW': '✔ 後台試建構與驗簽已通過，可立即重啟套用更新！', en: '✔ Verified in sandbox — ready to restart and upgrade!' },
+
+      // 哈基米应用内换图标
+      'icon.card.title': { 'zh-CN': '🖼️ 应用图标（哈基米）', 'zh-TW': '🖼️ 應用圖示（哈基米）', en: '🖼️ App Icon (Hakimi)' },
+      'icon.card.desc': { 'zh-CN': '选择或拖入本地图片（PNG / JPG / WebP / HEIC / ICNS）实时预览并替换 哈基米.app 图标；在沙盒完成签名校验后再原子冷替换重启，后续自动升级会自动沿用。', 'zh-TW': '選擇或拖入本機圖片（PNG / JPG / WebP / HEIC / ICNS）即時預覽並替換 哈基米.app 圖示；在沙盒完成簽章校驗後再原子冷替換重啟，後續自動升級會自動沿用。', en: 'Pick or drop a local image (PNG / JPG / WebP / HEIC / ICNS) to preview and replace the 哈基米.app icon. Verified in an isolated sandbox before atomic cold-swap restart, and auto-preserved on future upgrades.' },
+      'icon.dropzoneAria': { 'zh-CN': '应用图标预览与拖放区', 'zh-TW': '應用圖示預覽與拖放區', en: 'App icon preview and dropzone' },
+      'icon.tilePickTitle': { 'zh-CN': '点击选择图片或拖入图片文件', 'zh-TW': '點擊選擇圖片或拖入圖片檔案', en: 'Click to pick an image or drop one here' },
+      'icon.cap.current': { 'zh-CN': '当前', 'zh-TW': '目前', en: 'Current' },
+      'icon.cap.preview': { 'zh-CN': '新图标', 'zh-TW': '新圖示', en: 'Preview' },
+      'icon.maskLabel': { 'zh-CN': '自动添加 macOS 圆角留白遮罩', 'zh-TW': '自動套用 macOS 圓角留白遮罩', en: 'Auto-apply macOS rounded squircle mask' },
+      'icon.badge.custom': { 'zh-CN': '自定义图标', 'zh-TW': '自訂圖示', en: 'Custom Icon' },
+      'icon.badge.default': { 'zh-CN': '官方默认', 'zh-TW': '官方預設', en: 'Official Default' },
+      'icon.badge.busy': { 'zh-CN': '处理中…', 'zh-TW': '處理中…', en: 'Processing…' },
+      'icon.badge.unsupported': { 'zh-CN': '仅限 macOS', 'zh-TW': '僅限 macOS', en: 'macOS Only' },
+      'icon.badge.error': { 'zh-CN': '读取异常', 'zh-TW': '讀取異常', en: 'Error' },
+      'icon.btn.pick': { 'zh-CN': '选择图片…', 'zh-TW': '選擇圖片…', en: 'Choose Image…' },
+      'icon.btn.pickAnother': { 'zh-CN': '重选图片…', 'zh-TW': '重選圖片…', en: 'Change Image…' },
+      'icon.btn.apply': { 'zh-CN': '应用并重启生效', 'zh-TW': '套用並重啟生效', en: 'Apply & Restart' },
+      'icon.btn.clear': { 'zh-CN': '取消选择', 'zh-TW': '取消選擇', en: 'Cancel Selection' },
+      'icon.btn.restore': { 'zh-CN': '恢复默认图标', 'zh-TW': '恢復預設圖示', en: 'Restore Default Icon' },
+      'icon.meta.custom': { 'zh-CN': '当前已启用自定义图标，后续构建与自动升级都会自动沿用。\n点击左侧图标或拖入新图片即可更换。', 'zh-TW': '目前已啟用自訂圖示，後續建構與自動升級都會自動沿用。\n點擊左側圖示或拖入新圖片即可更換。', en: 'Custom icon is active and auto-preserved across upgrades.\nClick the icon or drop a new image to change.' },
+      'icon.meta.default': { 'zh-CN': '当前使用 Antigravity 官方默认图标。\n点击左侧图标或拖入图片即可实时预览效果。', 'zh-TW': '目前使用 Antigravity 官方預設圖示。\n點擊左側圖示或拖入圖片即可即時預覽效果。', en: 'Using official Antigravity default icon.\nClick the icon or drop an image to preview.' },
+      'icon.meta.previewBusy': { 'zh-CN': '正在渲染预览（{name}）…', 'zh-TW': '正在算繪預覽（{name}）…', en: 'Rendering preview ({name})…' },
+      'icon.meta.previewMasked': { 'zh-CN': '{name} · {w}×{h}\n已自动居中裁剪并套用 macOS 圆角留白遮罩', 'zh-TW': '{name} · {w}×{h}\n已自動置中裁切並套用 macOS 圓角留白遮罩', en: '{name} · {w}×{h}\nCenter-cropped with macOS rounded squircle mask' },
+      'icon.meta.previewTransparent': { 'zh-CN': '{name} · {w}×{h}\n检测到透明边缘，已自动保留原图标轮廓', 'zh-TW': '{name} · {w}×{h}\n偵測到透明邊緣，已自動保留原圖示輪廓', en: '{name} · {w}×{h}\nTransparent corners detected — original silhouette preserved' },
+      'icon.meta.previewRaw': { 'zh-CN': '{name} · {w}×{h}\n原图直出（已关闭圆角留白遮罩）', 'zh-TW': '{name} · {w}×{h}\n原圖直出（已關閉圓角留白遮罩）', en: '{name} · {w}×{h}\nRaw full-bleed mode (squircle mask disabled)' },
+      'icon.meta.previewIcns': { 'zh-CN': '{name} · macOS .icns\n将原样应用 .icns 图标并提取 512×512 Dock 图标', 'zh-TW': '{name} · macOS .icns\n將原樣套用 .icns 圖示並擷取 512×512 Dock 圖示', en: '{name} · macOS .icns\nWill apply .icns directly and extract 512×512 Dock PNG' },
+      'icon.dropUnsupported': { 'zh-CN': '无法读取拖入文件的本地路径，请点击「选择图片…」按钮选取。', 'zh-TW': '無法讀取拖入檔案的本機路徑，請點擊「選擇圖片…」按鈕選取。', en: 'Could not read dropped file path. Please use "Choose Image…".' },
+      'icon.modal.applyTitle': { 'zh-CN': '替换应用图标并重启', 'zh-TW': '替換應用圖示並重啟', en: 'Apply Custom Icon & Restart' },
+      'icon.modal.applyBody': { 'zh-CN': '即将把 哈基米.app 图标替换为：{name}\n\n确认后会先在隔离沙盒中更新图标、重算 ASAR 完整性摘要并严格校验 codesign；全部通过后再优雅退出、原子替换并重启（约 2 秒，绝不修改官方 Antigravity.app）。', 'zh-TW': '即將把 哈基米.app 圖示替換為：{name}\n\n確認後會先在隔離沙盒中更新圖示、重算 ASAR 完整性摘要並嚴格校驗 codesign；全部通過後再優雅結束、原子替換並重啟（約 2 秒，絕不修改官方 Antigravity.app）。', en: 'Replace 哈基米.app icon with: {name}\n\nThe bundle will be cloned in an isolated sandbox, updated, re-signed, and strictly verified before cleanly quitting and atomically swapping (~2s; official Antigravity.app is never touched).' },
+      'icon.modal.restoreTitle': { 'zh-CN': '恢复默认图标并重启', 'zh-TW': '恢復預設圖示並重啟', en: 'Restore Default Icon & Restart' },
+      'icon.modal.restoreBody': { 'zh-CN': '即将将 哈基米.app 恢复为 Antigravity 官方默认图标。\n\n确认后会先在隔离沙盒中还原图标资源并严格校验 codesign；全部通过后再优雅退出、原子替换并重启（约 2 秒，仅只读提取，不修改官方 Antigravity.app）。', 'zh-TW': '即將將 哈基米.app 恢復為 Antigravity 官方預設圖示。\n\n確認後會先在隔離沙盒中還原圖示資源並嚴格校驗 codesign；全部通過後再優雅結束、原子替換並重啟（約 2 秒，僅唯讀擷取，不修改官方 Antigravity.app）。', en: 'Restore 哈基米.app back to the official Antigravity default icon.\n\nIcon resources will be restored in an isolated sandbox and strictly verified before cleanly quitting and atomically swapping (~2s; official Antigravity.app is read-only).' },
+      'icon.modal.staging': { 'zh-CN': '正在沙盒中生成图标并严格校验签名（当前应用不受影响）…', 'zh-TW': '正在沙盒中產生圖示並嚴格校驗簽章（目前應用不受影響）…', en: 'Staging icon & verifying codesign in sandbox…' },
+      'icon.modal.swapping': { 'zh-CN': '✔ 校验通过，正在启动冷替换接力进程并重启 哈基米.app…', 'zh-TW': '✔ 校驗通過，正在啟動冷替換接力行程並重啟 哈基米.app…', en: '✔ Verified — launching detached cold-swap and restarting…' },
+      'icon.modal.failed': { 'zh-CN': '图标替换未执行（当前版本未受影响）：{err}', 'zh-TW': '圖示替換未執行（目前版本未受影響）：{err}', en: 'Icon swap aborted (current app untouched): {err}' },
+      'icon.lastResult.okCustom': { 'zh-CN': '✔ 自定义应用图标已生效！', 'zh-TW': '✔ 自訂應用圖示已生效！', en: '✔ Custom app icon applied!' },
+      'icon.lastResult.okRestore': { 'zh-CN': '✔ 已恢复为官方默认应用图标！', 'zh-TW': '✔ 已恢復為官方預設應用圖示！', en: '✔ Official default app icon restored!' },
+      'icon.lastResult.fail': { 'zh-CN': '上次图标冷替换未完成：{err}', 'zh-TW': '上次圖示冷替換未完成：{err}', en: 'Previous icon cold-swap did not complete: {err}' }
   };
 
   function t(key, vars = null) {
@@ -5435,6 +5561,7 @@
         void refreshModulesDisplay();
         void refreshCliUnlockDisplay();
         if (typeof refreshHakimiUpgradeStatus === 'function') void refreshHakimiUpgradeStatus();
+        if (typeof refreshHakimiIconStatus === 'function') void refreshHakimiIconStatus();
         if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } else {
@@ -10184,6 +10311,7 @@
       void refreshModulesDisplay();
       void refreshCliUnlockDisplay();
       if (typeof refreshHakimiUpgradeStatus === 'function') void refreshHakimiUpgradeStatus();
+      if (typeof refreshHakimiIconStatus === 'function') void refreshHakimiIconStatus();
       if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
     }
     positionFloatingPanels();
@@ -10762,6 +10890,7 @@
     try { renderSpeedComparisonTab(); } catch {}
     try { renderCliUnlockState(currentCliUnlockStatus); } catch {}
     try { renderHakimiUpgradeState(currentHakimiUpgradeState); } catch {}
+    try { renderHakimiIconState(currentHakimiIconState); } catch {}
     try {
       if (typeof renderPlanDetail === 'function' && ANTIGRAVITY_TOKEN_DATA?.planStatus) {
         renderPlanDetail(ANTIGRAVITY_TOKEN_DATA.planStatus);
@@ -10774,6 +10903,7 @@
       if (isContextSettingsView) {
         void refreshCliUnlockDisplay();
         void refreshHakimiUpgradeStatus();
+        void refreshHakimiIconStatus();
         if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } catch {}
@@ -11510,11 +11640,446 @@
     } catch {}
   }
 
+  // -------------------------------------------------------------
+  // 模块 2.6: 哈基米应用内换图标（实时预览 + 沙盒验签 + 原子冷替换）
+  // -------------------------------------------------------------
+  const hakimiIconCard = el('hakimi-icon-card');
+  const hakimiIconBadge = el('hakimi-icon-badge');
+  const hakimiIconDropzone = el('hakimi-icon-dropzone');
+  const btnHakimiIconTilePick = el('btn-hakimi-icon-tile-pick');
+  const hakimiIconCurImg = el('hakimi-icon-cur-img');
+  const hakimiIconCurEmpty = el('hakimi-icon-cur-empty');
+  const hakimiIconArrow = el('hakimi-icon-arrow');
+  const hakimiIconNextWrap = el('hakimi-icon-next-wrap');
+  const hakimiIconNextImg = el('hakimi-icon-next-img');
+  const hakimiIconNextEmpty = el('hakimi-icon-next-empty');
+  const hakimiIconMeta = el('hakimi-icon-meta');
+  const hakimiIconMaskWrap = el('hakimi-icon-mask-wrap');
+  const chkHakimiIconMask = el('chk-hakimi-icon-mask');
+  const btnHakimiIconPick = el('btn-hakimi-icon-pick');
+  const btnHakimiIconApply = el('btn-hakimi-icon-apply');
+  const btnHakimiIconClear = el('btn-hakimi-icon-clear');
+  const btnHakimiIconRestore = el('btn-hakimi-icon-restore');
+  const hakimiIconResultBox = el('hakimi-icon-result');
+  const hakimiIconResultText = el('hakimi-icon-result-text');
+  const hakimiIconModal = el('hakimi-icon-modal');
+  const modalIconTitle = el('modal-icon-title');
+  const modalIconPreviewBox = el('modal-icon-preview-box');
+  const modalIconPreviewImg = el('modal-icon-preview-img');
+  const modalIconBody = el('modal-icon-body');
+  const modalIconFeedback = el('modal-icon-feedback');
+  const btnModalIconCancel = el('btn-modal-icon-cancel');
+  const btnModalIconConfirm = el('btn-modal-icon-confirm');
+
+  let currentHakimiIconState = null;
+  let pendingIconFilePath = null;
+  let pendingIconPreview = null;
+  let pendingIconRawMode = false;
+  let pendingIconModalMode = null; // 'custom' | 'restore'
+  let isHakimiIconPreviewBusy = false;
+  let isHakimiIconApplyBusy = false;
+  let iconPreviewSeq = 0;
+
+  function showHakimiIconResult(ok, msg) {
+    if (!hakimiIconResultBox || !hakimiIconResultText) return;
+    if (!msg) {
+      hakimiIconResultBox.style.display = 'none';
+      return;
+    }
+    hakimiIconResultBox.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
+    hakimiIconResultBox.style.display = 'block';
+    hakimiIconResultText.textContent = msg;
+  }
+
+  function renderHakimiIconState(st = currentHakimiIconState) {
+    const isRemote = Boolean(typeof getRemoteSshMeta === 'function' && getRemoteSshMeta());
+    const hasBridge = Boolean(
+      typeof window !== 'undefined' && typeof window.contextMeterAPI?.getHakimiIconStatus === 'function'
+    );
+    if (isRemote || !hasBridge) {
+      if (hakimiIconCard) hakimiIconCard.hidden = true;
+      return;
+    }
+
+    if (st && st.supported === false) {
+      if (hakimiIconCard) hakimiIconCard.hidden = true;
+      return;
+    }
+
+    if (hakimiIconCard) hakimiIconCard.hidden = false;
+
+    const busy = isHakimiIconPreviewBusy || isHakimiIconApplyBusy || Boolean(st?.busy);
+    const hasPendingFile = Boolean(pendingIconFilePath);
+    const hasValidPreview = Boolean(pendingIconPreview && pendingIconPreview.ok && pendingIconPreview.dataUrl);
+
+    if (hakimiIconBadge) {
+      if (busy) {
+        hakimiIconBadge.textContent = t('icon.badge.busy');
+        hakimiIconBadge.className = 'key-pill pill-warn';
+      } else if (!st) {
+        hakimiIconBadge.textContent = t('settings.common.reading');
+        hakimiIconBadge.className = 'key-pill pill-muted';
+      } else if (!st.ok) {
+        hakimiIconBadge.textContent = t('icon.badge.error');
+        hakimiIconBadge.className = 'key-pill pill-danger';
+      } else if (st.isCustomIcon === true) {
+        hakimiIconBadge.textContent = t('icon.badge.custom');
+        hakimiIconBadge.className = 'key-pill pill-ok';
+      } else {
+        hakimiIconBadge.textContent = t('icon.badge.default');
+        hakimiIconBadge.className = 'key-pill pill-muted';
+      }
+    }
+
+    if (hakimiIconCurImg && hakimiIconCurEmpty) {
+      if (st?.currentIconDataUrl) {
+        if (hakimiIconCurImg.getAttribute('src') !== st.currentIconDataUrl) {
+          hakimiIconCurImg.setAttribute('src', st.currentIconDataUrl);
+        }
+        hakimiIconCurImg.hidden = false;
+        hakimiIconCurEmpty.hidden = true;
+      } else {
+        hakimiIconCurImg.hidden = true;
+        hakimiIconCurEmpty.hidden = false;
+      }
+    }
+
+    if (hakimiIconArrow) hakimiIconArrow.hidden = !hasPendingFile;
+    if (hakimiIconNextWrap) hakimiIconNextWrap.hidden = !hasPendingFile;
+    if (hakimiIconNextImg && hakimiIconNextEmpty) {
+      if (hasValidPreview) {
+        if (hakimiIconNextImg.getAttribute('src') !== pendingIconPreview.dataUrl) {
+          hakimiIconNextImg.setAttribute('src', pendingIconPreview.dataUrl);
+        }
+        hakimiIconNextImg.hidden = false;
+        hakimiIconNextEmpty.hidden = true;
+      } else {
+        hakimiIconNextImg.hidden = true;
+        hakimiIconNextEmpty.hidden = false;
+      }
+    }
+
+    if (hakimiIconMaskWrap && chkHakimiIconMask) {
+      const showMaskToggle = hasPendingFile && pendingIconPreview?.mode !== 'icns';
+      hakimiIconMaskWrap.hidden = !showMaskToggle;
+      chkHakimiIconMask.checked = !pendingIconRawMode;
+      chkHakimiIconMask.disabled = busy;
+    }
+
+    if (hakimiIconMeta) {
+      if (isHakimiIconPreviewBusy && pendingIconFilePath) {
+        const baseName = pendingIconFilePath.split(/[\\/]/).pop() || pendingIconFilePath;
+        hakimiIconMeta.textContent = t('icon.meta.previewBusy', { name: baseName });
+      } else if (hasValidPreview) {
+        const p = pendingIconPreview;
+        const name = p.fileName || (pendingIconFilePath || '').split(/[\\/]/).pop() || '';
+        if (p.mode === 'icns') {
+          hakimiIconMeta.textContent = t('icon.meta.previewIcns', { name });
+        } else if (p.masked) {
+          hakimiIconMeta.textContent = t('icon.meta.previewMasked', { name, w: p.w || '?', h: p.h || '?' });
+        } else if (p.hasTransparentCorners && !pendingIconRawMode) {
+          hakimiIconMeta.textContent = t('icon.meta.previewTransparent', { name, w: p.w || '?', h: p.h || '?' });
+        } else {
+          hakimiIconMeta.textContent = t('icon.meta.previewRaw', { name, w: p.w || '?', h: p.h || '?' });
+        }
+      } else if (!st || !st.ok) {
+        hakimiIconMeta.textContent = st?.error || '—';
+      } else if (st.isCustomIcon === true) {
+        hakimiIconMeta.textContent = t('icon.meta.custom');
+      } else {
+        hakimiIconMeta.textContent = t('icon.meta.default');
+      }
+    }
+
+    if (btnHakimiIconPick) {
+      btnHakimiIconPick.disabled = busy;
+      btnHakimiIconPick.textContent = hasPendingFile ? t('icon.btn.pickAnother') : t('icon.btn.pick');
+      btnHakimiIconPick.className = hasPendingFile
+        ? 'unlock-btn unlock-btn-secondary'
+        : 'unlock-btn unlock-btn-primary';
+    }
+    if (btnHakimiIconTilePick) {
+      btnHakimiIconTilePick.disabled = busy;
+    }
+    if (btnHakimiIconApply) {
+      btnHakimiIconApply.hidden = !hasValidPreview;
+      btnHakimiIconApply.disabled = busy || !hasValidPreview;
+    }
+    if (btnHakimiIconClear) {
+      btnHakimiIconClear.hidden = !hasPendingFile;
+      btnHakimiIconClear.disabled = busy;
+    }
+    if (btnHakimiIconRestore) {
+      const canShowRestore = Boolean(st?.ok && st.canRestoreDefault && st.isCustomIcon !== false);
+      btnHakimiIconRestore.hidden = !canShowRestore;
+      btnHakimiIconRestore.disabled = busy || !canShowRestore;
+    }
+  }
+
+  async function requestHakimiIconPreview(filePath, rawMode = pendingIconRawMode) {
+    if (!filePath || typeof window === 'undefined' || typeof window.contextMeterAPI?.previewHakimiIcon !== 'function') {
+      return null;
+    }
+    const seq = ++iconPreviewSeq;
+    pendingIconFilePath = filePath;
+    pendingIconRawMode = Boolean(rawMode);
+    isHakimiIconPreviewBusy = true;
+    showHakimiIconResult(true, '');
+    renderHakimiIconState(currentHakimiIconState);
+    try {
+      const res = await window.contextMeterAPI.previewHakimiIcon({
+        inputPath: filePath,
+        rawIcon: pendingIconRawMode,
+      });
+      if (seq !== iconPreviewSeq) return null;
+      if (res && res.ok && res.dataUrl) {
+        pendingIconPreview = res;
+        showHakimiIconResult(true, '');
+      } else {
+        pendingIconPreview = null;
+        showHakimiIconResult(false, res?.error || t('msg.unknownErr'));
+      }
+      return res;
+    } catch (err) {
+      if (seq !== iconPreviewSeq) return null;
+      pendingIconPreview = null;
+      showHakimiIconResult(false, err?.message || t('msg.unknownErr'));
+      return null;
+    } finally {
+      if (seq === iconPreviewSeq) {
+        isHakimiIconPreviewBusy = false;
+        renderHakimiIconState(currentHakimiIconState);
+      }
+    }
+  }
+
+  async function handlePickHakimiIconFile() {
+    if (isHakimiIconPreviewBusy || isHakimiIconApplyBusy) return;
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.pickHakimiIconFile !== 'function') {
+      showHakimiIconResult(false, t('msg.noHostBridge'));
+      return;
+    }
+    try {
+      const pick = await window.contextMeterAPI.pickHakimiIconFile();
+      if (!pick || pick.canceled || !pick.filePath) return;
+      if (pick.ok === false) {
+        showHakimiIconResult(false, pick.error || t('msg.unknownErr'));
+        return;
+      }
+      await requestHakimiIconPreview(pick.filePath, pendingIconRawMode);
+    } catch (err) {
+      showHakimiIconResult(false, err?.message || t('msg.unknownErr'));
+    }
+  }
+
+  function clearPendingHakimiIcon() {
+    iconPreviewSeq++;
+    pendingIconFilePath = null;
+    pendingIconPreview = null;
+    isHakimiIconPreviewBusy = false;
+    showHakimiIconResult(true, '');
+    renderHakimiIconState(currentHakimiIconState);
+  }
+
+  function closeHakimiIconModal() {
+    if (isHakimiIconApplyBusy) return;
+    pendingIconModalMode = null;
+    if (hakimiIconModal) hakimiIconModal.hidden = true;
+    if (modalIconFeedback) {
+      modalIconFeedback.hidden = true;
+      modalIconFeedback.textContent = '';
+    }
+  }
+
+  function openHakimiIconModal(mode) {
+    if (isHakimiIconApplyBusy) return;
+    if (mode === 'custom' && (!pendingIconFilePath || !pendingIconPreview?.ok)) return;
+    if (mode === 'restore' && !currentHakimiIconState?.canRestoreDefault) return;
+    pendingIconModalMode = mode;
+    if (modalIconTitle) {
+      modalIconTitle.textContent =
+        mode === 'restore' ? t('icon.modal.restoreTitle') : t('icon.modal.applyTitle');
+    }
+    if (modalIconBody) {
+      if (mode === 'restore') {
+        modalIconBody.textContent = t('icon.modal.restoreBody');
+      } else {
+        const name = pendingIconPreview?.fileName || pendingIconFilePath.split(/[\\/]/).pop() || '';
+        modalIconBody.textContent = t('icon.modal.applyBody', { name });
+      }
+    }
+    if (modalIconPreviewBox && modalIconPreviewImg) {
+      if (mode === 'custom' && pendingIconPreview?.dataUrl) {
+        modalIconPreviewImg.setAttribute('src', pendingIconPreview.dataUrl);
+        modalIconPreviewBox.hidden = false;
+      } else {
+        modalIconPreviewBox.hidden = true;
+      }
+    }
+    if (btnModalIconConfirm) {
+      btnModalIconConfirm.textContent =
+        mode === 'restore' ? t('icon.btn.restore') : t('icon.btn.apply');
+      btnModalIconConfirm.disabled = false;
+    }
+    if (btnModalIconCancel) btnModalIconCancel.disabled = false;
+    if (modalIconFeedback) {
+      modalIconFeedback.hidden = true;
+      modalIconFeedback.textContent = '';
+    }
+    if (hakimiIconModal) hakimiIconModal.hidden = false;
+  }
+
+  async function confirmHakimiIconAction() {
+    if (isHakimiIconApplyBusy || !pendingIconModalMode) return;
+    const mode = pendingIconModalMode;
+    const api = typeof window !== 'undefined' ? window.contextMeterAPI : null;
+    const invokeFn = mode === 'restore' ? api?.restoreHakimiIcon : api?.applyHakimiIcon;
+    if (typeof invokeFn !== 'function') {
+      if (modalIconFeedback) {
+        modalIconFeedback.textContent = t('msg.noHostBridge');
+        modalIconFeedback.hidden = false;
+      }
+      return;
+    }
+
+    isHakimiIconApplyBusy = true;
+    renderHakimiIconState(currentHakimiIconState);
+    if (btnModalIconConfirm) btnModalIconConfirm.disabled = true;
+    if (btnModalIconCancel) btnModalIconCancel.disabled = true;
+    if (modalIconFeedback) {
+      modalIconFeedback.textContent = t('icon.modal.staging');
+      modalIconFeedback.hidden = false;
+    }
+
+    try {
+      const payload =
+        mode === 'custom'
+          ? { inputPath: pendingIconFilePath, rawIcon: pendingIconRawMode }
+          : {};
+      const res = await invokeFn(payload);
+      if (res && res.ok && res.coldSwapping) {
+        if (modalIconFeedback) {
+          modalIconFeedback.textContent = t('icon.modal.swapping');
+          modalIconFeedback.hidden = false;
+        }
+        return;
+      }
+      isHakimiIconApplyBusy = false;
+      renderHakimiIconState(currentHakimiIconState);
+      if (btnModalIconConfirm) btnModalIconConfirm.disabled = false;
+      if (btnModalIconCancel) btnModalIconCancel.disabled = false;
+      if (modalIconFeedback) {
+        modalIconFeedback.textContent = t('icon.modal.failed', { err: res?.error || t('msg.unknownErr') });
+        modalIconFeedback.hidden = false;
+      }
+    } catch (err) {
+      isHakimiIconApplyBusy = false;
+      renderHakimiIconState(currentHakimiIconState);
+      if (btnModalIconConfirm) btnModalIconConfirm.disabled = false;
+      if (btnModalIconCancel) btnModalIconCancel.disabled = false;
+      if (modalIconFeedback) {
+        modalIconFeedback.textContent = t('icon.modal.failed', { err: err?.message || t('msg.unknownErr') });
+        modalIconFeedback.hidden = false;
+      }
+    }
+  }
+
+  async function refreshHakimiIconStatus(opts = {}) {
+    if (typeof getRemoteSshMeta === 'function' && getRemoteSshMeta()) {
+      renderHakimiIconState(null);
+      return null;
+    }
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.getHakimiIconStatus !== 'function') {
+      renderHakimiIconState(null);
+      return null;
+    }
+    try {
+      const res = await window.contextMeterAPI.getHakimiIconStatus({
+        consumeLastResult: opts.consumeLastResult === true,
+      });
+      currentHakimiIconState = res;
+      renderHakimiIconState(res);
+      if (res?.lastResult) {
+        if (res.lastResult.ok) {
+          showHakimiIconResult(
+            true,
+            res.lastResult.iconMode === 'restore' ? t('icon.lastResult.okRestore') : t('icon.lastResult.okCustom')
+          );
+        } else if (res.lastResult.error) {
+          showHakimiIconResult(false, t('icon.lastResult.fail', { err: res.lastResult.error }));
+        }
+      }
+      return res;
+    } catch (err) {
+      const fallback = { ok: false, error: err?.message || t('msg.unknownErr') };
+      currentHakimiIconState = fallback;
+      renderHakimiIconState(fallback);
+      return fallback;
+    }
+  }
+
+  btnHakimiIconPick?.addEventListener('click', () => {
+    void handlePickHakimiIconFile();
+  });
+  btnHakimiIconTilePick?.addEventListener('click', () => {
+    void handlePickHakimiIconFile();
+  });
+  btnHakimiIconApply?.addEventListener('click', () => openHakimiIconModal('custom'));
+  btnHakimiIconClear?.addEventListener('click', clearPendingHakimiIcon);
+  btnHakimiIconRestore?.addEventListener('click', () => openHakimiIconModal('restore'));
+  chkHakimiIconMask?.addEventListener('change', () => {
+    const nextRaw = !chkHakimiIconMask.checked;
+    pendingIconRawMode = nextRaw;
+    if (pendingIconFilePath) {
+      void requestHakimiIconPreview(pendingIconFilePath, nextRaw);
+    }
+  });
+  btnModalIconCancel?.addEventListener('click', closeHakimiIconModal);
+  btnModalIconConfirm?.addEventListener('click', () => {
+    void confirmHakimiIconAction();
+  });
+  hakimiIconModal?.addEventListener('click', (e) => {
+    if (e.target === hakimiIconModal && !isHakimiIconApplyBusy) {
+      closeHakimiIconModal();
+    }
+  });
+
+  if (hakimiIconDropzone) {
+    const clearDragState = () => hakimiIconDropzone.classList?.remove('is-dragover');
+    hakimiIconDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!isHakimiIconApplyBusy) hakimiIconDropzone.classList?.add('is-dragover');
+    });
+    hakimiIconDropzone.addEventListener('dragleave', clearDragState);
+    hakimiIconDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      clearDragState();
+      if (isHakimiIconApplyBusy || isHakimiIconPreviewBusy) return;
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+      let droppedPath = '';
+      try {
+        if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.getFilePathForDrop === 'function') {
+          droppedPath = String(window.contextMeterAPI.getFilePathForDrop(file) || '').trim();
+        }
+      } catch {}
+      if (!droppedPath && typeof file.path === 'string') {
+        droppedPath = file.path.trim();
+      }
+      if (!droppedPath) {
+        showHakimiIconResult(false, t('icon.dropUnsupported'));
+        return;
+      }
+      void requestHakimiIconPreview(droppedPath, pendingIconRawMode);
+    });
+  }
+
   // 静默初始化检测各模块状态
   setTimeout(() => {
     void refreshModulesDisplay();
     void refreshCliUnlockDisplay();
     void refreshHakimiUpgradeStatus();
+    void refreshHakimiIconStatus({ consumeLastResult: true });
   }, 500);
   setTimeout(() => {
     if (currentChineseEnabled) {
@@ -11721,6 +12286,10 @@
   };
   const escape = e => {
     if (e.key === 'Escape') {
+      if (hakimiIconModal && !hakimiIconModal.hidden && !isHakimiIconApplyBusy) {
+        closeHakimiIconModal();
+        return;
+      }
       if (hakimiUpgradeModal && !hakimiUpgradeModal.hidden && !isHakimiUpgradeInstallBusy) {
         closeHakimiUpgradeModal();
         return;
@@ -13824,6 +14393,11 @@
     setHakimiUpgradeStateForTest: (st) => {
       currentHakimiUpgradeState = st;
       renderHakimiUpgradeState(st);
+    },
+    refreshHakimiIconForTest: (opts) => refreshHakimiIconStatus(opts),
+    setHakimiIconStateForTest: (st) => {
+      currentHakimiIconState = st;
+      renderHakimiIconState(st);
     },
     triggerSessionCompactForTest: (src) => triggerSessionCompact(src),
     getPanelLanguage: () => getPanelLanguage(),

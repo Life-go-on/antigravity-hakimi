@@ -650,15 +650,22 @@ function executeColdUpgradeJob(job, options = {}) {
   }
 
   const commonOpts = { ...options, stateDir, userDataDir, homeDir };
+  const jobKind = typeof job?.jobKind === 'string' && job.jobKind.trim() ? job.jobKind.trim() : 'upgrade';
+  const resultFilePath =
+    job?.resultPath && typeof job.resultPath === 'string'
+      ? path.resolve(job.resultPath)
+      : getUpgradeResultPath({ stateDir });
 
   const finalize = (result, { suppressRelaunch = false } = {}) => {
     const record = {
       ...result,
+      jobKind,
+      ...(job?.iconMode ? { iconMode: job.iconMode } : {}),
       targetAntigravityVersion: job?.targetAntigravityVersion || null,
       targetHakimiCommit: job?.targetHakimiCommit || null,
       completedAt: new Date().toISOString(),
     };
-    writeJsonFileAtomic(getUpgradeResultPath({ stateDir }), record, 0o600);
+    writeJsonFileAtomic(resultFilePath, record, 0o600);
     releaseUpgradeLock({ stateDir });
     if (shouldRelaunch && !suppressRelaunch) {
       if (options.sleepImpl) options.sleepImpl(350);
@@ -680,7 +687,7 @@ function executeColdUpgradeJob(job, options = {}) {
 
   appendUpgradeLog(
     stateDir,
-    `start cold upgrade target=${targetAppPath} ag=${job?.targetAntigravityVersion || '?'} commit=${job?.targetHakimiCommit || '?'}`
+    `start cold ${jobKind} target=${targetAppPath} ag=${job?.targetAntigravityVersion || '?'} commit=${job?.targetHakimiCommit || '?'}`
   );
 
   try {

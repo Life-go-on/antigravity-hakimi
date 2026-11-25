@@ -345,6 +345,50 @@
           </div>
         </div>
 
+        <!-- 4. 应用图标自定义（哈基米） -->
+        <div class="ctx-settings-card" id="hakimi-icon-card" hidden>
+          <div class="ctx-settings-card-hdr">
+            <div class="ctx-settings-card-title" data-i18n="icon.card.title">🖼️ 应用图标（哈基米）</div>
+            <span id="hakimi-icon-badge" class="key-pill pill-muted" data-i18n="settings.common.reading">读取中…</span>
+          </div>
+          <div id="hakimi-icon-desc" class="ctx-settings-card-desc" data-i18n="icon.card.desc">选择或拖入本地图片（PNG / JPG / WebP / HEIC / ICNS）实时预览并替换 哈基米.app 图标；在沙盒完成签名校验后再原子冷替换重启，后续自动升级会自动沿用。</div>
+          <div id="hakimi-icon-dropzone" class="hakimi-icon-preview-row" role="region" aria-label="应用图标预览与拖放区" data-i18n-aria="icon.dropzoneAria">
+            <div class="hakimi-icon-tiles">
+              <div class="hakimi-icon-tile-group">
+                <button id="btn-hakimi-icon-tile-pick" class="hakimi-icon-tile" type="button" title="点击选择图片或拖入图片文件" data-i18n-title="icon.tilePickTitle">
+                  <img id="hakimi-icon-cur-img" class="hakimi-icon-img" alt="" hidden />
+                  <span id="hakimi-icon-cur-empty" class="hakimi-icon-empty">🖼️</span>
+                </button>
+                <span class="hakimi-icon-tile-cap" data-i18n="icon.cap.current">当前</span>
+              </div>
+              <span id="hakimi-icon-arrow" class="hakimi-icon-arrow" hidden aria-hidden="true">→</span>
+              <div id="hakimi-icon-next-wrap" class="hakimi-icon-tile-group" hidden>
+                <div class="hakimi-icon-tile hakimi-icon-tile-next">
+                  <img id="hakimi-icon-next-img" class="hakimi-icon-img" alt="" hidden />
+                  <span id="hakimi-icon-next-empty" class="hakimi-icon-empty">…</span>
+                </div>
+                <span class="hakimi-icon-tile-cap" data-i18n="icon.cap.preview">新图标</span>
+              </div>
+            </div>
+            <div class="hakimi-icon-meta-col">
+              <div id="hakimi-icon-meta" class="hakimi-icon-meta">—</div>
+              <label id="hakimi-icon-mask-wrap" class="hakimi-icon-mask-toggle" hidden>
+                <input id="chk-hakimi-icon-mask" type="checkbox" checked />
+                <span data-i18n="icon.maskLabel">自动添加 macOS 圆角留白遮罩</span>
+              </label>
+            </div>
+          </div>
+          <div class="ctx-settings-card-actions">
+            <button id="btn-hakimi-icon-pick" class="unlock-btn unlock-btn-primary" type="button" data-i18n="icon.btn.pick">选择图片…</button>
+            <button id="btn-hakimi-icon-apply" class="unlock-btn unlock-btn-upgrade" type="button" hidden data-i18n="icon.btn.apply">应用并重启生效</button>
+            <button id="btn-hakimi-icon-clear" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="icon.btn.clear">取消选择</button>
+            <button id="btn-hakimi-icon-restore" class="unlock-btn unlock-btn-secondary" type="button" hidden data-i18n="icon.btn.restore">恢复默认图标</button>
+          </div>
+          <div id="hakimi-icon-result" class="unlock-result-box" style="display:none;">
+            <div id="hakimi-icon-result-text" class="unlock-result-text"></div>
+          </div>
+        </div>
+
         <!-- 保留：兼容隐藏旧中文折叠触发节点 -->
         <div id="chinese-i18n-drawer" hidden>
           <button id="btn-toggle-chinese" type="button" hidden></button>
@@ -455,6 +499,24 @@
         <div class="ag-modal-actions">
           <button id="btn-modal-upgrade-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
           <button id="btn-modal-upgrade-confirm" class="unlock-btn unlock-btn-upgrade" type="button" data-i18n="upgrade.btn.install">立即重启并更新</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 哈基米应用图标替换/恢复确认模态弹窗 -->
+    <div id="hakimi-icon-modal" class="ag-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-icon-title">
+      <div class="ag-modal-card">
+        <div id="modal-icon-title" class="ag-modal-title" data-i18n="icon.modal.applyTitle">替换应用图标并重启</div>
+        <div class="hakimi-icon-modal-row">
+          <div id="modal-icon-preview-box" class="hakimi-icon-tile hakimi-icon-tile-lg" hidden>
+            <img id="modal-icon-preview-img" class="hakimi-icon-img" alt="" />
+          </div>
+          <div id="modal-icon-body" class="ag-modal-body"></div>
+        </div>
+        <div id="modal-icon-feedback" class="ag-modal-feedback" hidden></div>
+        <div class="ag-modal-actions">
+          <button id="btn-modal-icon-cancel" class="unlock-btn unlock-btn-secondary" type="button" data-i18n="models.restartConfirm.cancel">取消</button>
+          <button id="btn-modal-icon-confirm" class="unlock-btn unlock-btn-upgrade" type="button" data-i18n="icon.btn.apply">应用并重启生效</button>
         </div>
       </div>
     </div>

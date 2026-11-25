@@ -39,8 +39,9 @@
    - [`meter-ssh.js`](payload/dist/meter-ssh.js) 注入 `dist/remote/bootstrapScript.js` 与 `dist/remote/remoteManager.js`：通过 Remote SSH 连接 Linux 主机时，自动对远端 `~/.antigravity-hub-server/bin/<ver>-<arch>/language_server`（64 位 ELF `x86-64` / `arm64`，兼容 PIE `.rela.dyn`）执行自适应地区解锁并接管重启未修补服务（日志写远端 `hakimi-patch.log`，异常自动 fail-open，不污染引导 stdout）。
    - SSH 窗口内同样生效简体中文界面与顶部 Context Meter 监控条，复用窗口独立 Electron `session` 走内置 SSH SOCKS5 通道直连远端语言服务，与本机窗口严格隔离。
 
-8. **自定义应用图标与一键健康诊断**
-   - 支持传入本地图片（`PNG` / `JPG` / `WebP` / `HEIC` / `ICNS`）替换 `Contents/Resources/icon.icns` 与 `app.asar/icon.png`（非透明背景自动居中 1:1 裁剪并施加圆角留白遮罩，可用 `--raw-icon` 禁用）；后续覆盖构建与自动升级均会自动沿用已有自定义图标，传 `--default-icon` 可恢复官方图标。
+8. **应用内实时预览换图标与一键健康诊断**
+   - **应用内直接更换/还原图标**（「配置」页「应用图标（哈基米）」卡片）：支持点击选图或从 Finder 直接拖入本地图片（`PNG` / `JPG` / `WebP` / `HEIC` / `ICNS` 等），实时渲染 **当前 → 新图标** 预览并支持在线切换「自动添加 macOS 圆角留白遮罩 / 原图直出」；点击应用后先在隔离沙盒（APFS CoW 克隆）完成图标替换、ASAR 摘要更新与 `codesign --verify --strict` 校验，全部通过后再经脱离式冷替换进程原子替换并重启；支持一键恢复官方默认图标（依次只读提取本地官方包 / 单槽底包缓存 / 自动留存的默认图标快照），后续覆盖构建与自动升级会自动沿用自定义图标。Remote SSH 窗口自动隐藏并拦截。
+   - 命令行仍支持 `build-hakimi.sh --icon` / `--raw-icon` / `--default-icon` 与 `set-hakimi-icon.sh` 原位秒级换图。
    - `npm run doctor`（[`scripts/doctor.js`](scripts/doctor.js)）一键只读核查官方纯净隔离、语义化版本同步、`ElectronAsarIntegrity` 摘要、`codesign --verify --strict`、原生更新器接管状态、地区解锁状态、运行进程与 `agy` CLI 状态。
 
 ---
@@ -160,14 +161,14 @@ bash ./build-hakimi.sh --stage-only --local
   - `lib/target-app-lifecycle.sh`：目标 `.app` 进程探测与零存活退出屏障公共库
 - `payload/dist/`：
   - `asar-engine.js` / `hakimi-asar-packer.js` / `modular-installer.js` / `modules-config.js` / `binary-utils.js`：ASAR 读写与自包含打包、官方路径守卫、钩子注入、状态持久化（含语义化版本同步）与 Mach-O/ELF Go 符号解析公共工具
-  - `hakimi-builder.js` / `hakimi-updater.js` / `hakimi-upgrade-helper.js`：官方源拉取与 Google 验签、GitHub `main` 提交对比与沙盒试构建、双源静默升级状态机与 `dist/updater.js` 接管桥接、零依赖脱离式 APFS 原子冷替换与 Orphan GC
+  - `hakimi-builder.js` / `hakimi-updater.js` / `hakimi-upgrade-helper.js` / `hakimi-icon-manager.js`：官方源拉取与 Google 验签、GitHub `main` 提交对比与沙盒试构建、双源静默升级状态机与 `dist/updater.js` 接管桥接、应用内图标实时预览与沙盒替换/还原、零依赖脱离式 APFS 原子冷替换与 Orphan GC
   - `meter-region-unlock.js` / `meter-cli-unlock.js` / `meter-ssh.js` / `meter-enhance.js`：桌面端与 `agy` CLI 地区解锁、Remote SSH 远端 ELF64 自动解锁与会话通道、后台语言服务检测与重启
   - `meter-account-cold-helper.js` / `meter-account-switcher.js`：macOS 钥匙串多账号冷切换独立工作进程与编排引擎
   - `meter-main.js` / `local-api.js` / `meter-collector.js` / `meter-core.js` / `meter-storage.js` / `attachment_scan.py`：主进程 IPC、本地 API、对话轨迹采集、纯 Token 统计分析与附件预算扫描
   - `i18n/i18n-runtime.js` & `i18n/zh-CN.json`：桌面端简体中文 DOM 翻译运行时与词库
 - `src/renderer/`：Context Meter 悬浮胶囊、顶栏升级提示与设置更新卡片、左下角模型额度与 Effort 速切卡片、自定义快捷键浮层、多账号冷切换浮层、速率对比与纯 Token 热力图源码
 - `unlock/agy-cli/agy-patch.py`：独立 Python 版 `agy` CLI 自适应地区解锁工具
-- `test/`：自动化单元测试套件（双源自动升级与原子冷替换、冷切账号、ARM64/ELF64 地区解锁、ASAR 打包与符号守卫、模型额度与快捷键、Remote SSH）
+- `test/`：自动化单元测试套件（双源自动升级与原子冷替换、应用内图标替换与还原、冷切账号、ARM64/ELF64 地区解锁、ASAR 打包与符号守卫、模型额度与快捷键、Remote SSH）
 
 ---
 

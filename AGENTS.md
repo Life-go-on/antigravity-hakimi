@@ -76,8 +76,9 @@ npm run unlock:cli
   - `asar-engine.js`：纯 Node ASAR 读写引擎、`computeAsarHeaderSha256()`、`getHakimiAppPath()`、`assertNotOfficialAntigravityApp()`。
   - `hakimi-asar-packer.js`：自包含 ASAR 打包器（以 Buffer 读写内置载荷以兼容 Electron 虚拟 `app.asar` 自举、包装接管 `dist/updater.js` 并保留 `dist/updater.orig.js`）。
   - `hakimi-builder.js`：官方 `app-update.yml`/`latest-arm64-mac.yml` 解析与白名单 HTTPS 拉取、`SHA-512` 与 Google Developer ID 代码签名校验、GitHub `main` 提交对比（`compare/<installed>...main`）与 tarball 拉取、`hakimi-build-meta.json` 读写、APFS 沙盒试构建（`ELECTRON_RUN_AS_NODE=1`）及启动 Orphan GC。
+  - `hakimi-icon-manager.js`：自包含 macOS 图标转换、实时预览渲染（支持圆角遮罩切换）、ASAR `icon.png` 替换、默认图标自动快照与多源还原（只读官方包 → 单槽 `clean-base` 缓存 → 本地快照）、APFS CoW 沙盒校验及复用的脱离式冷替换编排（`scripts/build-macos-icon.js` 与 `scripts/replace-asar-icon.js` 均委托于本模块）。
   - `hakimi-updater.js`：双源静默检测与沙盒试构建状态机、不兼容版本跳过与仅哈基米升级回退、`dist/updater.js` 接管桥接及 macOS 菜单栏更新项同步。
-  - `hakimi-upgrade-helper.js`：零外部依赖的脱离式冷替换工作进程（仅用 Node 内置模块），负责官方包守卫、零存活退出屏障、`SingletonLock` 清理、同盘 APFS 原子替换（`.prev` 失败自动回滚）、单槽位 `clean-base` 缓存晋升与干净环境 `open -n` 拉起。
+  - `hakimi-upgrade-helper.js`：零外部依赖的脱离式冷替换工作进程（仅用 Node 内置模块），负责官方包守卫、零存活退出屏障、`SingletonLock` 清理、同盘 APFS 原子替换（`.prev` 失败自动回滚）、单槽位 `clean-base` 缓存晋升与干净环境 `open -n` 拉起（同时服务于双源自更新与应用内换图标，通过 `job.resultPath` 隔离结果回执）。
   - `binary-utils.js`：公共 Go `.gopclntab` 符号定位与 ARM64 `ValidateAndOnboardAccount` 分析工具。
   - `modular-installer.js` / `modules-config.js`：`app.asar` 注入代码生成与状态目录持久化工具（含 `cleanupStaleSingletonLock()` 与语义化 `checkAppVersionSync()`）。
   - `meter-region-unlock.js`：自适应 Mach-O `__TEXT` + Go `.gopclntab`（`0xFFFFFFF1` / `0xFFFFFFF0`）符号解析器，定位 `authclient.ValidateAndOnboardAccount` 并修补 `"free-tier"` 分支。
@@ -91,6 +92,7 @@ npm run unlock:cli
 - `src/renderer/`：Context Meter 悬浮胶囊、顶栏布局与 `/compact` / `#btn-topbar-upgrade` 按钮、左下角模型额度/Effort/快捷键卡片、多账号冷切换浮层与未登录兜底胶囊、速率对比、纯 Token 热力图与设置面板（含双源更新诊断卡片）源码（`template.html`、`styles.css`、`i18n.js`、`colors.js`、`topbar-layout.js`、`dropdown.js`、`model-switcher.js`、`model-quota.js`、`account-switcher.js`、`speed-panel.js`、`settings-panel.js`、`heatmap.js`、`main.js`）。
 - `test/`：
   - `hakimi-updater.test.js`：脱离式冷替换 helper 零依赖与 `.prev` 自动回滚、单槽位缓存/Orphan GC、官方 YAML/`SHA-512`/Google 验签、GitHub `compare`、双源状态机与回退、`dist/updater.js` 接管、`checkAppVersionSync()` 三态语义化比较与渲染层 VM DOM 测试。
+  - `icon-manager.test.js`：应用内换图标预览（圆角遮罩/原图直出/透明轮廓/`.icns`）、官方路径守卫、APFS 沙盒 `codesign --verify --strict`、多源恢复默认图标（官方包/自动快照/单槽 zip）、冷替换结果隔离与渲染层配置卡片/SSH 隐藏测试。
   - `account-switcher.test.js`：macOS 钥匙串冷切引擎、零 `-w` 元数据探测、`agy` CLI 拦截、账号局部残留清理与引导状态还原、退出屏障、独立 helper 零依赖运行与官方包守卫测试。
   - `arm64-patches.test.js`：Mach-O / `.gopclntab` / ARM64 地区解锁与官方路径守卫测试。
   - `asar-and-pruning.test.js`：语法校验、裁剪符号与零外发请求拦截扫描、DOM 结构与顶栏不变量、ASAR 打包/图标替换、官方路径守卫、`doctor` 与重启退出屏障测试。

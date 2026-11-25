@@ -181,6 +181,7 @@
         void refreshModulesDisplay();
         void refreshCliUnlockDisplay();
         if (typeof refreshHakimiUpgradeStatus === 'function') void refreshHakimiUpgradeStatus();
+        if (typeof refreshHakimiIconStatus === 'function') void refreshHakimiIconStatus();
         if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } else {
@@ -765,6 +766,7 @@
       void refreshModulesDisplay();
       void refreshCliUnlockDisplay();
       if (typeof refreshHakimiUpgradeStatus === 'function') void refreshHakimiUpgradeStatus();
+      if (typeof refreshHakimiIconStatus === 'function') void refreshHakimiIconStatus();
       if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
     }
     positionFloatingPanels();
@@ -2239,6 +2241,11 @@
     setHakimiUpgradeStateForTest: (st) => {
       currentHakimiUpgradeState = st;
       renderHakimiUpgradeState(st);
+    },
+    refreshHakimiIconForTest: (opts) => refreshHakimiIconStatus(opts),
+    setHakimiIconStateForTest: (st) => {
+      currentHakimiIconState = st;
+      renderHakimiIconState(st);
     },
     triggerSessionCompactForTest: (src) => triggerSessionCompact(src),
     getPanelLanguage: () => getPanelLanguage(),

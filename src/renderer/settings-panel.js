@@ -80,6 +80,7 @@
     try { renderSpeedComparisonTab(); } catch {}
     try { renderCliUnlockState(currentCliUnlockStatus); } catch {}
     try { renderHakimiUpgradeState(currentHakimiUpgradeState); } catch {}
+    try { renderHakimiIconState(currentHakimiIconState); } catch {}
     try {
       if (typeof renderPlanDetail === 'function' && ANTIGRAVITY_TOKEN_DATA?.planStatus) {
         renderPlanDetail(ANTIGRAVITY_TOKEN_DATA.planStatus);
@@ -92,6 +93,7 @@
       if (isContextSettingsView) {
         void refreshCliUnlockDisplay();
         void refreshHakimiUpgradeStatus();
+        void refreshHakimiIconStatus();
         if (typeof refreshAccountsStatus === 'function') void refreshAccountsStatus({ silent: true });
       }
     } catch {}
@@ -828,11 +830,446 @@
     } catch {}
   }
 
+  // -------------------------------------------------------------
+  // 模块 2.6: 哈基米应用内换图标（实时预览 + 沙盒验签 + 原子冷替换）
+  // -------------------------------------------------------------
+  const hakimiIconCard = el('hakimi-icon-card');
+  const hakimiIconBadge = el('hakimi-icon-badge');
+  const hakimiIconDropzone = el('hakimi-icon-dropzone');
+  const btnHakimiIconTilePick = el('btn-hakimi-icon-tile-pick');
+  const hakimiIconCurImg = el('hakimi-icon-cur-img');
+  const hakimiIconCurEmpty = el('hakimi-icon-cur-empty');
+  const hakimiIconArrow = el('hakimi-icon-arrow');
+  const hakimiIconNextWrap = el('hakimi-icon-next-wrap');
+  const hakimiIconNextImg = el('hakimi-icon-next-img');
+  const hakimiIconNextEmpty = el('hakimi-icon-next-empty');
+  const hakimiIconMeta = el('hakimi-icon-meta');
+  const hakimiIconMaskWrap = el('hakimi-icon-mask-wrap');
+  const chkHakimiIconMask = el('chk-hakimi-icon-mask');
+  const btnHakimiIconPick = el('btn-hakimi-icon-pick');
+  const btnHakimiIconApply = el('btn-hakimi-icon-apply');
+  const btnHakimiIconClear = el('btn-hakimi-icon-clear');
+  const btnHakimiIconRestore = el('btn-hakimi-icon-restore');
+  const hakimiIconResultBox = el('hakimi-icon-result');
+  const hakimiIconResultText = el('hakimi-icon-result-text');
+  const hakimiIconModal = el('hakimi-icon-modal');
+  const modalIconTitle = el('modal-icon-title');
+  const modalIconPreviewBox = el('modal-icon-preview-box');
+  const modalIconPreviewImg = el('modal-icon-preview-img');
+  const modalIconBody = el('modal-icon-body');
+  const modalIconFeedback = el('modal-icon-feedback');
+  const btnModalIconCancel = el('btn-modal-icon-cancel');
+  const btnModalIconConfirm = el('btn-modal-icon-confirm');
+
+  let currentHakimiIconState = null;
+  let pendingIconFilePath = null;
+  let pendingIconPreview = null;
+  let pendingIconRawMode = false;
+  let pendingIconModalMode = null; // 'custom' | 'restore'
+  let isHakimiIconPreviewBusy = false;
+  let isHakimiIconApplyBusy = false;
+  let iconPreviewSeq = 0;
+
+  function showHakimiIconResult(ok, msg) {
+    if (!hakimiIconResultBox || !hakimiIconResultText) return;
+    if (!msg) {
+      hakimiIconResultBox.style.display = 'none';
+      return;
+    }
+    hakimiIconResultBox.className = `unlock-result-box ${ok ? 'result-success' : 'result-error'}`;
+    hakimiIconResultBox.style.display = 'block';
+    hakimiIconResultText.textContent = msg;
+  }
+
+  function renderHakimiIconState(st = currentHakimiIconState) {
+    const isRemote = Boolean(typeof getRemoteSshMeta === 'function' && getRemoteSshMeta());
+    const hasBridge = Boolean(
+      typeof window !== 'undefined' && typeof window.contextMeterAPI?.getHakimiIconStatus === 'function'
+    );
+    if (isRemote || !hasBridge) {
+      if (hakimiIconCard) hakimiIconCard.hidden = true;
+      return;
+    }
+
+    if (st && st.supported === false) {
+      if (hakimiIconCard) hakimiIconCard.hidden = true;
+      return;
+    }
+
+    if (hakimiIconCard) hakimiIconCard.hidden = false;
+
+    const busy = isHakimiIconPreviewBusy || isHakimiIconApplyBusy || Boolean(st?.busy);
+    const hasPendingFile = Boolean(pendingIconFilePath);
+    const hasValidPreview = Boolean(pendingIconPreview && pendingIconPreview.ok && pendingIconPreview.dataUrl);
+
+    if (hakimiIconBadge) {
+      if (busy) {
+        hakimiIconBadge.textContent = t('icon.badge.busy');
+        hakimiIconBadge.className = 'key-pill pill-warn';
+      } else if (!st) {
+        hakimiIconBadge.textContent = t('settings.common.reading');
+        hakimiIconBadge.className = 'key-pill pill-muted';
+      } else if (!st.ok) {
+        hakimiIconBadge.textContent = t('icon.badge.error');
+        hakimiIconBadge.className = 'key-pill pill-danger';
+      } else if (st.isCustomIcon === true) {
+        hakimiIconBadge.textContent = t('icon.badge.custom');
+        hakimiIconBadge.className = 'key-pill pill-ok';
+      } else {
+        hakimiIconBadge.textContent = t('icon.badge.default');
+        hakimiIconBadge.className = 'key-pill pill-muted';
+      }
+    }
+
+    if (hakimiIconCurImg && hakimiIconCurEmpty) {
+      if (st?.currentIconDataUrl) {
+        if (hakimiIconCurImg.getAttribute('src') !== st.currentIconDataUrl) {
+          hakimiIconCurImg.setAttribute('src', st.currentIconDataUrl);
+        }
+        hakimiIconCurImg.hidden = false;
+        hakimiIconCurEmpty.hidden = true;
+      } else {
+        hakimiIconCurImg.hidden = true;
+        hakimiIconCurEmpty.hidden = false;
+      }
+    }
+
+    if (hakimiIconArrow) hakimiIconArrow.hidden = !hasPendingFile;
+    if (hakimiIconNextWrap) hakimiIconNextWrap.hidden = !hasPendingFile;
+    if (hakimiIconNextImg && hakimiIconNextEmpty) {
+      if (hasValidPreview) {
+        if (hakimiIconNextImg.getAttribute('src') !== pendingIconPreview.dataUrl) {
+          hakimiIconNextImg.setAttribute('src', pendingIconPreview.dataUrl);
+        }
+        hakimiIconNextImg.hidden = false;
+        hakimiIconNextEmpty.hidden = true;
+      } else {
+        hakimiIconNextImg.hidden = true;
+        hakimiIconNextEmpty.hidden = false;
+      }
+    }
+
+    if (hakimiIconMaskWrap && chkHakimiIconMask) {
+      const showMaskToggle = hasPendingFile && pendingIconPreview?.mode !== 'icns';
+      hakimiIconMaskWrap.hidden = !showMaskToggle;
+      chkHakimiIconMask.checked = !pendingIconRawMode;
+      chkHakimiIconMask.disabled = busy;
+    }
+
+    if (hakimiIconMeta) {
+      if (isHakimiIconPreviewBusy && pendingIconFilePath) {
+        const baseName = pendingIconFilePath.split(/[\\/]/).pop() || pendingIconFilePath;
+        hakimiIconMeta.textContent = t('icon.meta.previewBusy', { name: baseName });
+      } else if (hasValidPreview) {
+        const p = pendingIconPreview;
+        const name = p.fileName || (pendingIconFilePath || '').split(/[\\/]/).pop() || '';
+        if (p.mode === 'icns') {
+          hakimiIconMeta.textContent = t('icon.meta.previewIcns', { name });
+        } else if (p.masked) {
+          hakimiIconMeta.textContent = t('icon.meta.previewMasked', { name, w: p.w || '?', h: p.h || '?' });
+        } else if (p.hasTransparentCorners && !pendingIconRawMode) {
+          hakimiIconMeta.textContent = t('icon.meta.previewTransparent', { name, w: p.w || '?', h: p.h || '?' });
+        } else {
+          hakimiIconMeta.textContent = t('icon.meta.previewRaw', { name, w: p.w || '?', h: p.h || '?' });
+        }
+      } else if (!st || !st.ok) {
+        hakimiIconMeta.textContent = st?.error || '—';
+      } else if (st.isCustomIcon === true) {
+        hakimiIconMeta.textContent = t('icon.meta.custom');
+      } else {
+        hakimiIconMeta.textContent = t('icon.meta.default');
+      }
+    }
+
+    if (btnHakimiIconPick) {
+      btnHakimiIconPick.disabled = busy;
+      btnHakimiIconPick.textContent = hasPendingFile ? t('icon.btn.pickAnother') : t('icon.btn.pick');
+      btnHakimiIconPick.className = hasPendingFile
+        ? 'unlock-btn unlock-btn-secondary'
+        : 'unlock-btn unlock-btn-primary';
+    }
+    if (btnHakimiIconTilePick) {
+      btnHakimiIconTilePick.disabled = busy;
+    }
+    if (btnHakimiIconApply) {
+      btnHakimiIconApply.hidden = !hasValidPreview;
+      btnHakimiIconApply.disabled = busy || !hasValidPreview;
+    }
+    if (btnHakimiIconClear) {
+      btnHakimiIconClear.hidden = !hasPendingFile;
+      btnHakimiIconClear.disabled = busy;
+    }
+    if (btnHakimiIconRestore) {
+      const canShowRestore = Boolean(st?.ok && st.canRestoreDefault && st.isCustomIcon !== false);
+      btnHakimiIconRestore.hidden = !canShowRestore;
+      btnHakimiIconRestore.disabled = busy || !canShowRestore;
+    }
+  }
+
+  async function requestHakimiIconPreview(filePath, rawMode = pendingIconRawMode) {
+    if (!filePath || typeof window === 'undefined' || typeof window.contextMeterAPI?.previewHakimiIcon !== 'function') {
+      return null;
+    }
+    const seq = ++iconPreviewSeq;
+    pendingIconFilePath = filePath;
+    pendingIconRawMode = Boolean(rawMode);
+    isHakimiIconPreviewBusy = true;
+    showHakimiIconResult(true, '');
+    renderHakimiIconState(currentHakimiIconState);
+    try {
+      const res = await window.contextMeterAPI.previewHakimiIcon({
+        inputPath: filePath,
+        rawIcon: pendingIconRawMode,
+      });
+      if (seq !== iconPreviewSeq) return null;
+      if (res && res.ok && res.dataUrl) {
+        pendingIconPreview = res;
+        showHakimiIconResult(true, '');
+      } else {
+        pendingIconPreview = null;
+        showHakimiIconResult(false, res?.error || t('msg.unknownErr'));
+      }
+      return res;
+    } catch (err) {
+      if (seq !== iconPreviewSeq) return null;
+      pendingIconPreview = null;
+      showHakimiIconResult(false, err?.message || t('msg.unknownErr'));
+      return null;
+    } finally {
+      if (seq === iconPreviewSeq) {
+        isHakimiIconPreviewBusy = false;
+        renderHakimiIconState(currentHakimiIconState);
+      }
+    }
+  }
+
+  async function handlePickHakimiIconFile() {
+    if (isHakimiIconPreviewBusy || isHakimiIconApplyBusy) return;
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.pickHakimiIconFile !== 'function') {
+      showHakimiIconResult(false, t('msg.noHostBridge'));
+      return;
+    }
+    try {
+      const pick = await window.contextMeterAPI.pickHakimiIconFile();
+      if (!pick || pick.canceled || !pick.filePath) return;
+      if (pick.ok === false) {
+        showHakimiIconResult(false, pick.error || t('msg.unknownErr'));
+        return;
+      }
+      await requestHakimiIconPreview(pick.filePath, pendingIconRawMode);
+    } catch (err) {
+      showHakimiIconResult(false, err?.message || t('msg.unknownErr'));
+    }
+  }
+
+  function clearPendingHakimiIcon() {
+    iconPreviewSeq++;
+    pendingIconFilePath = null;
+    pendingIconPreview = null;
+    isHakimiIconPreviewBusy = false;
+    showHakimiIconResult(true, '');
+    renderHakimiIconState(currentHakimiIconState);
+  }
+
+  function closeHakimiIconModal() {
+    if (isHakimiIconApplyBusy) return;
+    pendingIconModalMode = null;
+    if (hakimiIconModal) hakimiIconModal.hidden = true;
+    if (modalIconFeedback) {
+      modalIconFeedback.hidden = true;
+      modalIconFeedback.textContent = '';
+    }
+  }
+
+  function openHakimiIconModal(mode) {
+    if (isHakimiIconApplyBusy) return;
+    if (mode === 'custom' && (!pendingIconFilePath || !pendingIconPreview?.ok)) return;
+    if (mode === 'restore' && !currentHakimiIconState?.canRestoreDefault) return;
+    pendingIconModalMode = mode;
+    if (modalIconTitle) {
+      modalIconTitle.textContent =
+        mode === 'restore' ? t('icon.modal.restoreTitle') : t('icon.modal.applyTitle');
+    }
+    if (modalIconBody) {
+      if (mode === 'restore') {
+        modalIconBody.textContent = t('icon.modal.restoreBody');
+      } else {
+        const name = pendingIconPreview?.fileName || pendingIconFilePath.split(/[\\/]/).pop() || '';
+        modalIconBody.textContent = t('icon.modal.applyBody', { name });
+      }
+    }
+    if (modalIconPreviewBox && modalIconPreviewImg) {
+      if (mode === 'custom' && pendingIconPreview?.dataUrl) {
+        modalIconPreviewImg.setAttribute('src', pendingIconPreview.dataUrl);
+        modalIconPreviewBox.hidden = false;
+      } else {
+        modalIconPreviewBox.hidden = true;
+      }
+    }
+    if (btnModalIconConfirm) {
+      btnModalIconConfirm.textContent =
+        mode === 'restore' ? t('icon.btn.restore') : t('icon.btn.apply');
+      btnModalIconConfirm.disabled = false;
+    }
+    if (btnModalIconCancel) btnModalIconCancel.disabled = false;
+    if (modalIconFeedback) {
+      modalIconFeedback.hidden = true;
+      modalIconFeedback.textContent = '';
+    }
+    if (hakimiIconModal) hakimiIconModal.hidden = false;
+  }
+
+  async function confirmHakimiIconAction() {
+    if (isHakimiIconApplyBusy || !pendingIconModalMode) return;
+    const mode = pendingIconModalMode;
+    const api = typeof window !== 'undefined' ? window.contextMeterAPI : null;
+    const invokeFn = mode === 'restore' ? api?.restoreHakimiIcon : api?.applyHakimiIcon;
+    if (typeof invokeFn !== 'function') {
+      if (modalIconFeedback) {
+        modalIconFeedback.textContent = t('msg.noHostBridge');
+        modalIconFeedback.hidden = false;
+      }
+      return;
+    }
+
+    isHakimiIconApplyBusy = true;
+    renderHakimiIconState(currentHakimiIconState);
+    if (btnModalIconConfirm) btnModalIconConfirm.disabled = true;
+    if (btnModalIconCancel) btnModalIconCancel.disabled = true;
+    if (modalIconFeedback) {
+      modalIconFeedback.textContent = t('icon.modal.staging');
+      modalIconFeedback.hidden = false;
+    }
+
+    try {
+      const payload =
+        mode === 'custom'
+          ? { inputPath: pendingIconFilePath, rawIcon: pendingIconRawMode }
+          : {};
+      const res = await invokeFn(payload);
+      if (res && res.ok && res.coldSwapping) {
+        if (modalIconFeedback) {
+          modalIconFeedback.textContent = t('icon.modal.swapping');
+          modalIconFeedback.hidden = false;
+        }
+        return;
+      }
+      isHakimiIconApplyBusy = false;
+      renderHakimiIconState(currentHakimiIconState);
+      if (btnModalIconConfirm) btnModalIconConfirm.disabled = false;
+      if (btnModalIconCancel) btnModalIconCancel.disabled = false;
+      if (modalIconFeedback) {
+        modalIconFeedback.textContent = t('icon.modal.failed', { err: res?.error || t('msg.unknownErr') });
+        modalIconFeedback.hidden = false;
+      }
+    } catch (err) {
+      isHakimiIconApplyBusy = false;
+      renderHakimiIconState(currentHakimiIconState);
+      if (btnModalIconConfirm) btnModalIconConfirm.disabled = false;
+      if (btnModalIconCancel) btnModalIconCancel.disabled = false;
+      if (modalIconFeedback) {
+        modalIconFeedback.textContent = t('icon.modal.failed', { err: err?.message || t('msg.unknownErr') });
+        modalIconFeedback.hidden = false;
+      }
+    }
+  }
+
+  async function refreshHakimiIconStatus(opts = {}) {
+    if (typeof getRemoteSshMeta === 'function' && getRemoteSshMeta()) {
+      renderHakimiIconState(null);
+      return null;
+    }
+    if (typeof window === 'undefined' || typeof window.contextMeterAPI?.getHakimiIconStatus !== 'function') {
+      renderHakimiIconState(null);
+      return null;
+    }
+    try {
+      const res = await window.contextMeterAPI.getHakimiIconStatus({
+        consumeLastResult: opts.consumeLastResult === true,
+      });
+      currentHakimiIconState = res;
+      renderHakimiIconState(res);
+      if (res?.lastResult) {
+        if (res.lastResult.ok) {
+          showHakimiIconResult(
+            true,
+            res.lastResult.iconMode === 'restore' ? t('icon.lastResult.okRestore') : t('icon.lastResult.okCustom')
+          );
+        } else if (res.lastResult.error) {
+          showHakimiIconResult(false, t('icon.lastResult.fail', { err: res.lastResult.error }));
+        }
+      }
+      return res;
+    } catch (err) {
+      const fallback = { ok: false, error: err?.message || t('msg.unknownErr') };
+      currentHakimiIconState = fallback;
+      renderHakimiIconState(fallback);
+      return fallback;
+    }
+  }
+
+  btnHakimiIconPick?.addEventListener('click', () => {
+    void handlePickHakimiIconFile();
+  });
+  btnHakimiIconTilePick?.addEventListener('click', () => {
+    void handlePickHakimiIconFile();
+  });
+  btnHakimiIconApply?.addEventListener('click', () => openHakimiIconModal('custom'));
+  btnHakimiIconClear?.addEventListener('click', clearPendingHakimiIcon);
+  btnHakimiIconRestore?.addEventListener('click', () => openHakimiIconModal('restore'));
+  chkHakimiIconMask?.addEventListener('change', () => {
+    const nextRaw = !chkHakimiIconMask.checked;
+    pendingIconRawMode = nextRaw;
+    if (pendingIconFilePath) {
+      void requestHakimiIconPreview(pendingIconFilePath, nextRaw);
+    }
+  });
+  btnModalIconCancel?.addEventListener('click', closeHakimiIconModal);
+  btnModalIconConfirm?.addEventListener('click', () => {
+    void confirmHakimiIconAction();
+  });
+  hakimiIconModal?.addEventListener('click', (e) => {
+    if (e.target === hakimiIconModal && !isHakimiIconApplyBusy) {
+      closeHakimiIconModal();
+    }
+  });
+
+  if (hakimiIconDropzone) {
+    const clearDragState = () => hakimiIconDropzone.classList?.remove('is-dragover');
+    hakimiIconDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!isHakimiIconApplyBusy) hakimiIconDropzone.classList?.add('is-dragover');
+    });
+    hakimiIconDropzone.addEventListener('dragleave', clearDragState);
+    hakimiIconDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      clearDragState();
+      if (isHakimiIconApplyBusy || isHakimiIconPreviewBusy) return;
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+      let droppedPath = '';
+      try {
+        if (typeof window !== 'undefined' && typeof window.contextMeterAPI?.getFilePathForDrop === 'function') {
+          droppedPath = String(window.contextMeterAPI.getFilePathForDrop(file) || '').trim();
+        }
+      } catch {}
+      if (!droppedPath && typeof file.path === 'string') {
+        droppedPath = file.path.trim();
+      }
+      if (!droppedPath) {
+        showHakimiIconResult(false, t('icon.dropUnsupported'));
+        return;
+      }
+      void requestHakimiIconPreview(droppedPath, pendingIconRawMode);
+    });
+  }
+
   // 静默初始化检测各模块状态
   setTimeout(() => {
     void refreshModulesDisplay();
     void refreshCliUnlockDisplay();
     void refreshHakimiUpgradeStatus();
+    void refreshHakimiIconStatus({ consumeLastResult: true });
   }, 500);
   setTimeout(() => {
     if (currentChineseEnabled) {
@@ -1039,6 +1476,10 @@
   };
   const escape = e => {
     if (e.key === 'Escape') {
+      if (hakimiIconModal && !hakimiIconModal.hidden && !isHakimiIconApplyBusy) {
+        closeHakimiIconModal();
+        return;
+      }
       if (hakimiUpgradeModal && !hakimiUpgradeModal.hidden && !isHakimiUpgradeInstallBusy) {
         closeHakimiUpgradeModal();
         return;

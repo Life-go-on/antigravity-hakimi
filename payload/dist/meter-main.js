@@ -654,6 +654,70 @@ function registerIpcOnce() {
       return { ok: false, error: e.message };
     }
   });
+
+  const rejectIfRemoteIconSender = (event) => {
+    const url = isLocalMainFrameSender(event);
+    if (!url) throw new Error('仅允许本机主聊天窗口');
+    if (getRemoteBackendForSender(event?.sender)) {
+      return { ok: false, supported: false, error: 'SSH 远端窗口不支持本机应用图标替换' };
+    }
+    return null;
+  };
+
+  ipcMain.handle('context-meter:hakimi-icon-status', async (event, options) => {
+    const denied = rejectIfRemoteIconSender(event);
+    if (denied) return denied;
+    try {
+      const { getIconStatus } = require('./hakimi-icon-manager');
+      return getIconStatus(options && typeof options === 'object' ? options : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:hakimi-icon-pick', async (event) => {
+    const denied = rejectIfRemoteIconSender(event);
+    if (denied) return denied;
+    try {
+      const { pickIconFileDialog } = require('./hakimi-icon-manager');
+      return await pickIconFileDialog(resolveTargetWindow(event.sender));
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:hakimi-icon-preview', async (event, payload) => {
+    const denied = rejectIfRemoteIconSender(event);
+    if (denied) return denied;
+    try {
+      const { previewCustomIcon } = require('./hakimi-icon-manager');
+      return await previewCustomIcon(payload && typeof payload === 'object' ? payload : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:hakimi-icon-apply', async (event, payload) => {
+    const denied = rejectIfRemoteIconSender(event);
+    if (denied) return denied;
+    try {
+      const { applyCustomIcon } = require('./hakimi-icon-manager');
+      return await applyCustomIcon(payload && typeof payload === 'object' ? payload : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('context-meter:hakimi-icon-restore', async (event, payload) => {
+    const denied = rejectIfRemoteIconSender(event);
+    if (denied) return denied;
+    try {
+      const { restoreDefaultIcon } = require('./hakimi-icon-manager');
+      return await restoreDefaultIcon(payload && typeof payload === 'object' ? payload : {});
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  });
 }
 
 function getWindowWebContents(win) {

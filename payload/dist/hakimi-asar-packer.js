@@ -50,6 +50,7 @@ const PAYLOAD_FILES = [
   'binary-utils.js',
   'hakimi-asar-packer.js',
   'hakimi-builder.js',
+  'hakimi-icon-manager.js',
   'hakimi-upgrade-helper.js',
   'hakimi-updater.js',
   'local-api.js',

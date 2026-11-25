@@ -1420,6 +1420,8 @@ module.exports = {
   readInstalledBuildMeta,
   writeBuildMeta,
   updateInfoPlistIntegrity,
+  extractEntitlements,
+  cloneAppBundle,
   stageBuildHakimiApp,
   cleanupOrphanUpdaterArtifacts,
 };
