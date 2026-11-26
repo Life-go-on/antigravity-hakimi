@@ -21,6 +21,7 @@ function setup(platform = 'darwin') {
   // The host registers its own activate listener and only creates when there are no hubs.
   app.on('activate', () => { if (!getHubWindows().length) hostCreates++; });
   const exports = {};
+  const timers = new Map();
   const modules = {
     electron: { app },
     fs: { existsSync: () => true, readFileSync: () => '{"runInBackground":true}' },
@@ -40,7 +41,13 @@ function setup(platform = 'darwin') {
       assert.ok(Object.hasOwn(modules, id), `Unexpected module: ${id}`);
       return modules[id];
     },
-    setTimeout() {}, clearTimeout() {}, setImmediate() {},
+    setTimeout(fn, delay) {
+      const timer = {};
+      timers.set(timer, { fn, delay });
+      return timer;
+    },
+    clearTimeout: timer => timers.delete(timer),
+    setImmediate() {},
   }, { filename });
 
   function window(kind = 'local', initiallyVisible = true) {
@@ -53,9 +60,15 @@ function setup(platform = 'darwin') {
       session: {},
       showCalls: 0,
       focusCalls: 0,
+      hideCalls: 0,
+      fullScreen: false,
+      fullScreenRequests: [],
       isDestroyed: () => destroyed,
       isVisible: () => visible && !destroyed,
-      hide() { visible = false; this.emit('hide'); },
+      isFullScreen() { return this.fullScreen; },
+      setFullScreen(value) { this.fullScreenRequests.push(value); },
+      finishFullScreenExit() { this.fullScreen = false; this.emit('leave-full-screen'); },
+      hide() { this.hideCalls++; visible = false; this.emit('hide'); },
       show() { this.showCalls++; visible = true; this.emit('show'); },
       focus() { this.focusCalls++; this.emit('focus'); },
       destroy() { destroyed = true; this.emit('closed'); },
@@ -72,7 +85,15 @@ function setup(platform = 'darwin') {
     return win;
   }
 
-  return { app, window, activate: () => app.emit('activate', {}, false), hostCreates: () => hostCreates };
+  function expireTimers(minDelay) {
+    for (const [timer, { fn, delay }] of [...timers]) {
+      if (delay < minDelay) continue;
+      timers.delete(timer);
+      fn();
+    }
+  }
+
+  return { app, window, expireTimers, activate: () => app.emit('activate', {}, false), hostCreates: () => hostCreates };
 }
 
 test('macOS activate restores and focuses the exact window hidden by the close hook only once', () => {
@@ -160,11 +181,90 @@ test('before-quit suppresses both restoring a hidden window and intercepting a c
   assert.equal(hidden.close(), false);
 });
 
+test('closing a macOS full-screen window waits for native exit, then preserves the same session', () => {
+  const ctx = setup();
+  const win = ctx.window();
+  const session = win.session;
+  win.fullScreen = true;
+
+  assert.equal(win.close(), true);
+  assert.deepEqual(win.fullScreenRequests, [false]);
+  assert.equal(win.isVisible(), true);
+  assert.equal(win.hideCalls, 0);
+
+  // Electron may already report non-full-screen before it emits the completion event.
+  win.fullScreen = false;
+  assert.equal(win.close(), true);
+  assert.deepEqual(win.fullScreenRequests, [false]);
+  assert.equal(win.hideCalls, 0);
+
+  win.finishFullScreenExit();
+  assert.equal(win.isVisible(), false);
+  assert.equal(win.hideCalls, 1);
+  ctx.activate();
+  assert.equal(win.isVisible(), true);
+  assert.equal(win.isFullScreen(), false);
+  assert.equal(win.focusCalls, 1);
+  assert.equal(win.session, session);
+  assert.equal(ctx.hostCreates(), 0);
+});
+
+test('a missing macOS full-screen exit event leaves the window visible and allows retry', () => {
+  const ctx = setup();
+  const win = ctx.window();
+  win.fullScreen = true;
+  assert.equal(win.close(), true);
+  ctx.expireTimers(5000);
+  assert.equal(win.isVisible(), true);
+  assert.equal(win.listenerCount('leave-full-screen'), 0);
+  win.finishFullScreenExit();
+  assert.equal(win.hideCalls, 0);
+
+  win.fullScreen = true;
+  assert.equal(win.close(), true);
+  assert.deepEqual(win.fullScreenRequests, [false, false]);
+});
+
+test('failure to request macOS full-screen exit leaves the window visible', () => {
+  const ctx = setup();
+  const win = ctx.window();
+  win.fullScreen = true;
+  win.setFullScreen = () => { throw new Error('Full-screen exit failed'); };
+  assert.equal(win.close(), true);
+  assert.equal(win.listenerCount('leave-full-screen'), 0);
+  assert.equal(win.isVisible(), true);
+});
+
+test('quitting during macOS full-screen exit lets close proceed and prevents delayed hiding', () => {
+  const ctx = setup();
+  const win = ctx.window();
+  win.fullScreen = true;
+  assert.equal(win.close(), true);
+  ctx.app.emit('before-quit');
+  win.finishFullScreenExit();
+  assert.equal(win.hideCalls, 0);
+  assert.equal(win.close(), false);
+  assert.equal(win.isDestroyed(), true);
+});
+
+test('destroying the window during macOS full-screen exit removes the pending callback', () => {
+  const ctx = setup();
+  const win = ctx.window();
+  win.fullScreen = true;
+  assert.equal(win.close(), true);
+  win.destroy();
+  assert.equal(win.listenerCount('leave-full-screen'), 0);
+  win.finishFullScreenExit();
+  assert.equal(win.hideCalls, 0);
+});
+
 for (const platform of ['win32', 'linux']) {
   test(`${platform} retains background close behavior without macOS activate recovery`, () => {
     const ctx = setup(platform);
     const win = ctx.window();
+    win.fullScreen = true;
     assert.equal(win.close(), true);
+    assert.deepEqual(win.fullScreenRequests, []);
     ctx.activate();
     assert.equal(win.isVisible(), false);
     assert.equal(win.showCalls, 0);

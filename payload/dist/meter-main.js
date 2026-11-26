@@ -891,23 +891,59 @@ exports.installContextMeter = function (win) {
     win.on?.('focus', onWinVisibleOrActive);
 
     const isMac = process.platform === 'darwin';
+    let cancelFullScreenClose = null;
     if (isMac) {
       win.on?.('show', () => hiddenOnClose.delete(win));
-      win.once?.('closed', () => hiddenOnClose.delete(win));
+      win.once?.('closed', () => {
+        hiddenOnClose.delete(win);
+        cancelFullScreenClose?.();
+      });
     }
+
+    const hideOnClose = () => {
+      if (typeof win.hide !== 'function') return;
+      win.hide();
+      if (isMac && !win.isDestroyed?.() && !win.isVisible()) hiddenOnClose.add(win);
+    };
 
     // 后台常驻时隐藏最后一个符合条件的主窗口，保留会话。
     try {
       win.on?.('close', (event) => {
-        if (shouldInterceptWindowClose(win)) {
-          if (typeof event?.preventDefault === 'function') {
-            if (isMac && (!win.isVisible?.() || typeof win.hide !== 'function')) return;
-            event.preventDefault();
-            if (typeof win.hide === 'function') {
-              win.hide();
-              if (isMac && !win.isDestroyed?.() && !win.isVisible()) hiddenOnClose.add(win);
-            }
+        if (isAppQuitting || typeof event?.preventDefault !== 'function') return;
+        if (cancelFullScreenClose) {
+          event.preventDefault();
+          return;
+        }
+        if (!shouldInterceptWindowClose(win)) return;
+        if (isMac && (!win.isVisible?.() || typeof win.hide !== 'function')) return;
+        event.preventDefault();
+        if (!isMac || !win.isFullScreen?.()) {
+          hideOnClose();
+          return;
+        }
+
+        // 先等 macOS 退出原生全屏空间，避免隐藏窗口后停留在黑屏空间。
+        let timeout;
+        const onLeaveFullScreen = () => {
+          if (!cancelFullScreenClose) return;
+          cancelFullScreenClose();
+          if (!win.isDestroyed?.() && !win.isFullScreen() && win.isVisible() && shouldInterceptWindowClose(win)) {
+            hideOnClose();
           }
+        };
+        cancelFullScreenClose = () => {
+          cancelFullScreenClose = null;
+          clearTimeout(timeout);
+          win.removeListener('leave-full-screen', onLeaveFullScreen);
+        };
+        try {
+          win.once('leave-full-screen', onLeaveFullScreen);
+          // 超时只取消等待，不隐藏窗口；用户可以重试。
+          timeout = setTimeout(cancelFullScreenClose, 5000);
+          timeout.unref?.();
+          win.setFullScreen(false);
+        } catch {
+          cancelFullScreenClose?.();
         }
       });
     } catch {}
