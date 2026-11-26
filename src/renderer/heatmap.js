@@ -555,12 +555,8 @@
     updateSummaryBar('yearly', allYearDates);
   }
 
-  // 初始化首次使用日与时间轴显示并触发后台完整历史同步
-  computeTimelineWindow();
-  void syncTokenHistoryFromHost();
-
   // 统一生成徽章、悬浮提示与速览卡片的状态数据
-  function resolveDisplayStatus(d, session) {
+  function resolveDisplayStatus(d) {
     const ec = d?.errorClassification;
     let kind = ec?.kind || (d?.exceeded ? 'context_overflow' : d?.network ? 'network_error' : d?.error ? 'unknown' : 'none');
 

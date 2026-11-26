@@ -60,10 +60,6 @@
         const open = colorDrawerBody.style.display === 'block';
         colorDrawerArrow.textContent = open ? t('drawer.colors.collapse') : t('drawer.colors.expand');
       }
-      if (drawerArrow && drawerBody) {
-        const open = drawerBody.style.display === 'block';
-        drawerArrow.textContent = open ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-      }
       if (tokenColorDrawerArrow && tokenColorDrawerBody) {
         const open = tokenColorDrawerBody.style.display === 'block';
         tokenColorDrawerArrow.textContent = open ? t('drawer.colors.collapse') : t('drawer.colors.expand');
@@ -1294,19 +1290,7 @@
   }
   btnColors?.addEventListener('click', () => toggleColorsDrawer());
 
-  // 二级抽屉 2（面板 B 内）: 底层技术抽屉折叠展开
-  const btnDetails = el('btn-toggle-details');
-  const drawerBody = el('drawer-body');
-  const drawerArrow = el('drawer-arrow');
-  btnDetails?.addEventListener('click', () => {
-    if (!drawerBody) return;
-    const isHidden = drawerBody.style.display === 'none' || !drawerBody.style.display;
-    drawerBody.style.display = isHidden ? 'block' : 'none';
-    if (drawerArrow) drawerArrow.textContent = isHidden ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-    btnDetails.setAttribute('aria-expanded', String(isHidden));
-  });
-
-  // 二级抽屉 3（面板 A 内就近设置）: 热力图色阶与面板外观自定义抽屉折叠展开
+  // 二级抽屉 2（面板 A 内就近设置）: 热力图色阶与面板外观自定义抽屉折叠展开
   const btnTokenColors = el('btn-toggle-token-colors');
   const tokenColorDrawerBody = el('token-color-drawer-body');
   const tokenColorDrawerArrow = el('token-color-drawer-arrow');
@@ -1365,9 +1349,10 @@
     }
     computeTimelineWindow();
     updateHeatTabThumb();
+    heatViewDirty = false;
   }
 
-  function switchHeatView(view, save = true) {
+  function switchHeatView(view, save = true, opts = {}) {
     if (!['daily', 'weekly', 'monthly', 'yearly', 'cum'].includes(view)) view = 'daily';
     activeHeatView = view;
 
@@ -1398,8 +1383,11 @@
     });
 
     hidePopover();
-    renderActiveHeatView(true);
-    updateHeatTabThumb();
+    if (opts.forceRender || isTokensPanelVisible()) {
+      renderActiveHeatView(true);
+    } else {
+      heatViewDirty = true;
+    }
 
     if (save && typeof window !== 'undefined' && typeof window.contextMeterAPI?.saveSettings === 'function') {
       window.contextMeterAPI.saveSettings({ savedHeatView: view });
@@ -1451,7 +1439,6 @@
     renderActiveHeatView(true);
   });
 
-  el('refresh').addEventListener('click', () => { if (state.route && !state.scanBusy) void scan(state.generation, state.route, true); });
   const outside = e => {
     const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
     const pop = el('color-picker-popover');

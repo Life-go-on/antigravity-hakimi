@@ -87,7 +87,7 @@ npm run unlock:cli
   - `meter-ssh.js`：Remote SSH 远端 Linux ELF64（`x86-64` & `arm64`，含 PIE `.rela.dyn` `firstmoduledata` 解析）自适应地区解锁、`bootstrapScript.js` POSIX `sh` 装饰器、远端会话内存注册表及 Electron `session.fetch` 代理通道。
   - `meter-account-cold-helper.js`：零外部依赖的脱离式冷切账号工作进程与公共钥匙串原语（仅用 Node 内置模块），负责零存活退出屏障、`SingletonLock` 清理、钥匙串原子换盘、账号局部残留清理、已保存账号引导状态还原与干净环境 `open -n` 拉起。
   - `meter-account-switcher.js`：macOS 钥匙串多账号冷切换编排器（仅元数据探测 Vault 存在性、`agy` CLI 并发拦截、释放并拉起独立 helper、账号快照保存/改名/删除）。
-  - `meter-main.js` / `local-api.js` / `meter-collector.js` / `meter-core.js` / `meter-storage.js` / `attachment_scan.py`：主进程 IPC（严格区分本机与 SSH 窗口）、本地 API、对话轨迹采集、纯 Token 与模型额度统计、历史存储与附件预算估算。
+  - `meter-main.js` / `local-api.js` / `meter-collector.js` / `meter-core.js` / `meter-storage.js`：主进程 IPC（严格区分本机与 SSH 窗口）、本地 API、Token 历史与模型额度采集、纯 Token 统计分析与历史存储。
   - `i18n/i18n-runtime.js` & `i18n/zh-CN.json`：桌面端界面全量简体中文运行时（仅作用于本地 Electron DOM，支持简体中文 / 英文切换）。
 - `src/renderer/`：Context Meter 悬浮胶囊、顶栏布局与 `/compact` / `#btn-topbar-upgrade` 按钮、左下角模型额度/Effort/快捷键卡片、多账号冷切换浮层与未登录兜底胶囊、速率对比、纯 Token 热力图与设置面板（含双源更新诊断卡片）源码（`template.html`、`styles.css`、`i18n.js`、`colors.js`、`topbar-layout.js`、`dropdown.js`、`model-switcher.js`、`model-quota.js`、`account-switcher.js`、`speed-panel.js`、`settings-panel.js`、`heatmap.js`、`main.js`）。
 - `test/`：

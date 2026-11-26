@@ -829,7 +829,17 @@ test('checkAppVersionSync detects version mismatch and renderer exposes quick ac
     assert.ok(tpl.includes(marker), `Missing ${marker} in template.html`);
     assert.ok(renderedJs.includes(marker), `Missing ${marker} in meter-renderer.js`);
   }
-  for (const removed of ['ctx-breakdown-card', 'btn-session-compact', 'btn-session-raise-limit', 'btn-topbar-raise-limit']) {
+  for (const removed of [
+    'ctx-breakdown-card',
+    'btn-session-compact',
+    'btn-session-raise-limit',
+    'btn-topbar-raise-limit',
+    'btn-toggle-details',
+    'id="drawer-body"',
+    'id="drawer-arrow"',
+    'session-total',
+    'attachment-total',
+  ]) {
     assert.equal(tpl.includes(removed), false, `${removed} should be removed from template.html`);
     assert.equal(renderedJs.includes(removed), false, `${removed} should be removed from meter-renderer.js`);
   }
@@ -2022,4 +2032,262 @@ test('markdown preload patch prevents single-tilde strikethrough in real languag
     [],
     ['真正删除线'],
   ]);
+});
+
+test('tech drawer, 20s full-trajectory scan, and attachment_scan.py are removed while token history polling is lazy and idle-throttled', async () => {
+  const collector = require(path.join(ROOT, 'payload', 'dist', 'meter-collector.js'));
+  const meterMainSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'meter-main.js'), 'utf8');
+  const modularSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'modular-installer.js'), 'utf8');
+  const packerSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'hakimi-asar-packer.js'), 'utf8');
+  const mainRendererSrc = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'main.js'), 'utf8');
+
+  // 1. Static pruning verification
+  assert.equal(fs.existsSync(path.join(ROOT, 'payload', 'dist', 'attachment_scan.py')), false);
+  assert.equal(collector.collect, undefined);
+  assert.equal(collector.scanFiles, undefined);
+  assert.equal(collector.pythonScan, undefined);
+  assert.equal(collector.TOKEN_HISTORY_CACHE_TTL_MS, 60000);
+  assert.equal(meterMainSrc.includes('context-meter:scan'), false);
+  assert.equal(modularSrc.includes('context-meter:scan'), false);
+  assert.equal(packerSrc.includes('attachment_scan.py'), false);
+  assert.equal(mainRendererSrc.includes('GetCascadeTrajectorySteps'), false);
+
+  // 2. Collector archive cache reads cleanly and detects archive updates
+  const tmpAg = fs.mkdtempSync(path.join(os.tmpdir(), 'hakimi-hist-cache-'));
+  try {
+    const v1Path = path.join(tmpAg, 'token_usage_archive_v1.json');
+    fs.writeFileSync(
+      v1Path,
+      JSON.stringify({
+        firstUseDate: '2026-11-01',
+        dailyMap: { '2026-11-01': { total: 5000, input: 3000, output: 1000, cache: 1000, steps: 2 } },
+      }),
+      'utf8'
+    );
+    const h1 = await collector.collectTokenHistoryAsync({ agDir: tmpAg, userStatus: null });
+    assert.equal(h1.summary.grandTotalTokens, 5000);
+
+    // Update archive with larger size so stat cache invalidates immediately
+    fs.writeFileSync(
+      v1Path,
+      JSON.stringify({
+        firstUseDate: '2026-11-01',
+        dailyMap: {
+          '2026-11-01': { total: 5000, input: 3000, output: 1000, cache: 1000, steps: 2 },
+          '2026-11-02': { total: 7500, input: 4500, output: 1500, cache: 1500, steps: 3 },
+        },
+      }),
+      'utf8'
+    );
+    const h2 = await collector.collectTokenHistoryAsync({ agDir: tmpAg, userStatus: null });
+    assert.equal(h2.summary.grandTotalTokens, 12500);
+  } finally {
+    fs.rmSync(tmpAg, { recursive: true, force: true });
+  }
+
+  // 3. Renderer VM check: lazy heatmap rendering, single boot getSettings, hidden-tab pause & visibility resume
+  const byId = new Map();
+  const makeNode = (tag, id = '') => {
+    const attrs = new Map();
+    const listeners = new Map();
+    const children = [];
+    const node = {
+      nodeType: 1,
+      tagName: String(tag || 'DIV').toUpperCase(),
+      id,
+      hidden: id === 'panel' || id === 'panel-tokens' || id === 'overflow-menu' || id === 'color-picker-popover',
+      disabled: false,
+      textContent: '',
+      value: '',
+      className: '',
+      style: {
+        setProperty(k, v) { this[k] = v; },
+        removeProperty(k) { delete this[k]; },
+        getPropertyValue(k) { return this[k] || ''; },
+      },
+      children,
+      childNodes: children,
+      parentElement: null,
+      get isConnected() { return true; },
+      classList: {
+        add() {},
+        remove() {},
+        toggle() {},
+        contains() { return false; },
+      },
+      getAttribute(k) { return attrs.has(k) ? attrs.get(k) : null; },
+      setAttribute(k, v) { attrs.set(k, String(v)); },
+      removeAttribute(k) { attrs.delete(k); },
+      hasAttribute(k) { return attrs.has(k); },
+      addEventListener(type, fn) {
+        if (!listeners.has(type)) listeners.set(type, []);
+        listeners.get(type).push(fn);
+      },
+      removeEventListener() {},
+      appendChild(child) {
+        child.parentElement = node;
+        children.push(child);
+        return child;
+      },
+      replaceChildren(...items) {
+        children.length = 0;
+        for (const it of items) {
+          if (it && typeof it === 'object') {
+            it.parentElement = node;
+            children.push(it);
+          }
+        }
+      },
+      querySelector() { return null; },
+      querySelectorAll() { return []; },
+      closest() { return null; },
+      contains(target) { return target === node || children.includes(target); },
+      getBoundingClientRect() { return { left: 0, top: 0, right: 200, bottom: 40, width: 200, height: 40 }; },
+      remove() {},
+      attachShadow() {
+        let html = '';
+        const shadow = {
+          get innerHTML() { return html; },
+          set innerHTML(val) {
+            html = String(val || '');
+            for (const m of html.matchAll(/\bid="([^"]+)"/g)) {
+              if (!byId.has(m[1])) byId.set(m[1], makeNode('DIV', m[1]));
+            }
+          },
+          getElementById(k) { return byId.get(k) || null; },
+          querySelector() { return null; },
+          querySelectorAll() { return []; },
+        };
+        return shadow;
+      },
+    };
+    return node;
+  };
+
+  const docListeners = new Map();
+  const body = makeNode('BODY', 'body');
+  const fakeDoc = {
+    hidden: false,
+    body,
+    documentElement: body,
+    head: makeNode('HEAD', 'head'),
+    createElement: (tag) => makeNode(tag),
+    createElementNS: (_ns, tag) => makeNode(tag),
+    getElementById: (id) => byId.get(id) || null,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    addEventListener(type, fn) {
+      if (!docListeners.has(type)) docListeners.set(type, []);
+      docListeners.get(type).push(fn);
+    },
+    removeEventListener(type, fn) {
+      const list = docListeners.get(type);
+      if (list) docListeners.set(type, list.filter((x) => x !== fn));
+    },
+  };
+
+  let getSettingsCalls = 0;
+  let getTokenHistoryCalls = 0;
+  let lastForceArg = null;
+  const historyPayload = {
+    updatedAt: '2026-11-25 12:00:00',
+    firstUseDate: '2026-11-20',
+    summary: { grandTotalTokens: 42000, todayTokens: 42000, monthTokens: 42000, yearTokens: 42000, totalConversations: 2, activeDaysCount: 1 },
+    dailyMap: { '2026-11-25': { total: 42000, input: 20000, output: 12000, cache: 10000, steps: 4 } },
+    dailyMapBySource: {
+      all: { '2026-11-25': { total: 42000, input: 20000, output: 12000, cache: 10000, steps: 4 } },
+      desktop: { '2026-11-25': { total: 42000, input: 20000, output: 12000, cache: 10000, steps: 4 } },
+      cli: {},
+    },
+    rawPlanStatus: { status: 'identified', email: 'lazy@example.com', modelQuotaGroups: [] },
+    planStatus: { status: 'identified', email: 'lazy@example.com', tierName: 'Pro' },
+    cascadeModelConfigs: [],
+    speedRecords: [],
+  };
+
+  const sandbox = {
+    location: { protocol: 'https:', hostname: '127.0.0.1', pathname: '/' },
+    document: fakeDoc,
+    navigator: { platform: 'MacIntel' },
+    localStorage: { getItem: () => null, setItem: () => {} },
+    innerWidth: 1280,
+    innerHeight: 800,
+    outerWidth: 1280,
+    addEventListener() {},
+    removeEventListener() {},
+    setInterval() { return 1; },
+    clearInterval() {},
+    setTimeout() { return 1; },
+    clearTimeout() {},
+    requestAnimationFrame() { return 1; },
+    cancelAnimationFrame() {},
+    AbortController,
+    Date,
+    Math,
+    Map,
+    Set,
+    Array,
+    Object,
+    String,
+    Number,
+    Boolean,
+    RegExp,
+    Promise,
+    JSON,
+    console,
+    contextMeterAPI: {
+      getSettings: async () => {
+        getSettingsCalls++;
+        return { ok: true, uiPreferences: {} };
+      },
+      getTokenHistory: async (force) => {
+        getTokenHistoryCalls++;
+        lastForceArg = force;
+        return { ok: true, data: historyPayload };
+      },
+    },
+  };
+  sandbox.window = sandbox;
+  sandbox.globalThis = sandbox;
+
+  const coreSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'meter-core.js'), 'utf8');
+  const rendererSrc = fs.readFileSync(path.join(ROOT, 'payload', 'dist', 'meter-renderer.js'), 'utf8');
+  vm.runInNewContext(`${coreSrc}\n${rendererSrc}`, sandbox, { filename: 'meter-renderer-lazy-test.js' });
+  await new Promise((r) => setImmediate(r));
+
+  const api = sandbox.__AGContextMeter;
+  assert.ok(api, 'meter runtime should initialize');
+  assert.equal(getSettingsCalls, 1, 'restoreSettingsFromHost should run once at boot, not on every history sync');
+  assert.equal(getTokenHistoryCalls, 1, 'boot should trigger exactly one initial token history sync (no duplicate calls)');
+
+  // Heatmap DOM stays unbuilt while #panel-tokens is hidden, even after receiving history payload
+  assert.equal(byId.get('token-amount').textContent, '42.0K');
+  assert.equal(api.isHeatViewDirtyForTest(), true, 'heatmap should remain marked dirty while panel-tokens is hidden');
+  assert.equal(byId.get('h-grid-cols').children.length, 0, 'hidden panel-tokens must not build 364-day heatmap DOM');
+
+  // While document.hidden === true, tick() must NOT trigger idle history sync even if stale > 2 minutes
+  fakeDoc.hidden = true;
+  api.setLastHistorySyncForTest(Date.now() - 300000);
+  api.tickForTest();
+  await new Promise((r) => setImmediate(r));
+  assert.equal(getTokenHistoryCalls, 1, 'background hidden tab must pause idle history polling');
+  assert.equal(getSettingsCalls, 1, 'settings must never be re-read during polling');
+
+  // Returning to foreground fires visibilitychange and resumes sync cleanly (still no redundant getSettings)
+  fakeDoc.hidden = false;
+  for (const fn of docListeners.get('visibilitychange') || []) fn();
+  await new Promise((r) => setImmediate(r));
+  assert.equal(getTokenHistoryCalls, 2, 'returning to foreground after >=60s should catch up history once');
+  assert.equal(getSettingsCalls, 1, 'history catch-up must not re-call getSettings');
+
+  // Opening #panel-tokens builds the heatmap DOM once and clears dirty flag
+  api.setLastHistorySyncForTest(Date.now() - 20000);
+  api.showPanelForTest('tokens');
+  await new Promise((r) => setImmediate(r));
+  assert.equal(api.isHeatViewDirtyForTest(), false, 'opening panel-tokens should flush dirty heatmap');
+  assert.equal(byId.get('h-grid-cols').children.length, 52, 'opening panel-tokens should build 52-week heatmap grid');
+  assert.equal(getTokenHistoryCalls, 3);
+  assert.equal(lastForceArg, true, 'opening panel-tokens when stale >= 15s should force fresh CLI/desktop scan');
+
+  api.dispose();
 });

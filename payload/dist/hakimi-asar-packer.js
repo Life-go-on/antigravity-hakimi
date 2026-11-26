@@ -46,7 +46,6 @@ const {
 
 const PAYLOAD_FILES = [
   'asar-engine.js',
-  'attachment_scan.py',
   'binary-utils.js',
   'hakimi-asar-packer.js',
   'hakimi-builder.js',

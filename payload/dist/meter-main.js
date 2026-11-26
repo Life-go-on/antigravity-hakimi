@@ -12,7 +12,6 @@ try {
   }
 } catch {}
 const {
-  collect,
   collectTokenHistory,
   collectTokenHistoryAsync,
   recordModelCalls,
@@ -277,30 +276,6 @@ async function handleRestartHost(event, options = {}) {
 function registerIpcOnce() {
   if (registered || !ipcMain) return;
   registered = true;
-
-  ipcMain.handle('context-meter:scan', async (event, id, force) => {
-    const url = isLocalMainFrameSender(event);
-    if (!url) throw new Error('仅允许本机主聊天窗口');
-    try {
-      const remote = getRemoteBackendForSender(event?.sender);
-      if (remote) {
-        const sessionInfo = getRemoteSession(remote.hostId);
-        const requester = createRemoteSessionRequester(event.sender, sessionInfo, url.origin);
-        return {
-          ok: true,
-          data: await collect(url.origin, id, {
-            force: force === true,
-            isRemote: true,
-            remoteHostId: remote.hostId,
-            remoteLabel: remote.label,
-            requestFn: requester.call,
-          }),
-        };
-      }
-      return { ok: true, data: await collect(url.origin, id, { force: force === true }) };
-    }
-    catch (e) { return { ok: false, error: e.message }; }
-  });
 
   ipcMain.handle('context-meter:record-calls', async (event, calls) => {
     const url = isLocalMainFrameSender(event);

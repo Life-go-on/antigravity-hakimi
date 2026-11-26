@@ -1850,26 +1850,6 @@
           </div>
           <div id="cache-takeaway" class="key-takeaway" data-i18n="session.cache.wait">等待请求返回输入与缓存复用统计…</div>
         </div>
-
-        <!-- 底层技术参数与附件审计 -->
-        <div class="tech-drawer">
-          <button id="btn-toggle-details" class="drawer-trigger" aria-expanded="false" type="button">
-            <span class="drawer-trigger-left">
-              <span data-i18n="session.techDrawer.title">📋 底层技术参数与附件审计</span>
-            </span>
-            <span id="drawer-arrow" class="drawer-arrow" data-i18n="session.techDrawer.expand">▼ 点击展开明细</span>
-          </button>
-          <div id="drawer-body" class="drawer-body" style="display:none;">
-            <p id="status" data-i18n="session.tech.checking">正在核对请求和附件…</p><p id="model"></p>
-            <h4 data-i18n="session.tech.latestReq">最近一次模型请求</h4>
-            <dl><dt data-i18n="session.tech.reqStatus">请求状态</dt><dd id="request-status">—</dd><dt data-i18n="session.tech.actual">模型返回输入＋输出</dt><dd id="actual">—</dd><dt data-i18n="session.tech.cacheDetail">本轮输入构成（缓存／新增）</dt><dd id="cache-tech-detail">—</dd><dt data-i18n="session.tech.estimate">客户端估算（可能漏附件）</dt><dd id="estimate">—</dd><dt data-i18n="session.tech.budget">客户端预算字段</dt><dd id="budget">—</dd><dt data-i18n="session.tech.serviceLimit">该次报错的服务端限制</dt><dd id="service-limit">—</dd><dt data-i18n="session.tech.percent">相对客户端预算</dt><dd id="percent">—</dd></dl>
-            <h4 data-i18n="session.tech.sessionHeading">整个会话累计内容 · 本地估算</h4>
-            <dl><dt data-i18n="session.tech.sessionTotal">可读取文本 token 估算</dt><dd id="session-total" data-i18n="session.tech.scanning">扫描中…</dd><dt data-i18n="session.tech.characters">实际读取文字字符数</dt><dd id="characters">—</dd><dt data-i18n="session.tech.user">用户消息</dt><dd id="user">—</dd><dt data-i18n="session.tech.assistant">模型回复</dt><dd id="assistant">—</dd><dt data-i18n="session.tech.thinking">可见思考内容</dt><dd id="thinking">—</dd><dt data-i18n="session.tech.tools">工具调用与工具输出</dt><dd id="tools">—</dd><dt data-i18n="session.tech.summaries">历史压缩摘要</dt><dd id="summaries">—</dd><dt data-i18n="session.tech.system">当前系统提示与工具定义</dt><dd id="system">—</dd><dt data-i18n="session.tech.attachments">上传／输出附件文本</dt><dd id="attachment-total">—</dd><dt data-i18n="session.tech.steps">历史步骤完整性</dt><dd id="steps">—</dd></dl>
-            <p id="coverage"></p><h4 data-i18n="session.tech.filesHeading">附件逐项检查</h4><div id="files"></div><button id="refresh" type="button" data-i18n="session.tech.rescan">重新扫描整段会话与附件</button>
-            <p id="note" data-i18n-html="session.tech.note">会话累计包括可读取的全部归档历史；已压缩内容仍计入累计。它不等于当前实际发送给模型的上下文，不能用累计值除以 1M 判断剩余空间。附件原文与工具读出的文本可能在历史中分别出现，各按一次出现计入。尚未发送的草稿与待上传附件不在归档内，暂未计入；新上传可能使下一次请求明显增长。<br><br>本地 token 区间是文本启发式估算，不是 Gemini 分词结果，也不是严格上下界。图像、音视频、加密文件、不可访问文件和未解析部分会明确列为未知。未知内容不按零处理；只有服务端返回的用量才标为实际统计。此功能不向外部发送文件，不执行宏或公式。</p>
-            <p id="updated"></p>
-          </div>
-        </div>
       </div>
 
       <!-- 分页 3: 速度对比 -->
@@ -2652,37 +2632,6 @@
     'session.compact.savedLabel': { 'zh-CN': '本模型已保存：', 'zh-TW': '本模型已儲存：', en: 'Saved for model: ' },
     'session.compact.clientLabel': { 'zh-CN': '客户端当前使用：', 'zh-TW': '用戶端目前使用：', en: 'Client active: ' },
     'session.compact.gotoModels': { 'zh-CN': '管理全部模型 ›', 'zh-TW': '管理全部模型 ›', en: 'All Models ›' },
-    'session.techDrawer.title': { 'zh-CN': '📋 底层技术参数与附件审计', 'zh-TW': '📋 底層技術參數與附件稽核', en: '📋 Technical Metrics & Attachment Audit' },
-    'session.techDrawer.expand': { 'zh-CN': '▼ 点击展开明细', 'zh-TW': '▼ 點擊展開明細', en: '▼ Show details' },
-    'session.techDrawer.collapse': { 'zh-CN': '▲ 点击收起明细', 'zh-TW': '▲ 點擊收起明細', en: '▲ Hide details' },
-    'session.tech.checking': { 'zh-CN': '正在核对请求和附件…', 'zh-TW': '正在核對請求與附件…', en: 'Checking requests and attachments…' },
-    'session.tech.latestReq': { 'zh-CN': '最近一次模型请求', 'zh-TW': '最近一次模型請求', en: 'Latest Model Request' },
-    'session.tech.reqStatus': { 'zh-CN': '请求状态', 'zh-TW': '請求狀態', en: 'Request status' },
-    'session.tech.actual': { 'zh-CN': '模型返回输入＋输出', 'zh-TW': '模型回傳輸入＋輸出', en: 'Returned input + output' },
-    'session.tech.cacheDetail': { 'zh-CN': '本轮输入构成（缓存／新增）', 'zh-TW': '本輪輸入構成（快取／新增）', en: 'Input breakdown (cached / fresh)' },
-    'session.tech.estimate': { 'zh-CN': '客户端估算（可能漏附件）', 'zh-TW': '用戶端估算（可能漏附件）', en: 'Client estimate (may miss files)' },
-    'session.tech.budget': { 'zh-CN': '客户端预算字段', 'zh-TW': '用戶端預算欄位', en: 'Client budget field' },
-    'session.tech.serviceLimit': { 'zh-CN': '该次报错的服务端限制', 'zh-TW': '該次報錯的伺服器端限制', en: 'Server limit from error' },
-    'session.tech.percent': { 'zh-CN': '相对客户端预算', 'zh-TW': '相對用戶端預算', en: 'Share of client budget' },
-    'session.tech.sessionHeading': { 'zh-CN': '整个会话累计内容 · 本地估算', 'zh-TW': '整個工作階段累計內容 · 本機估算', en: 'Cumulative Session Content · Local Estimate' },
-    'session.tech.sessionTotal': { 'zh-CN': '可读取文本 token 估算', 'zh-TW': '可讀取文字 token 估算', en: 'Readable text token est.' },
-    'session.tech.scanning': { 'zh-CN': '扫描中…', 'zh-TW': '掃描中…', en: 'Scanning…' },
-    'session.tech.characters': { 'zh-CN': '实际读取文字字符数', 'zh-TW': '實際讀取文字字元數', en: 'Readable characters' },
-    'session.tech.user': { 'zh-CN': '用户消息', 'zh-TW': '使用者訊息', en: 'User messages' },
-    'session.tech.assistant': { 'zh-CN': '模型回复', 'zh-TW': '模型回覆', en: 'Assistant replies' },
-    'session.tech.thinking': { 'zh-CN': '可见思考内容', 'zh-TW': '可見思考內容', en: 'Visible thinking' },
-    'session.tech.tools': { 'zh-CN': '工具调用与工具输出', 'zh-TW': '工具呼叫與工具輸出', en: 'Tool calls & outputs' },
-    'session.tech.summaries': { 'zh-CN': '历史压缩摘要', 'zh-TW': '歷史壓縮摘要', en: 'Compressed summaries' },
-    'session.tech.system': { 'zh-CN': '当前系统提示与工具定义', 'zh-TW': '目前系統提示與工具定義', en: 'System prompt & tools' },
-    'session.tech.attachments': { 'zh-CN': '上传／输出附件文本', 'zh-TW': '上傳／輸出附件文字', en: 'Attachment text' },
-    'session.tech.steps': { 'zh-CN': '历史步骤完整性', 'zh-TW': '歷史步驟完整性', en: 'History completeness' },
-    'session.tech.filesHeading': { 'zh-CN': '附件逐项检查', 'zh-TW': '附件逐項檢查', en: 'Attachment Inspection' },
-    'session.tech.rescan': { 'zh-CN': '重新扫描整段会话与附件', 'zh-TW': '重新掃描整段工作階段與附件', en: 'Rescan session & attachments' },
-    'session.tech.note': {
-      'zh-CN': '会话累计包括可读取的全部归档历史；已压缩内容仍计入累计。它不等于当前实际发送给模型的上下文，不能用累计值除以 1M 判断剩余空间。附件原文与工具读出的文本可能在历史中分别出现，各按一次出现计入。尚未发送的草稿与待上传附件不在归档内，暂未计入；新上传可能使下一次请求明显增长。<br><br>本地 token 区间是文本启发式估算，不是 Gemini 分词结果，也不是严格上下界。图像、音视频、加密文件、不可访问文件和未解析部分会明确列为未知。未知内容不按零处理；只有服务端返回的用量才标为实际统计。此功能不向外部发送文件，不执行宏或公式。',
-      'zh-TW': '工作階段累計包含可讀取的全部封存歷史；已壓縮內容仍計入累計。它不等於目前實際傳送給模型的上下文，不能用累計值除以 1M 判斷剩餘空間。附件原文與工具讀出的文字可能在歷史中分別出現，各按一次出現計入。尚未傳送的草稿與待上傳附件不在封存內，暫未計入；新上傳可能使下一次請求明顯增長。<br><br>本機 token 區間是文字啟發式估算，不是 Gemini 分詞結果，也不是嚴格上下界。影像、音視訊、加密檔案、無法存取檔案與未解析部分會明確列為未知。未知內容不按零處理；只有伺服器端回傳的用量才標為實際統計。此功能不向外部傳送檔案，不執行巨集或公式。',
-      en: 'Cumulative session totals include all readable archived history (including compressed turns). They do not equal the active context sent to the model and must not be divided by 1M to judge remaining space. Attachment text and tool-read text may appear separately in history and are counted per occurrence. Unsent drafts and pending uploads are excluded.<br><br>Local token ranges are text heuristics, not exact Gemini tokenization or strict bounds. Images, audio/video, encrypted, inaccessible, or unparsed items are marked unknown (never zero). Only server-returned counts are labeled actual usage. No files are sent externally and no macros are executed.'
-    },
 
     // 分页 2: 模型设置
     'models.list.aria': { 'zh-CN': '按厂商分组的模型产品列表', 'zh-TW': '依廠商分組的模型產品清單', en: 'Models grouped by vendor' },
@@ -3023,18 +2972,14 @@
       'tip.pct.normal': { 'zh-CN': '{used}% 已用（剩余 {rem}%）', 'zh-TW': '{used}% 已用（剩餘 {rem}%）', en: '{used}% used ({rem}% left)' },
       'tip.pct.noBudget': { 'zh-CN': '容量未知（未返回上限）', 'zh-TW': '容量未知（未回傳上限）', en: 'Limit unknown (not returned)' },
       'tip.pct.estOnly': { 'zh-CN': '真实占比未知（仅估算）', 'zh-TW': '真實佔比未知（僅估算）', en: 'Actual % unknown (estimate only)' },
-      'tip.pct.waitStats': { 'zh-CN': '等待请求统计（仅归档估算）', 'zh-TW': '等待請求統計（僅封存估算）', en: 'Waiting for stats (archive est.)' },
       'tip.pct.notReady': { 'zh-CN': '数据尚未就绪', 'zh-TW': '資料尚未就緒', en: 'Data not ready' },
       'tip.detail.usedOfBudget': { 'zh-CN': '已用 {used} token，共 {budget}{inc}', 'zh-TW': '已用 {used} token，共 {budget}{inc}', en: '{used} / {budget} tokens used{inc}' },
       'tip.detail.usedNoBudget': { 'zh-CN': '已用 {used} token，总容量未知', 'zh-TW': '已用 {used} token，總容量未知', en: '{used} tokens used, limit unknown' },
       'tip.detail.estUsed': { 'zh-CN': '已用 ≈ {used} token{budget}', 'zh-TW': '已用 ≈ {used} token{budget}', en: 'Used ≈ {used} tokens{budget}' },
       'tip.detail.estBudgetPart': { 'zh-CN': '，共 {budget}', 'zh-TW': '，共 {budget}', en: ' of {budget}' },
       'tip.detail.estNoBudgetPart': { 'zh-CN': '，总容量未知', 'zh-TW': '，總容量未知', en: ', limit unknown' },
-      'tip.detail.sessionEst': { 'zh-CN': '会话估算 ≈ {low}–{high} token', 'zh-TW': '工作階段估算 ≈ {low}–{high} token', en: 'Session est. ≈ {low}–{high} tokens' },
-      'tip.detail.sessionCum': { 'zh-CN': '会话累计 ≈ {low}–{high} token', 'zh-TW': '工作階段累計 ≈ {low}–{high} token', en: 'Session cumulative ≈ {low}–{high} tokens' },
       'tip.detail.waitBg': { 'zh-CN': '正在等待后台更新统计数据', 'zh-TW': '正在等待背景更新統計資料', en: 'Waiting for background stats update' },
       'tip.detail.readingSession': { 'zh-CN': '正在读取当前会话上下文用量…', 'zh-TW': '正在讀取目前工作階段上下文用量…', en: 'Reading current session context usage…' },
-      'tip.detail.incSuffix': { 'zh-CN': '（含未知附件）', 'zh-TW': '（含未知附件）', en: ' (incl. unknown files)' },
       'badge.noSession': { 'zh-CN': '未打开会话', 'zh-TW': '未開啟工作階段', en: 'No active chat' },
       'badge.clickOpen': { 'zh-CN': ' · 点击查看详情', 'zh-TW': ' · 點擊檢視詳情', en: ' · Click to view details' },
       'badge.contexts': { 'zh-CN': 'contexts', 'zh-TW': 'contexts', en: 'contexts' },
@@ -3060,15 +3005,6 @@
       'cache.tip.sessionLine': { 'zh-CN': '本会话累计命中 {pct}%（{turns} 轮，共复用 {cached}）', 'zh-TW': '本工作階段累計命中 {pct}%（{turns} 輪，共複用 {cached}）', en: 'Session cumulative: {pct}% ({turns} turns, {cached} reused)' },
       'cache.tip.warnHint': { 'zh-CN': '未命中部分需重新处理，可能消耗更多输入 Token（常见于频繁改动前置上下文或缓存过期）。', 'zh-TW': '未命中部分需重新處理，可能消耗更多輸入 Token（常見於頻繁改動前置上下文或快取過期）。', en: 'Uncached input is reprocessed, consuming more input tokens (often from prefix edits or cache expiry).' },
       'cache.tip.coldHint': { 'zh-CN': '首轮建缓存或短上下文（正常冷启动，后续轮次通常会复用）。', 'zh-TW': '首輪建快取或短上下文（正常冷啟動，後續輪次通常會複用）。', en: 'Initial cold cache or short context (subsequent turns typically reuse it).' },
-      'badge.corpus.range': { 'zh-CN': '会话{range}{inc}', 'zh-TW': '工作階段{range}{inc}', en: 'Chat {range}{inc}' },
-      'badge.corpus.incPlus': { 'zh-CN': '＋未知', 'zh-TW': '＋未知', en: '+unknown' },
-      'badge.corpus.scanning': { 'zh-CN': '会话扫描中…', 'zh-TW': '工作階段掃描中…', en: 'Scanning chat…' },
-      'badge.corpus.pending': { 'zh-CN': '会话待扫描', 'zh-TW': '工作階段待掃描', en: 'Chat scan pending' },
-      'badge.status.stale': { 'zh-CN': '最近请求统计读取异常或延迟，不能判断剩余空间。', 'zh-TW': '最近請求統計讀取異常或延遲，無法判斷剩餘空間。', en: 'Latest request stats delayed or unavailable; remaining space cannot be determined.' },
-      'badge.status.scanErr': { 'zh-CN': '全会话扫描未完成：{err}', 'zh-TW': '全工作階段掃描未完成：{err}', en: 'Session scan incomplete: {err}' },
-      'badge.status.incomplete': { 'zh-CN': '存在 {count} 个附件含未知内容；会话总量仍未计全，不能据此保证不会超限。', 'zh-TW': '存在 {count} 個附件含未知內容；工作階段總量仍未計全，無法據此保證不會超限。', en: '{count} attachment(s) contain unreadable content; cumulative total is incomplete.' },
-      'badge.status.estimated': { 'zh-CN': '只有客户端估算，附件等内容可能未计全；当前请求真实占用未知。', 'zh-TW': '僅有用戶端估算，附件等內容可能未計全；目前請求真實佔用未知。', en: 'Client estimate only; attachments may be omitted and actual usage is unknown.' },
-      'badge.status.normal': { 'zh-CN': '请求用量与会话累计分别统计；会话 token 数始终为本地估算。', 'zh-TW': '請求用量與工作階段累計分別統計；工作階段 token 數始終為本機估算。', en: 'Request usage and cumulative session totals are tracked separately; session totals are local estimates.' },
 
       // 折叠抽屉开关
       'drawer.colors.expand': { 'zh-CN': '▼ 展开设置', 'zh-TW': '▼ 展開設定', en: '▼ Expand' },
@@ -3112,49 +3048,6 @@
       'cache.takeaway.high': { 'zh-CN': '✔ 缓存高效复用（{pct}%）：本轮 {total} 输入中直接命中 {cached} tokens，仅重算 {uncached} tokens。', 'zh-TW': '✔ 快取高效複用（{pct}%）：本輪 {total} 輸入中直接命中 {cached} tokens，僅重算 {uncached} tokens。', en: '✔ High cache efficiency ({pct}%): {cached} of {total} input tokens reused; only {uncached} uncached.' },
       'cache.takeaway.good': { 'zh-CN': '✔ 缓存正常复用（{pct}%）：复用 {cached} tokens，新增未缓存 {uncached} tokens。', 'zh-TW': '✔ 快取正常複用（{pct}%）：複用 {cached} tokens，新增未快取 {uncached} tokens。', en: '✔ Normal cache reuse ({pct}%): {cached} cached, {uncached} uncached tokens.' },
       'cache.takeaway.idle': { 'zh-CN': 'ℹ 等待请求返回输入明细后，将自动计算上下文缓存命中率与低命中提醒。', 'zh-TW': 'ℹ 等待請求回傳輸入明細後，將自動計算上下文快取命中率與低命中提醒。', en: 'ℹ Waiting for request usage details to calculate cache hit rate and low-hit alerts.' },
-      'tech.cacheDetail.val': { 'zh-CN': '命中 {pct}% · 复用 {cached} ／ 新增 {uncached} tokens', 'zh-TW': '命中 {pct}% · 複用 {cached} ／ 新增 {uncached} tokens', en: '{pct}% hit · {cached} cached / {uncached} uncached' },
-      'tech.modelPlaceholder': { 'zh-CN': '模型标识：{id}', 'zh-TW': '模型識別：{id}', en: 'Model ID: {id}' },
-      'tech.modelMissing': { 'zh-CN': '未返回模型信息', 'zh-TW': '未回傳模型資訊', en: 'No model info returned' },
-      'tech.req.exceeded': { 'zh-CN': '输入超限（已失败）', 'zh-TW': '輸入超限（已失敗）', en: 'Input limit exceeded (failed)' },
-      'tech.req.network': { 'zh-CN': '网络故障（非超限）', 'zh-TW': '網路故障（非超限）', en: 'Network error (not overflow)' },
-      'tech.req.failed': { 'zh-CN': '已失败', 'zh-TW': '已失敗', en: 'Failed' },
-      'tech.req.reported': { 'zh-CN': '已返回实际统计', 'zh-TW': '已回傳實際統計', en: 'Actual stats returned' },
-      'tech.req.estimated': { 'zh-CN': '只有本地估算', 'zh-TW': '僅有本機估算', en: 'Local estimate only' },
-      'tech.req.waiting': { 'zh-CN': '等待统计，未确认执行状态', 'zh-TW': '等待統計，未確認執行狀態', en: 'Awaiting stats; status unconfirmed' },
-      'tech.actual.exceeded': { 'zh-CN': '>{val}（实际总数未返回）', 'zh-TW': '>{val}（實際總數未回傳）', en: '>{val} (actual total not returned)' },
-      'tech.actual.exceededNoLim': { 'zh-CN': '已超限；实际数值未知', 'zh-TW': '已超限；實際數值未知', en: 'Exceeded; actual count unknown' },
-      'tech.actual.unknown': { 'zh-CN': '真实用量未知', 'zh-TW': '真實用量未知', en: 'Actual usage unknown' },
-      'tech.est.val': { 'zh-CN': '约 {val} · {note}', 'zh-TW': '約 {val} · {note}', en: '~{val} · {note}' },
-      'tech.est.under': { 'zh-CN': '已证实低估', 'zh-TW': '已證實低估', en: 'Confirmed underestimate' },
-      'tech.est.ref': { 'zh-CN': '仅供参考', 'zh-TW': '僅供參考', en: 'For reference only' },
-      'tech.est.none': { 'zh-CN': '未提供', 'zh-TW': '未提供', en: 'Not provided' },
-      'tech.svcLim.val': { 'zh-CN': '{val}（仅该次错误证据）', 'zh-TW': '{val}（僅該次錯誤證據）', en: '{val} (from this error)' },
-      'tech.svcLim.none': { 'zh-CN': '本次没有服务端限制证据', 'zh-TW': '本次沒有伺服器端限制證據', en: 'No server limit evidence' },
-      'tech.pct.val': { 'zh-CN': '{pct}%（非 1M 总容量）', 'zh-TW': '{pct}%（非 1M 總容量）', en: '{pct}% (not 1M cap)' },
-      'tech.pct.none': { 'zh-CN': '不提供安全余量百分比', 'zh-TW': '不提供安全餘量百分比', en: 'Headroom % unavailable' },
-      'tech.plusUnknown': { 'zh-CN': ' ＋ 未知内容', 'zh-TW': ' ＋ 未知內容', en: ' + unknown' },
-      'tech.plusUnknownShort': { 'zh-CN': ' ＋ 未知', 'zh-TW': ' ＋ 未知', en: ' + unknown' },
-      'tech.scanIncomplete': { 'zh-CN': '扫描未完成', 'zh-TW': '掃描未完成', en: 'Scan incomplete' },
-      'tech.scanning': { 'zh-CN': '扫描中…', 'zh-TW': '掃描中…', en: 'Scanning…' },
-      'tech.stepsVal': { 'zh-CN': '{steps} 条；{user} 条用户消息／{assistant} 条回复', 'zh-TW': '{steps} 筆；{user} 則使用者訊息／{assistant} 則回覆', en: '{steps} steps; {user} user / {assistant} assistant' },
-      'tech.stepsNone': { 'zh-CN': '尚未完成全量读取', 'zh-TW': '尚未完成全量讀取', en: 'Full history not loaded yet' },
-      'tech.coverageVal': { 'zh-CN': '{total} 个附件条目（{user} 个上传、{assistant} 个模型/工具输出）；{read} 个已读到文本，{unknown} 个含未计内容。{rescan}{err}', 'zh-TW': '{total} 個附件項目（{user} 個上傳、{assistant} 個模型/工具輸出）；{read} 個已讀到文字，{unknown} 個含未計內容。{rescan}{err}', en: '{total} attachment(s) ({user} uploaded, {assistant} model/tool); {read} readable, {unknown} with unread content.{rescan}{err}' },
-      'tech.coverageRescan': { 'zh-CN': ' 正在重新扫描…', 'zh-TW': ' 正在重新掃描…', en: ' Rescanning…' },
-      'tech.coverageErr': { 'zh-CN': ' 最近重扫失败，当前为旧结果：{err}', 'zh-TW': ' 最近重掃失敗，目前為舊結果：{err}', en: ' Latest rescan failed (showing prior data): {err}' },
-      'tech.coverageScanning': { 'zh-CN': '正在扫描整段归档，不依赖页面已加载的聊天条数。', 'zh-TW': '正在掃描整段封存，不依賴頁面已載入的聊天筆數。', en: 'Scanning full archive regardless of rendered chat items.' },
-      'tech.updatedVal': { 'zh-CN': '请求统计 {req} · 全量扫描 {scan}', 'zh-TW': '請求統計 {req} · 全量掃描 {scan}', en: 'Request stats {req} · Full scan {scan}' },
-      'tech.unread': { 'zh-CN': '未读取', 'zh-TW': '未讀取', en: 'Unread' },
-      'tech.unfinished': { 'zh-CN': '未完成', 'zh-TW': '未完成', en: 'Pending' },
-      'files.reading': { 'zh-CN': '正在读取全量会话附件引用…', 'zh-TW': '正在讀取全量工作階段附件引用…', en: 'Reading session attachment references…' },
-      'files.empty': { 'zh-CN': '归档中没有上传附件引用。', 'zh-TW': '封存中沒有上傳附件引用。', en: 'No attachment references in archive.' },
-      'files.refs': { 'zh-CN': '（引用 {n} 次）', 'zh-TW': '（引用 {n} 次）', en: ' ({n} refs)' },
-      'files.px': { 'zh-CN': '{w}×{h} 像素', 'zh-TW': '{w}×{h} 像素', en: '{w}×{h} px' },
-      'files.chars': { 'zh-CN': '{n} 字符', 'zh-TW': '{n} 字元', en: '{n} chars' },
-      'files.tokUnknown': { 'zh-CN': '内容 token 未知', 'zh-TW': '內容 token 未知', en: 'Token count unknown' },
-      'files.assistantPrefix': { 'zh-CN': '模型输出附件 · ', 'zh-TW': '模型輸出附件 · ', en: 'Model/tool attachment · ' },
-      'files.sheets': { 'zh-CN': ' · {sheets} 个工作表，{cells} 个单元格', 'zh-TW': ' · {sheets} 個工作表，{cells} 個儲存格', en: ' · {sheets} sheets, {cells} cells' },
-      'files.hiddenSheets': { 'zh-CN': '（含 {n} 个隐藏表）', 'zh-TW': '（含 {n} 個隱藏工作表）', en: ' ({n} hidden)' },
-      'files.unknownPrefix': { 'zh-CN': '未计全：{parts}', 'zh-TW': '未計全：{parts}', en: 'Partial: {parts}' },
 
       // 热力图与 Token 用量弹窗
       'heat.today': { 'zh-CN': '（今日）', 'zh-TW': '（今日）', en: ' (Today)' },
@@ -3750,9 +3643,7 @@
     '未找到可用的上下文写入模式或目标特征不完整': { 'zh-TW': '未找到可用的上下文寫入模式或目標特徵不完整', en: 'Context patch target signature is incomplete' },
     '当前架构暂不支持上下文补丁': { 'zh-TW': '目前架構暫不支援上下文修補', en: 'Context patching is unsupported on this architecture' },
     '后台尚未就绪': { 'zh-TW': '背景服務尚未就緒', en: 'Backend is not ready yet' },
-    '读取超时': { 'zh-TW': '讀取逾時', en: 'Request timed out' },
-    '完整重启 Antigravity 后启用附件扫描': { 'zh-TW': '完整重新啟動 Antigravity 後啟用附件掃描', en: 'Fully restart Antigravity to enable attachment scanning' },
-    '扫描未返回有效结果': { 'zh-TW': '掃描未回傳有效結果', en: 'Scan returned no valid result' }
+    '读取超时': { 'zh-TW': '讀取逾時', en: 'Request timed out' }
   };
 
   function localizeUnknownLabel(val) {
@@ -3796,21 +3687,28 @@
     }
     return String(Math.round(v));
   };
-  const range = value => value ? `≈ ${short(value.low)}–${short(value.high)}` : '—';
-  const token = value => value == null ? t('common.notProvided') : `${fmt(value)} tokens`;
+  const HISTORY_IDLE_SYNC_INTERVAL_MS = 120000;
+  const HISTORY_RESUME_STALE_MS = 60000;
+  const HISTORY_PANEL_FORCE_STALE_MS = 15000;
+  const REQUEST_POLL_VISIBLE_MS = 3000;
+  const REQUEST_POLL_HIDDEN_MS = 30000;
   const state = {
     route: null, count: 0, latest: null, requestAt: 0, requestError: '',
-    requestBusy: false, requestNext: 0, scanBusy: false, scanNext: 0,
-    scanError: '', scan: null, generation: 0, controllers: new Set(),
+    requestBusy: false, requestNext: 0, generation: 0, controllers: new Set(),
     modelQuotaConfigs: [], modelQuotaGroups: [], quotaSynced: false,
     disposed: false, layoutMode: 'wide', tooltipOpen: false,
     reportedFinalCallIds: new Set(), reportedFinalCallOutputs: new Map()
   };
   const route = () => location.pathname.match(/^\/c\/([a-f\d-]{36})(?:\/|$)/i)?.[1] || null;
   let activeHeatView = 'daily';
+  let heatViewDirty = true;
   let heatPageOffset = 0;
   let heatMonthOffset = 0;
   let heatYearOffset = 0;
+  function isTokensPanelVisible() {
+    const p = el('panel-tokens');
+    return Boolean(p && !p.hidden);
+  }
 
   // =========================================================================
   // 模块 1: 0 级主题跟随、面板与菜单统一背景色、热力图 5 档色阶与自定义颜色选取器
@@ -4235,8 +4133,12 @@
     if (typeof syncModelQuotaTheme === 'function') syncModelQuotaTheme();
     applyHeatmapPalette();
     syncSwatchAndResetButtons();
-    if (activeHeatView === 'weekly') renderHeatmapWeekly();
-    else if (activeHeatView === 'cum') renderHeatmapCum();
+    if (isTokensPanelVisible()) {
+      if (activeHeatView === 'weekly') renderHeatmapWeekly();
+      else if (activeHeatView === 'cum') renderHeatmapCum();
+    } else if (activeHeatView === 'weekly' || activeHeatView === 'cum') {
+      heatViewDirty = true;
+    }
   }
 
   function setCustomColor(key, value) {
@@ -4300,8 +4202,12 @@
     });
     applyHeatmapPalette();
     syncSwatchAndResetButtons();
-    if (activeHeatView === 'weekly') renderHeatmapWeekly();
-    else if (activeHeatView === 'cum') renderHeatmapCum();
+    if (isTokensPanelVisible()) {
+      if (activeHeatView === 'weekly') renderHeatmapWeekly();
+      else if (activeHeatView === 'cum') renderHeatmapCum();
+    } else if (activeHeatView === 'weekly' || activeHeatView === 'cum') {
+      heatViewDirty = true;
+    }
     syncNativeOverlayTheme();
   }
 
@@ -5480,34 +5386,6 @@
   // =========================================================================
   // 模块 3: 面板、气泡与溢出菜单交互
   // =========================================================================
-  function withStepError(value, metadata) {
-    const error = state.scan?.session?.currentError;
-    if (!error || value?.error) return value;
-    const lastStep = Math.max(-1, ...(metadata?.stepIndices || []), metadata?.chatModel?.chatStartMetadata?.startStepIndex ?? -1);
-    if (lastStep > error.index) return value;
-    const failure = summarize({ chatModel: { retryInfos: [{ error: error.text }] } }, {
-      currentModel: value?.model || state.latest?.model || '',
-      cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [],
-      previousValidContext: value
-    });
-    return {
-      ...(value || {}),
-      error: failure.error,
-      errorClassification: failure.errorClassification,
-      exceeded: failure.exceeded,
-      network: failure.network,
-      serviceLimit: failure.serviceLimit || value?.serviceLimit || null,
-      status: failure.status,
-      // 解耦：保留已有有效上下文数据，不归零、不清空
-      used: value?.used ?? failure?.used ?? null,
-      actual: failure.exceeded ? null : (value?.actual ?? null),
-      estimate: value?.estimate ?? failure?.estimate ?? null,
-      budget: value?.budget ?? failure?.budget ?? null,
-      percent: failure.exceeded ? 100 : (value?.percent ?? null),
-      estimated: value?.actual == null
-    };
-  }
-
   function isAnyPanelOpen() {
     return !el('panel').hidden || !el('panel-tokens').hidden;
   }
@@ -5537,8 +5415,13 @@
       bTokens.setAttribute('aria-expanded', 'true');
       syncHostStackingElevation(true);
       positionFloatingPanels();
-      void syncTokenHistoryFromHost(false);
-      renderActiveHeatView(true);
+      if (heatViewDirty) {
+        renderActiveHeatView(true);
+      } else {
+        updateHeatTabThumb();
+      }
+      const shouldForceTokenRefresh = lastHistorySync === 0 || (Date.now() - lastHistorySync >= HISTORY_PANEL_FORCE_STALE_MS);
+      void syncTokenHistoryFromHost(shouldForceTokenRefresh);
     } else if (target === 'context') {
       hideContextTooltip();
       hideTopbarActionTooltip(true);
@@ -8385,7 +8268,7 @@
 
     const configs = (Array.isArray(state.modelQuotaConfigs) && state.modelQuotaConfigs.length)
       ? state.modelQuotaConfigs
-      : (state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || []);
+      : (state.cascadeModelConfigs || []);
 
     const peekTrigger = peekHostSelectedTrigger();
     const peekText = peekTrigger ? String(peekTrigger.textContent || '') : '';
@@ -10040,7 +9923,7 @@
   function resolveStableModelKeyClient(rawOrLatest) {
     if (!rawOrLatest) return null;
     if (typeof resolveStableModelId === 'function') {
-      const resolved = resolveStableModelId(rawOrLatest, state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || []);
+      const resolved = resolveStableModelId(rawOrLatest, state.cascadeModelConfigs || []);
       if (resolved) return resolved;
     }
     if (typeof rawOrLatest === 'string') {
@@ -10091,7 +9974,7 @@
       if (mEffort) effort = mEffort[1];
     }
 
-    const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+    const configs = state.cascadeModelConfigs || [];
     const stableId = resolveStableModelKeyClient(rawText) || (typeof resolveStableModelId === 'function' ? resolveStableModelId(rawText, configs) : null);
     const g = groupProductSafe({
       modelId: stableId || rawText,
@@ -10112,7 +9995,7 @@
   /** 将已知模型目录、当前会话和历史调用按产品维度分组（只读） */
   function getKnownModelProducts() {
     const productMap = new Map();
-    const configs = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+    const configs = state.cascadeModelConfigs || [];
     const slugToKey = new Map();
     const ensureProduct = (meta, fromAccountCatalog = false) => {
       const g = groupProductSafe(meta);
@@ -10735,7 +10618,7 @@
         days: daysArg,
         origin: speedOriginFilter,
         metric: speedMetric,
-        cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || []
+        cascadeModelConfigs: state.cascadeModelConfigs || []
       })
       : [];
     lastSpeedGroups = groups;
@@ -10869,10 +10752,6 @@
       if (colorDrawerArrow && colorDrawerBody) {
         const open = colorDrawerBody.style.display === 'block';
         colorDrawerArrow.textContent = open ? t('drawer.colors.collapse') : t('drawer.colors.expand');
-      }
-      if (drawerArrow && drawerBody) {
-        const open = drawerBody.style.display === 'block';
-        drawerArrow.textContent = open ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
       }
       if (tokenColorDrawerArrow && tokenColorDrawerBody) {
         const open = tokenColorDrawerBody.style.display === 'block';
@@ -12104,19 +11983,7 @@
   }
   btnColors?.addEventListener('click', () => toggleColorsDrawer());
 
-  // 二级抽屉 2（面板 B 内）: 底层技术抽屉折叠展开
-  const btnDetails = el('btn-toggle-details');
-  const drawerBody = el('drawer-body');
-  const drawerArrow = el('drawer-arrow');
-  btnDetails?.addEventListener('click', () => {
-    if (!drawerBody) return;
-    const isHidden = drawerBody.style.display === 'none' || !drawerBody.style.display;
-    drawerBody.style.display = isHidden ? 'block' : 'none';
-    if (drawerArrow) drawerArrow.textContent = isHidden ? t('session.techDrawer.collapse') : t('session.techDrawer.expand');
-    btnDetails.setAttribute('aria-expanded', String(isHidden));
-  });
-
-  // 二级抽屉 3（面板 A 内就近设置）: 热力图色阶与面板外观自定义抽屉折叠展开
+  // 二级抽屉 2（面板 A 内就近设置）: 热力图色阶与面板外观自定义抽屉折叠展开
   const btnTokenColors = el('btn-toggle-token-colors');
   const tokenColorDrawerBody = el('token-color-drawer-body');
   const tokenColorDrawerArrow = el('token-color-drawer-arrow');
@@ -12175,9 +12042,10 @@
     }
     computeTimelineWindow();
     updateHeatTabThumb();
+    heatViewDirty = false;
   }
 
-  function switchHeatView(view, save = true) {
+  function switchHeatView(view, save = true, opts = {}) {
     if (!['daily', 'weekly', 'monthly', 'yearly', 'cum'].includes(view)) view = 'daily';
     activeHeatView = view;
 
@@ -12208,8 +12076,11 @@
     });
 
     hidePopover();
-    renderActiveHeatView(true);
-    updateHeatTabThumb();
+    if (opts.forceRender || isTokensPanelVisible()) {
+      renderActiveHeatView(true);
+    } else {
+      heatViewDirty = true;
+    }
 
     if (save && typeof window !== 'undefined' && typeof window.contextMeterAPI?.saveSettings === 'function') {
       window.contextMeterAPI.saveSettings({ savedHeatView: view });
@@ -12261,7 +12132,6 @@
     renderActiveHeatView(true);
   });
 
-  el('refresh').addEventListener('click', () => { if (state.route && !state.scanBusy) void scan(state.generation, state.route, true); });
   const outside = e => {
     const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
     const pop = el('color-picker-popover');
@@ -12329,27 +12199,6 @@
   // =========================================================================
   // 模块 4: 数据渲染、完整本地 Token 历史读取与首次使用日起算时间轴
   // =========================================================================
-  function renderFiles(session) {
-    const parent = el('files'); parent.replaceChildren();
-    if (!session) { const item = document.createElement('p'); item.textContent = t('files.reading'); parent.appendChild(item); return; }
-    if (!Array.isArray(session.attachments) || !session.attachments.length) { const item = document.createElement('p'); item.textContent = t('files.empty'); parent.appendChild(item); return; }
-    for (const file of session.attachments) {
-      const item = document.createElement('div'); item.className = 'file';
-      const name = document.createElement('div'); name.className = 'file-name'; name.textContent = `${file.name} ${file.references > 1 ? t('files.refs', { n: file.references }) : ''}`;
-      const detail = document.createElement('div'); detail.className = 'file-detail';
-      const sizeInfo = file.width && file.height
-        ? t('files.px', { w: file.width, h: file.height })
-        : (typeof file.chars === 'number' && file.chars > 0 ? t('files.chars', { n: fmt(file.chars) }) : '');
-      const tokenInfo = range(file) ? `${range(file)} token` : t('files.tokUnknown');
-      const sheetsPart = file.sheets != null ? t('files.sheets', { sheets: file.sheets, cells: fmt(file.cells) }) : '';
-      const hiddenPart = file.hiddenSheets ? t('files.hiddenSheets', { n: file.hiddenSheets }) : '';
-      detail.textContent = `${file.source === 'assistant' ? t('files.assistantPrefix') : ''}${tokenInfo}${sizeInfo ? ` · ${sizeInfo}` : ''}${sheetsPart}${hiddenPart}`;
-      item.appendChild(name); item.appendChild(detail);
-      if (file.unknownParts?.length) { const unknown = document.createElement('div'); unknown.className = 'file-unknown'; unknown.textContent = t('files.unknownPrefix', { parts: file.unknownParts.join('；') }); item.appendChild(unknown); }
-      parent.appendChild(item);
-    }
-  }
-
   function setHoverExtra(text) {
     const extra = el('hover-extra');
     if (extra && extra.textContent !== text) {
@@ -12492,7 +12341,7 @@
     return { firstStr, firstDate, today, winStart, winEnd, totalDays, canPrev, canNext };
   }
 
-  function applyTokenHistoryPayload(payload) {
+  function applyTokenHistoryPayload(payload, opts = {}) {
     if (!payload || typeof payload !== 'object') return false;
     if (payload.loading) {
       if (Number(ANTIGRAVITY_TOKEN_DATA.summary?.grandTotalTokens) > 0) return false;
@@ -12500,7 +12349,7 @@
 
     if (Array.isArray(payload.speedRecords)) {
       ANTIGRAVITY_TOKEN_DATA.speedRecords = payload.speedRecords;
-      if (!isContextSettingsView && activeContextTab === 'speed') {
+      if (!el('panel')?.hidden && !isContextSettingsView && activeContextTab === 'speed') {
         renderSpeedComparisonTab();
       }
     }
@@ -12662,8 +12511,11 @@
     if (tYearVal) tYearVal.textContent = fmtCardM(yearTokens);
     if (tYearSub) tYearSub.textContent = t('tokens.card.yearSub', { n: totalDays });
 
-    computeTimelineWindow();
-    renderActiveHeatView(true);
+    if (opts.forceRenderHeatmap || isTokensPanelVisible()) {
+      renderActiveHeatView(true);
+    } else {
+      heatViewDirty = true;
+    }
     return true;
   }
 
@@ -12783,8 +12635,8 @@
       return;
     }
     historySyncBusy = true;
+    lastHistorySync = Date.now();
     try {
-      await restoreSettingsFromHost();
       if (typeof window !== 'undefined' && window.__AGContextMeterHistory) {
         if (!ANTIGRAVITY_TOKEN_DATA.updatedAt && !ANTIGRAVITY_TOKEN_DATA.summary?.grandTotalTokens) {
           applyTokenHistoryPayload(window.__AGContextMeterHistory);
@@ -13398,12 +13250,8 @@
     updateSummaryBar('yearly', allYearDates);
   }
 
-  // 初始化首次使用日与时间轴显示并触发后台完整历史同步
-  computeTimelineWindow();
-  void syncTokenHistoryFromHost();
-
   // 统一生成徽章、悬浮提示与速览卡片的状态数据
-  function resolveDisplayStatus(d, session) {
+  function resolveDisplayStatus(d) {
     const ec = d?.errorClassification;
     let kind = ec?.kind || (d?.exceeded ? 'context_overflow' : d?.network ? 'network_error' : d?.error ? 'unknown' : 'none');
 
@@ -13580,7 +13428,7 @@
   }
 
 
-  function updateRingAndBubble(d, session, pct, danger, stale, incomplete) {
+  function updateRingAndBubble(d, pct, danger, stale) {
     const ringFill = el('ring-fill');
     const tipTitle = el('ctx-tip-title');
     const tipPct = el('ctx-tip-pct');
@@ -13622,7 +13470,7 @@
     // 2. 悬停信息气泡三层文案（标题 — 使用比例 — 用量与容量）
     if (!tipTitle || !tipPct || !tipDetail) return;
 
-    const disp = resolveDisplayStatus(d, session);
+    const disp = resolveDisplayStatus(d);
     if (disp.isError || disp.kind === 'canceled') {
       tipTitle.textContent = disp.tipTitle;
       tipPct.textContent = disp.tipPct;
@@ -13636,9 +13484,7 @@
     } else if (stale) {
       tipTitle.textContent = t('tip.title.stale');
       tipPct.textContent = t('tip.pct.staleUnknown');
-      tipDetail.textContent = session?.total
-        ? t('tip.detail.sessionEst', { low: fmtBubbleToken(session.total.low), high: fmtBubbleToken(session.total.high) })
-        : t('tip.detail.waitBg');
+      tipDetail.textContent = t('tip.detail.waitBg');
     } else if (d?.actual != null && d?.budget) {
       const rawPct = pct != null ? pct : (d.actual / d.budget) * 100;
       const usedRound = rawPct > 0 && rawPct < 1 ? 1 : Math.min(100, Math.max(0, Math.round(rawPct)));
@@ -13656,7 +13502,7 @@
       tipDetail.textContent = t('tip.detail.usedOfBudget', {
         used: fmtBubbleToken(d.actual),
         budget: fmtBubbleToken(d.budget),
-        inc: incomplete ? t('tip.detail.incSuffix') : ''
+        inc: ''
       });
     } else if (d?.actual != null && !d?.budget) {
       tipTitle.textContent = t('tip.title.normal');
@@ -13667,10 +13513,6 @@
       tipPct.textContent = t('tip.pct.estOnly');
       const budgetPart = d.budget ? t('tip.detail.estBudgetPart', { budget: fmtBubbleToken(d.budget) }) : t('tip.detail.estNoBudgetPart');
       tipDetail.textContent = t('tip.detail.estUsed', { used: fmtBubbleToken(d.estimate), budget: budgetPart });
-    } else if (session?.total) {
-      tipTitle.textContent = t('tip.title.est');
-      tipPct.textContent = t('tip.pct.waitStats');
-      tipDetail.textContent = t('tip.detail.sessionCum', { low: fmtBubbleToken(session.total.low), high: fmtBubbleToken(session.total.high) });
     } else {
       tipTitle.textContent = t('tip.title.normal');
       tipPct.textContent = t('tip.pct.notReady');
@@ -13787,12 +13629,6 @@
         if (cSess) cSess.textContent = '—';
         if (cTakeaway) cTakeaway.textContent = t('cache.takeaway.idle');
       }
-    }
-    const cacheTechEl = el('cache-tech-detail');
-    if (cacheTechEl) {
-      cacheTechEl.textContent = cm
-        ? t('tech.cacheDetail.val', { pct: cm.hitRate.toFixed(1), cached: fmt(cm.cachedTokens), uncached: fmt(cm.uncachedTokens) })
-        : '—';
     }
   }
 
@@ -13930,7 +13766,6 @@
       const doneMsg = t('session.quick.compactDone');
       if (source === 'topbar') showTopbarTransientFeedback(true, doneMsg, el('btn-topbar-compact'));
       void requestPoll(state.generation, cascadeId);
-      void scan(state.generation, cascadeId, true);
       return { ok: true };
     } catch (err) {
       const msg = t('session.quick.compactFail', { err: translateBackendText(err?.message) || err?.message || t('msg.unknownErr') });
@@ -13964,10 +13799,9 @@
       return;
     }
 
-    const d = state.latest, session = state.scan?.session;
-    const disp = resolveDisplayStatus(d, session);
-    const stale = state.requestError || state.requestAt && Date.now() - state.requestAt > 20000;
-    const incomplete = session?.unknownFiles > 0;
+    const d = state.latest;
+    const disp = resolveDisplayStatus(d);
+    const stale = state.requestError || state.requestAt && Date.now() - state.requestAt > 45000;
     const danger = disp.isError || d?.exceeded;
 
     let pct = null;
@@ -13979,28 +13813,15 @@
       pct = Math.min(100, Math.max(0, (d.actual / d.budget) * 100));
     }
 
-    const barColor = danger ? '#ff4d4f' : pct != null && pct >= 90 ? '#ff4d4f' : pct != null && pct >= 75 || stale || incomplete ? '#faad14' : '#69c0ff';
-    const tone = danger ? '#ff9292' : stale || incomplete || d?.estimated ? '#f2c46d' : '#b7c1ff';
+    const barColor = danger ? '#ff4d4f' : pct != null && pct >= 90 ? '#ff4d4f' : pct != null && pct >= 75 || stale ? '#faad14' : '#69c0ff';
+    const tone = danger ? '#ff9292' : stale || d?.estimated ? '#f2c46d' : '#b7c1ff';
     host.style.setProperty('--tone', tone);
     host.style.setProperty('--bar-color', barColor);
 
     const barFill = el('bar-fill');
     if (barFill) barFill.style.width = pct != null ? `${pct}%` : (d?.exceeded ? '100%' : '0%');
 
-    updateRingAndBubble(d, session, pct, danger, stale, incomplete);
-
-    const status = disp.isError
-      ? disp.statusText
-      : stale ? t('badge.status.stale')
-      : state.scanError ? t('badge.status.scanErr', { err: translateBackendText(state.scanError) })
-      : incomplete ? t('badge.status.incomplete', { count: session.unknownFiles })
-      : d?.estimated ? t('badge.status.estimated')
-      : t('badge.status.normal');
-    el('status').textContent = status;
-
-    const corpus = session?.total
-      ? t('badge.corpus.range', { range: range(session.total), inc: incomplete ? t('badge.corpus.incPlus') : '' })
-      : state.scanBusy ? t('badge.corpus.scanning') : t('badge.corpus.pending');
+    updateRingAndBubble(d, pct, danger, stale);
 
     const badgePctVal = el('badge-pct-val');
     if (disp.isError || disp.kind === 'canceled') {
@@ -14010,17 +13831,17 @@
     } else if (stale) {
       el('amount').textContent = t('badge.delayed');
       if (badgePctVal) badgePctVal.textContent = pct != null ? `${pct.toFixed(0)}%` : '--%';
-      setHoverExtra(` · ${corpus}`);
+      setHoverExtra('');
     } else if (d?.actual != null) {
       const pctStr = pct != null ? ` (${pct.toFixed(0)}%)` : '';
       el('amount').textContent = `${short(d.actual)}${pctStr}`;
       if (badgePctVal) badgePctVal.textContent = pct != null ? `${pct.toFixed(0)}%` : '--%';
       const budgetStr = d?.budget ? ` / ${short(d.budget)}` : '';
-      setHoverExtra(`${budgetStr} · ${corpus}`);
+      setHoverExtra(budgetStr);
     } else {
       el('amount').textContent = t('badge.actualUnknown');
       if (badgePctVal) badgePctVal.textContent = '--%';
-      setHoverExtra(` · ${corpus}`);
+      setHoverExtra('');
     }
 
     el('badge-tokens').title = t('badge.tokensTitle');
@@ -14069,7 +13890,7 @@
           keyBadge.className = disp.pillClass;
         }
 
-        const usedTokenCount = d?.actual != null ? d.actual : (d?.used != null ? d.used : (d?.estimate != null ? d.estimate : (session?.total?.low ?? null)));
+        const usedTokenCount = d?.actual != null ? d.actual : (d?.used != null ? d.used : (d?.estimate != null ? d.estimate : null));
         const budgetTokenCount = d?.budget || (d?.serviceLimit ? d.serviceLimit : 983040);
 
         if (disp.isOverflow) {
@@ -14117,7 +13938,7 @@
         }
       } else {
         if (keyBadge) { keyBadge.textContent = d?.estimated ? t('key.pill.est') : t('key.pill.reading'); keyBadge.className = 'key-pill pill-muted'; }
-        if (keyUsed) keyUsed.textContent = d?.estimate ? t('key.estPrefix', { val: short(d.estimate) }) : (session?.total ? short(session.total.low) : '—');
+        if (keyUsed) keyUsed.textContent = d?.estimate ? t('key.estPrefix', { val: short(d.estimate) }) : '—';
         formatKeyLimitDisplay(keyLimit, d?.budget);
         if (keyRemaining) keyRemaining.textContent = t('key.pending');
         if (keyTakeaway) keyTakeaway.textContent = t('key.takeaway.est');
@@ -14168,37 +13989,6 @@
     }
 
     renderCacheSummarySection(d);
-
-    el('model').textContent = d?.model?.startsWith('MODEL_PLACEHOLDER') ? t('tech.modelPlaceholder', { id: d.model }) : d?.model || t('tech.modelMissing');
-    el('request-status').textContent = d?.exceeded ? t('tech.req.exceeded') : d?.network ? t('tech.req.network') : d?.error ? t('tech.req.failed') : d?.status === 'reported' ? t('tech.req.reported') : d?.status === 'estimated' ? t('tech.req.estimated') : t('tech.req.waiting');
-    el('actual').textContent = d?.actual != null ? token(d.actual) : d?.exceeded ? t('tech.actual.exceeded', { val: fmt(d.serviceLimit || 0) }) : t('tech.actual.unknown');
-    if (d?.exceeded && !d.serviceLimit) el('actual').textContent = t('tech.actual.exceededNoLim');
-    el('estimate').textContent = d?.estimate ? t('tech.est.val', { val: fmt(d.estimate), note: d.exceeded ? t('tech.est.under') : t('tech.est.ref') }) : t('tech.est.none');
-    el('budget').textContent = token(d?.budget);
-    el('service-limit').textContent = d?.serviceLimit ? t('tech.svcLim.val', { val: fmt(d.serviceLimit) }) : t('tech.svcLim.none');
-    el('percent').textContent = d?.percent != null && !danger && !stale ? t('tech.pct.val', { pct: d.percent.toFixed(1) }) : t('tech.pct.none');
-    el('session-total').textContent = session?.total ? range(session.total) + (incomplete ? t('tech.plusUnknown') : '') : state.scanError ? t('tech.scanIncomplete') : t('tech.scanning');
-    el('characters').textContent = session?.total ? fmt(session.total.chars) : '—';
-    for (const name of ['user', 'assistant', 'thinking', 'tools', 'summaries']) el(name).textContent = session?.groups ? range(session.groups[name]) : '—';
-    el('system').textContent = session?.groups ? range({ low: (session.groups.system?.low || 0) + (session.groups.definitions?.low || 0), high: (session.groups.system?.high || 0) + (session.groups.definitions?.high || 0) }) : '—';
-    el('attachment-total').textContent = session?.attachmentTotal ? range(session.attachmentTotal) + (incomplete ? t('tech.plusUnknownShort') : '') : '—';
-    el('steps').textContent = session?.steps != null ? t('tech.stepsVal', { steps: fmt(session.steps), user: session.userMessages, assistant: session.assistantMessages }) : t('tech.stepsNone');
-    el('coverage').textContent = Array.isArray(session?.attachments)
-      ? t('tech.coverageVal', {
-          total: session.attachments.length,
-          user: session.attachments.filter(f => f.source === 'user').length,
-          assistant: session.attachments.filter(f => f.source === 'assistant').length,
-          read: session.attachments.filter(f => f.chars > 0).length,
-          unknown: session.unknownFiles,
-          rescan: state.scanBusy ? t('tech.coverageRescan') : '',
-          err: state.scanError ? t('tech.coverageErr', { err: translateBackendText(state.scanError) }) : ''
-        })
-      : (state.scanError ? translateBackendText(state.scanError) : t('tech.coverageScanning'));
-    el('updated').textContent = t('tech.updatedVal', {
-      req: state.requestAt ? new Date(state.requestAt).toLocaleTimeString() : t('tech.unread'),
-      scan: state.scan ? new Date(state.scan.scannedAt).toLocaleTimeString() : t('tech.unfinished')
-    });
-    el('refresh').disabled = state.scanBusy;
   }
 
   async function requestPoll(generation, id) {
@@ -14215,7 +14005,7 @@
       state.count = rows.length ? offset + rows.length : 0;
       if (!state.sessionCallsMap) state.sessionCallsMap = new Map();
       const parsedCalls = [];
-      const modelConfigsList = state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [];
+      const modelConfigsList = state.cascadeModelConfigs || [];
       for (let i = 0; i < rows.length; i++) {
         const call = parseGeneratorCall ? parseGeneratorCall(rows[i], id, 'desktop', { cascadeModelConfigs: modelConfigsList }) : null;
         if (call && call.callId) {
@@ -14247,44 +14037,17 @@
       }
       for (let i = rows.length - 1; i >= 0; i--) {
         const value = summarize(rows[i], {
-          cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || [],
+          cascadeModelConfigs: state.cascadeModelConfigs || [],
           turnCount: offset + i + 1
         });
         if (value) {
-          state.latest = withStepError(value, rows[i]);
+          state.latest = value;
           break;
         }
       }
       state.requestAt = Date.now(); state.requestError = '';
     } catch (e) { if (generation === state.generation && !state.disposed) state.requestError = e.name === 'AbortError' ? '读取超时' : e.message; }
-    finally { clearTimeout(timeout); state.controllers.delete(controller); if (generation === state.generation && !state.disposed) { state.requestBusy = false; state.requestNext = Date.now() + (document.hidden ? 15000 : 3000); render(); } }
-  }
-
-  async function scan(generation, id, force = false) {
-    state.scanBusy = true; render();
-    try {
-      let result;
-      if (window.contextMeterAPI?.scan) result = await window.contextMeterAPI.scan(id, force);
-      else if (window.__AGContextMeterLive) {
-        const live = window.__AGContextMeterLive, controller = new AbortController(); state.controllers.add(controller);
-        const timeout = setTimeout(() => controller.abort(), 180000);
-        try { const response = await fetch(`http://127.0.0.1:${live.port}/scan`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-AG-Context-Token': live.token }, body: JSON.stringify({ id, force }), signal: controller.signal }); if (!response.ok) throw new Error(`HTTP ${response.status}`); result = await response.json(); }
-        finally { clearTimeout(timeout); state.controllers.delete(controller); }
-      } else throw new Error('完整重启 Antigravity 后启用附件扫描');
-      if (generation !== state.generation || state.disposed) return;
-      if (!result?.ok) throw new Error(result?.error || '扫描未返回有效结果');
-      state.scan = result.data; state.scanError = '';
-      if (Array.isArray(result.data.cascadeModelConfigs) && result.data.cascadeModelConfigs.length) {
-        state.cascadeModelConfigs = result.data.cascadeModelConfigs;
-      }
-      if (result.data.scannedAt >= state.requestAt && result.data.latest) {
-        state.latest = result.data.latest;
-        state.requestAt = result.data.scannedAt;
-      }
-      state.latest = withStepError(state.latest);
-      renderFiles(result.data.session);
-    } catch (e) { if (generation === state.generation && !state.disposed) state.scanError = e.message; }
-    finally { if (generation === state.generation && !state.disposed) { state.scanBusy = false; state.scanNext = Date.now() + (document.hidden ? 60000 : 20000); render(); } }
+    finally { clearTimeout(timeout); state.controllers.delete(controller); if (generation === state.generation && !state.disposed) { state.requestBusy = false; state.requestNext = Date.now() + (document.hidden ? REQUEST_POLL_HIDDEN_MS : REQUEST_POLL_VISIBLE_MS); render(); } }
   }
 
   let lastHistorySync = 0;
@@ -14293,7 +14056,8 @@
     if (!state.disposed && !host.isConnected) {
       ensureHostDocked();
     }
-    if (typeof document === 'undefined' || !document.hidden) {
+    const isHidden = typeof document !== 'undefined' && Boolean(document.hidden);
+    if (!isHidden) {
       renderModelQuota();
     }
     const id = route();
@@ -14305,20 +14069,30 @@
       Object.assign(state, {
         route: id, count: 0, latest: null, sessionCalls: [],
         requestAt: 0, requestError: '', requestBusy: false, requestNext: 0,
-        scanBusy: false, scanNext: 0, scanError: '', scan: null,
         reportedFinalCallIds: state.reportedFinalCallIds || new Set(),
         reportedFinalCallOutputs: state.reportedFinalCallOutputs || new Map()
       });
-      toggle(false); hideContextTooltip(); hideTopbarActionTooltip(true); renderFiles(null); render();
-      void syncTokenHistoryFromHost(false);
+      toggle(false); hideContextTooltip(); hideTopbarActionTooltip(true); render();
+      if (!state.quotaSynced || Date.now() - lastHistorySync >= HISTORY_RESUME_STALE_MS) {
+        void syncTokenHistoryFromHost(false);
+      }
     }
     if (id && !state.requestBusy && Date.now() >= state.requestNext) void requestPoll(state.generation, id);
-    if (id && !state.scanBusy && Date.now() >= state.scanNext) void scan(state.generation, id);
-    if (Date.now() - lastHistorySync > 15000) {
+    if (lastHistorySync === 0 || (!isHidden && Date.now() - lastHistorySync >= HISTORY_IDLE_SYNC_INTERVAL_MS)) {
       lastHistorySync = Date.now();
       void syncTokenHistoryFromHost(false);
     }
   }
+
+  const onVisibilityChange = () => {
+    if (state.disposed || typeof document === 'undefined' || document.hidden) return;
+    state.requestNext = 0;
+    if (!state.quotaSynced || Date.now() - lastHistorySync >= HISTORY_RESUME_STALE_MS) {
+      void syncTokenHistoryFromHost(false);
+    }
+    renderModelQuota();
+  };
+  try { document.addEventListener?.('visibilitychange', onVisibilityChange); } catch {}
 
   const timer = setInterval(tick, 500);
   globalThis.__AGContextMeter = {
@@ -14343,11 +14117,16 @@
     closeColorPicker,
     applyTokenHistoryPayload,
     applyPickerHex,
-    setTokenHistoryForTest: payload => applyTokenHistoryPayload(payload),
+    setTokenHistoryForTest: (payload, opts) => applyTokenHistoryPayload(payload, opts),
     getPlanDetailExpanded: () => planDetailExpanded,
     setPlanDetailExpanded,
-    switchHeatView: view => switchHeatView(view),
+    switchHeatView: view => switchHeatView(view, true, { forceRender: true }),
     getActiveHeatView: () => activeHeatView,
+    isHeatViewDirtyForTest: () => heatViewDirty,
+    showPanelForTest: target => showPanel(target),
+    tickForTest: () => tick(),
+    setLastHistorySyncForTest: ts => { lastHistorySync = Number(ts) || 0; },
+    getLastHistorySyncForTest: () => lastHistorySync,
     renderHeatmapMonthly: () => renderHeatmapMonthly(),
     renderHeatmapYearly: () => renderHeatmapYearly(),
     openGithubRepo: path => openGithubRepo(path),
@@ -14420,7 +14199,7 @@
     restoreSettingsForTest: () => restoreSettingsFromHost(),
     translateForTest: (key, vars) => t(key, vars),
     applyStaticTranslationsForTest: (rootNode) => applyStaticPanelTranslations(rootNode),
-    snapshot: () => ({ route: state.route, count: state.count, latest: state.latest, scan: state.scan, requestError: state.requestError, scanError: state.scanError, scanBusy: state.scanBusy, layoutMode: state.layoutMode, sessionCalls: state.sessionCalls }),
+    snapshot: () => ({ route: state.route, count: state.count, latest: state.latest, requestError: state.requestError, layoutMode: state.layoutMode, sessionCalls: state.sessionCalls }),
     dispose() {
       state.disposed = true;
       for (const controller of state.controllers) controller.abort();
@@ -14442,6 +14221,7 @@
         window.removeEventListener?.('mouseup', onPointerUp);
         navigator?.windowControlsOverlay?.removeEventListener?.('geometrychange', onWindowResize);
       } catch {}
+      try { document.removeEventListener?.('visibilitychange', onVisibilityChange); } catch {}
       document.removeEventListener('click', outside);
       document.removeEventListener('keydown', escape);
       try { document.getElementById('ag-wco-spacer')?.remove?.(); } catch {}

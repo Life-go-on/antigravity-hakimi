@@ -280,7 +280,7 @@
         days: daysArg,
         origin: speedOriginFilter,
         metric: speedMetric,
-        cascadeModelConfigs: state.cascadeModelConfigs || state.scan?.cascadeModelConfigs || []
+        cascadeModelConfigs: state.cascadeModelConfigs || []
       })
       : [];
     lastSpeedGroups = groups;
